@@ -2,6 +2,10 @@
 import { Card, CardBody, CardFooter, Image, Button, Chip } from '@heroui/react';
 import { Vehicle } from '../../utils/types';
 import { useRouter } from 'next/navigation';
+import {
+  mapFuelTypeToSpanish,
+  mapTransmissionTypeToSpanish,
+} from '@/utils/functions';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -98,9 +102,9 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => {
         <div className='flex gap-2 text-sm text-gray-500 mb-4'>
           <span>{vehicle.mileage.toLocaleString()} km</span>
           <span>•</span>
-          <span>{vehicle.transmission}</span>
+          <span>{mapTransmissionTypeToSpanish(vehicle.transmission)}</span>
           <span>•</span>
-          <span>{vehicle.fuel_type}</span>
+          <span>{mapFuelTypeToSpanish(vehicle.fuel_type)}</span>
         </div>
         <Button
           onPress={handleViewDetails}

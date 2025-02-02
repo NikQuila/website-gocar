@@ -13,6 +13,10 @@ import VehicleDetailSkeleton from './VehicleDetailSkeleton';
 import { useState } from 'react';
 import VehicleImagesModal from './VehicleImagesModal';
 import { Client, Vehicle } from '../../utils/types';
+import {
+  mapFuelTypeToSpanish,
+  mapTransmissionTypeToSpanish,
+} from '@/utils/functions';
 
 interface VehicleDetailSectionProps {
   vehicle: Vehicle | null;
@@ -219,12 +223,12 @@ export default function VehicleDetailSection({
           <DetailCard
             icon='mdi:gas-station'
             label='Combustible'
-            value={vehicle.fuel_type}
+            value={mapFuelTypeToSpanish(vehicle.fuel_type)}
           />
           <DetailCard
             icon='mdi:car-shift-pattern'
             label='Transmisión'
-            value={vehicle.transmission}
+            value={mapTransmissionTypeToSpanish(vehicle.transmission)}
           />
           <DetailCard icon='mdi:palette' label='Color' value={vehicle.color} />
         </div>
