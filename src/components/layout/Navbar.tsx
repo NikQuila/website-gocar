@@ -13,6 +13,7 @@ import {
 } from '@heroui/react';
 import useClientStore from '@/store/useClientStore';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 const navigation = [
   { name: 'Inicio', href: '/' },
@@ -52,9 +53,9 @@ const Navbar = () => {
       {/* Logo a la izquierda */}
       <NavbarContent justify='start'>
         <NavbarBrand>
-          <a href='/'>
+          <Link href='/'>
             <img src={client?.logo} alt={client?.name} className='h-8 w-auto' />
-          </a>
+          </Link>
         </NavbarBrand>
       </NavbarContent>
 
@@ -62,7 +63,7 @@ const Navbar = () => {
       <NavbarContent className='hidden sm:flex gap-4' justify='center'>
         {navigation.map((item) => (
           <NavbarItem key={item.name}>
-            <a
+            <Link
               href={item.href}
               className={`px-3 py-2 transition-colors ${
                 isActive(item.href)
@@ -71,7 +72,7 @@ const Navbar = () => {
               }`}
             >
               {item.name}
-            </a>
+            </Link>
           </NavbarItem>
         ))}
       </NavbarContent>
@@ -98,7 +99,7 @@ const Navbar = () => {
       <NavbarMenu>
         {navigation.map((item) => (
           <NavbarMenuItem key={item.name}>
-            <a
+            <Link
               href={item.href}
               className={`w-full py-2 transition-colors ${
                 isActive(item.href)
@@ -108,7 +109,7 @@ const Navbar = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               {item.name}
-            </a>
+            </Link>
           </NavbarMenuItem>
         ))}
         <NavbarMenuItem>

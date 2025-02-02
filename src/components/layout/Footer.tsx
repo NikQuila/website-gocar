@@ -1,7 +1,7 @@
 'use client';
 
 import useClientStore from '@/store/useClientStore';
-
+import Link from 'next/link';
 export function Footer() {
   const { client } = useClientStore();
 
@@ -23,24 +23,24 @@ export function Footer() {
           <div>
             <h3 className='text-gray-900 font-semibold mb-4'>Enlaces</h3>
             <div className='space-y-2'>
-              <a
+              <Link
                 href='/vehicles'
                 className='block text-gray-600 hover:text-gray-900'
               >
                 Vehículos
-              </a>
-              <a
+              </Link>
+              <Link
                 href='/about'
                 className='block text-gray-600 hover:text-gray-900'
               >
                 Nosotros
-              </a>
-              <a
+              </Link>
+              <Link
                 href='/contact'
                 className='block text-gray-600 hover:text-gray-900'
               >
                 Contacto
-              </a>
+              </Link>
             </div>
           </div>
 
