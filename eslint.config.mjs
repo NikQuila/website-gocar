@@ -13,7 +13,6 @@ const eslintConfig = [
   ...compat.extends('next/core-web-vitals'),
   {
     rules: {
-      // Desactivar todas las reglas que causan errores
       '@typescript-eslint/no-unused-vars': 'off',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
@@ -21,14 +20,15 @@ const eslintConfig = [
       '@typescript-eslint/no-empty-function': 'off',
       'react-hooks/exhaustive-deps': 'off',
     },
-    ignorePatterns: [
-      'node_modules/',
-      '.next/',
-      'out/',
-      'public/',
-      '*.config.js',
-      '*.config.mjs',
-      'dist/',
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs'],
+    ignores: [
+      '**/node_modules/**',
+      '**/.next/**',
+      '**/out/**',
+      '**/public/**',
+      '**/*.config.js',
+      '**/*.config.mjs',
+      '**/dist/**',
     ],
   },
 ];
