@@ -39,7 +39,29 @@ export default function VehicleDetailSection({
   if (loading || !vehicle) {
     return <VehicleDetailSkeleton />;
   }
+  const handleShare = async () => {
+    const shareData = {
+      title: `${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year}`,
+      text: `Mira este ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year} en venta`,
+      url: window.location.href,
+    };
 
+    if (navigator.share && /mobile|android|iphone/i.test(navigator.userAgent)) {
+      // Mobile sharing
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      // Fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+      } catch (err) {
+        console.error('Error copying to clipboard:', err);
+      }
+    }
+  };
   const formattedPrice = new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
@@ -74,7 +96,7 @@ export default function VehicleDetailSection({
           )}
           <CardBody className='p-0  w-full'>
             <Image
-              alt={`${vehicle.brand} ${vehicle.model}`}
+              alt={`${vehicle?.brand?.name} ${vehicle?.model?.name}`}
               className={`h-96 w-full object-cover cursor-pointer ${
                 isSold ? 'opacity-75' : ''
               }`}
@@ -128,27 +150,61 @@ export default function VehicleDetailSection({
       {/* Vehicle Details Section */}
       <div className='space-y-6'>
         <div>
-          <h1 className='text-4xl font-bold'>
-            {vehicle.brand?.name} {vehicle.model?.name} {vehicle.year}
-          </h1>
-          <div className='mt-2'>
-            {vehicle.discount_percentage ? (
-              <>
-                <p className='text-sm line-through text-gray-400'>
+          <div className='flex justify-between items-center'>
+            <h1 className='text-4xl font-bold'>
+              {vehicle.brand?.name} {vehicle.model?.name} {vehicle.year}
+            </h1>
+            <div className='hidden sm:block'>
+              <Button
+                size='sm'
+                color='primary'
+                variant='flat'
+                className='font-semibold'
+                isIconOnly
+                onPress={handleShare}
+              >
+                <Icon
+                  icon='mdi:share-variant'
+                  className='text-3xl text-primary'
+                />
+              </Button>
+            </div>
+          </div>
+          <div className='mt-2 flex justify-between items-center'>
+            <div className=''>
+              {vehicle.discount_percentage ? (
+                <>
+                  <p className='text-sm line-through text-gray-400'>
+                    {formattedPrice}
+                  </p>
+                  <p className='text-2xl font-semibold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent'>
+                    {new Intl.NumberFormat('es-CL', {
+                      style: 'currency',
+                      currency: 'CLP',
+                    }).format(discountedPrice!)}
+                  </p>
+                </>
+              ) : (
+                <p className='text-2xl font-semibold text-primary'>
                   {formattedPrice}
                 </p>
-                <p className='text-2xl font-semibold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent'>
-                  {new Intl.NumberFormat('es-CL', {
-                    style: 'currency',
-                    currency: 'CLP',
-                  }).format(discountedPrice!)}
-                </p>
-              </>
-            ) : (
-              <p className='text-2xl font-semibold text-primary'>
-                {formattedPrice}
-              </p>
-            )}
+              )}
+            </div>
+            <div className='block sm:hidden'>
+              <Button
+                size='sm'
+                color='primary'
+                variant='flat'
+                className='font-semibold'
+                isIconOnly
+                onPress={handleShare}
+              >
+                <Icon
+                  icon='mdi:share-variant'
+                  className='text-3xl text-primary'
+                />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -191,7 +247,7 @@ export default function VehicleDetailSection({
           </div>
         </div>
 
-        <div className='flex flex-col gap-3 sm:flex-row '>
+        <div className='flex flex-col gap-3 sm:flex-row'>
           <Button
             size='lg'
             color='primary'

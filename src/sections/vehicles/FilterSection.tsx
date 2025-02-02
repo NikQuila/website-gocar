@@ -1,3 +1,9 @@
+import { CONDITION_TYPES, TRANSMISSION_TYPES } from '@/utils/definitions';
+import {
+  mapConditionTypeToSpanish,
+  mapFuelTypeToSpanish,
+  mapTransmissionTypeToSpanish,
+} from '@/utils/functions';
 import { Brand, VehicleFilters as VehicleFiltersType } from '@/utils/types';
 import { Button, Select, SelectItem, Slider } from '@heroui/react';
 
@@ -117,7 +123,9 @@ const VehicleFilters = ({
           >
             {fuelTypes.map((type) => (
               <SelectItem key={type} value={type}>
-                {type}
+                {mapFuelTypeToSpanish(
+                  type as 'Gasoline' | 'Diesel' | 'Hybrid' | 'Electric' | 'Gas'
+                )}
               </SelectItem>
             ))}
           </Select>
@@ -133,9 +141,9 @@ const VehicleFilters = ({
             selectedKeys={filters.transmission ? [filters.transmission] : []}
             onChange={(e) => onFilterChange('transmission', e.target.value)}
           >
-            {transmissions.map((type) => (
+            {TRANSMISSION_TYPES.map((type) => (
               <SelectItem key={type} value={type}>
-                {type}
+                {mapTransmissionTypeToSpanish(type as 'Automatic' | 'Manual')}
               </SelectItem>
             ))}
           </Select>
@@ -149,9 +157,11 @@ const VehicleFilters = ({
             selectedKeys={filters.condition ? [filters.condition] : []}
             onChange={(e) => onFilterChange('condition', e.target.value)}
           >
-            {conditions.map((condition) => (
+            {CONDITION_TYPES.map((condition) => (
               <SelectItem key={condition} value={condition}>
-                {condition}
+                {mapConditionTypeToSpanish(
+                  condition as 'New' | 'Used' | 'Certified Pre-Owned'
+                )}
               </SelectItem>
             ))}
           </Select>

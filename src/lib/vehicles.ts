@@ -26,7 +26,13 @@ export const getVehicleById = async (vehicleId: string) => {
   try {
     const { data, error } = await supabase
       .from('vehicles')
-      .select('*')
+      .select(
+        `
+        *,
+        brand:brand_id(id, name),
+        model:model_id(id, name)
+      `
+      )
       .eq('id', vehicleId)
       .single();
     if (error) throw error;
