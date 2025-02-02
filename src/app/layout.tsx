@@ -1,33 +1,33 @@
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 import './globals.css';
 import { getClient } from '../hooks/useClient';
+import { HeroUIProvider } from '@/providers/HeroUIProvider';
+import { ClientProvider } from '@/providers/ClientProvider';
+import Navbar from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
+import ThemeProvider from '@/providers/ThemeProvider';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const poppins = Poppins({
+  weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  variable: '--font-poppins',
 });
 
 export async function generateMetadata() {
   const client = await getClient();
 
   return {
-    title: client?.name || 'Automotora',
+    title: client?.seo?.title || 'Automotora',
     description: client?.seo?.description || 'Descripción por defecto',
     openGraph: {
-      title: client?.name,
+      title: client?.seo?.title,
       description: client?.seo?.description,
       images: [client?.logo],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: client?.name,
+      title: client?.seo?.title,
       description: client?.seo?.description,
       images: [client?.logo],
     },
@@ -41,10 +41,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang='es'>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${poppins.variable} antialiased`}>
+        <HeroUIProvider>
+          <ClientProvider>
+            <ThemeProvider>
+              <Navbar />
+              {children}
+              <Footer />
+            </ThemeProvider>
+          </ClientProvider>
+        </HeroUIProvider>
       </body>
     </html>
   );

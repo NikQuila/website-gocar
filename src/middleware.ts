@@ -9,6 +9,7 @@ const supabase = createClient(
 
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host');
+  console.log(hostname);
   const userAgent = request.headers.get('user-agent')?.toLowerCase() || '';
 
   // Lista de crawlers conocidos (incluyendo WhatsApp)
