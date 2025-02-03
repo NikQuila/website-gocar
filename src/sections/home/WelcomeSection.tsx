@@ -9,6 +9,7 @@ import 'swiper/css';
 import 'swiper/css/free-mode';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
 import VehicleCard from '@/components/vehicles/VehicleCard';
+import SimpleCarousel from '@/components/vehicles/VehicleCarousel';
 
 export default function WelcomeSection() {
   const { client } = useClientStore();
@@ -58,71 +59,10 @@ export default function WelcomeSection() {
 
           {/* Carrusel mejorado con autoloop continuo */}
           <div className='mt-16'>
-            <Swiper
-              modules={[Autoplay, FreeMode]}
-              spaceBetween={16}
-              slidesPerView='auto'
-              loop={!isLoading}
-              speed={8000}
-              allowTouchMove={true}
-              grabCursor={true}
-              freeMode={{
-                enabled: true,
-                momentum: true,
-                momentumRatio: 0.25,
-                momentumVelocityRatio: 0.5,
-              }}
-              autoplay={{
-                delay: 0,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-                stopOnLastSlide: false,
-                reverseDirection: false,
-              }}
-              centeredSlides={false}
-              className='vehicle-carousel'
-              watchSlidesProgress={true}
-              preventInteractionOnTransition={false}
-            >
-              {isLoading
-                ? skeletonArray.map((_, index) => (
-                    <SwiperSlide key={`skeleton-${index}`} className='!w-auto'>
-                      <div className='w-[300px]'>
-                        <VehicleCardSkeleton />
-                      </div>
-                    </SwiperSlide>
-                  ))
-                : duplicatedVehicles.map((vehicle, index) => (
-                    <SwiperSlide
-                      key={`${vehicle.id}-${index}`}
-                      className='!w-auto'
-                    >
-                      <div className='w-[300px]'>
-                        <VehicleCard vehicle={vehicle} />
-                      </div>
-                    </SwiperSlide>
-                  ))}
-            </Swiper>
+            <SimpleCarousel vehicles={vehicles} isLoading={isLoading} />
           </div>
         </div>
       </div>
-
-      {/* Estilos adicionales para el carrusel */}
-      <style jsx global>{`
-        .vehicle-carousel {
-          overflow: visible;
-          cursor: grab;
-        }
-        .vehicle-carousel:active {
-          cursor: grabbing;
-        }
-        .vehicle-carousel .swiper-wrapper {
-          transition-timing-function: linear !important;
-        }
-        .vehicle-carousel:hover .swiper-wrapper {
-          animation-play-state: paused;
-        }
-      `}</style>
     </div>
   );
 }
