@@ -21,9 +21,24 @@ export default function SimpleCarousel({
   const [velocity, setVelocity] = useState(0);
   const lastX = useRef(0);
   const lastTime = useRef(Date.now());
+  const momentumRef = useRef<number>(0);
+  const animationRef = useRef<number>(0);
 
   const duplicatedVehicles = [...vehicles, ...vehicles, ...vehicles];
   const skeletonArray = Array(6).fill(null);
+
+  const animate = () => {
+    if (!containerRef.current || !momentumRef.current) return;
+
+    momentumRef.current *= 0.95; // Factor de fricción
+    containerRef.current.scrollLeft -= momentumRef.current;
+
+    if (Math.abs(momentumRef.current) > 0.5) {
+      animationRef.current = requestAnimationFrame(animate);
+    } else {
+      momentumRef.current = 0;
+    }
+  };
 
   const handleDragStart = (clientX: number) => {
     setIsDragging(true);
@@ -55,12 +70,12 @@ export default function SimpleCarousel({
 
   const handleDragEnd = () => {
     setIsDragging(false);
-    if (Math.abs(velocity) > 0.5) {
-      const momentum = velocity * 100;
-      if (containerRef.current) {
-        containerRef.current.scrollLeft -= momentum;
-      }
+
+    if (Math.abs(velocity) > 0.1) {
+      momentumRef.current = velocity * 30; // Ajusta este multiplicador para más o menos inercia
+      animate();
     }
+
     setVelocity(0);
   };
 
@@ -93,33 +108,49 @@ export default function SimpleCarousel({
     return () => clearInterval(interval);
   }, [isDragging]);
 
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <div
-      ref={containerRef}
-      className='carousel-container'
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleDragEnd}
-      onMouseLeave={handleDragEnd}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleDragEnd}
-    >
-      <div className='carousel-track'>
-        {isLoading
-          ? skeletonArray.map((_, index) => (
-              <div key={`skeleton-${index}`} className='carousel-item'>
-                <VehicleCardSkeleton />
-              </div>
-            ))
-          : duplicatedVehicles.map((vehicle, index) => (
-              <div key={`${vehicle.id}-${index}`} className='carousel-item'>
-                <VehicleCard vehicle={vehicle} />
-              </div>
-            ))}
+    <div className='carousel-wrapper'>
+      <div
+        ref={containerRef}
+        className='carousel-container'
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleDragEnd}
+        onMouseLeave={handleDragEnd}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleDragEnd}
+      >
+        <div className='carousel-track'>
+          {isLoading
+            ? skeletonArray.map((_, index) => (
+                <div key={`skeleton-${index}`} className='carousel-item'>
+                  <VehicleCardSkeleton />
+                </div>
+              ))
+            : duplicatedVehicles.map((vehicle, index) => (
+                <div key={`${vehicle.id}-${index}`} className='carousel-item'>
+                  <VehicleCard vehicle={vehicle} />
+                </div>
+              ))}
+        </div>
       </div>
 
       <style jsx>{`
+        .carousel-wrapper {
+          margin-left: calc(-50vw + 50%);
+          margin-right: calc(-50vw + 50%);
+          width: 100vw;
+        }
+
         .carousel-container {
           overflow-x: scroll;
           overflow-y: hidden;
@@ -131,6 +162,7 @@ export default function SimpleCarousel({
           scroll-behavior: auto;
           touch-action: pan-x;
           user-select: none;
+          padding: 1rem 0;
         }
 
         .carousel-container::-webkit-scrollbar {
@@ -144,8 +176,7 @@ export default function SimpleCarousel({
         .carousel-track {
           display: inline-flex;
           gap: 1rem;
-          padding: 1rem;
-          will-change: transform;
+          padding: 0 calc(50vw - 50% - 150px);
         }
 
         .carousel-item {
@@ -157,7 +188,7 @@ export default function SimpleCarousel({
         @media (max-width: 640px) {
           .carousel-track {
             gap: 0.5rem;
-            padding: 0.5rem;
+            padding: 0 1rem;
           }
         }
       `}</style>
