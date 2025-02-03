@@ -156,6 +156,16 @@ export interface VehicleSale {
   payment_method?: string;
 }
 
+export interface Mail {
+  id: string;
+  created_at: string;
+  customer_id: string;
+  customer: Customer;
+  subject: string;
+  body: string;
+  reason: 'buy' | 'sell' | 'other';
+}
+
 // Tipos auxiliares para los filtros
 export type VehicleCategory = Vehicle['category'];
 export type VehicleFuelType = Vehicle['fuel_type'];

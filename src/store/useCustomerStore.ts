@@ -8,7 +8,7 @@ interface CustomerStore {
   likes: string[];
   isModalOpen: boolean;
   setIsModalOpen: (isOpen: boolean) => void;
-  initializeCustomer: (customerData?: Partial<Customer>) => Promise<void>;
+  initializeCustomer: (customerData?: Partial<Customer>) => Promise<Customer>;
   toggleLike: (vehicleId: string) => Promise<void>;
   getLikes: () => string[];
 }
@@ -37,7 +37,6 @@ const useCustomerStore = create(
               .single();
 
           if (searchError && searchError.code !== 'PGRST116') {
-            // PGRST116 es el código cuando no se encuentra
             throw searchError;
           }
 
@@ -50,7 +49,7 @@ const useCustomerStore = create(
 
             set({ customer: updatedCustomer });
 
-            // Opcionalmente actualizar en Supabase si hay nuevos datos
+            // Actualizar en Supabase si hay nuevos datos
             if (customerData) {
               await supabase
                 .from('customers')
@@ -58,24 +57,21 @@ const useCustomerStore = create(
                 .eq('id', existingCustomerData.id);
             }
 
-            return;
+            return updatedCustomer;
           }
 
           // Si no existe, crear nuevo customer en Supabase
           const { data: newCustomerData, error: insertError } = await supabase
             .from('customers')
-            .insert([
-              {
-                ...customerData,
-              },
-            ])
+            .insert([customerData])
             .select()
             .single();
 
           if (insertError) throw insertError;
 
-          // Actualizar el estado local con los datos de Supabase (incluyendo el ID generado)
+          // Actualizar el estado local con los datos de Supabase
           set({ customer: newCustomerData });
+          return newCustomerData;
         } catch (error) {
           console.error('Error en initializeCustomer:', error);
           throw error;
