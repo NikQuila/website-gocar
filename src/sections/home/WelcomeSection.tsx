@@ -3,13 +3,28 @@
 import { Button } from '@heroui/react';
 import useVehiclesStore from '../../store/useVehiclesStore';
 import useClientStore from '../../store/useClientStore';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, FreeMode } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/free-mode';
+import Carousel from 'react-multi-carousel';
+import 'react-multi-carousel/lib/styles.css';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
 import VehicleCard from '@/components/vehicles/VehicleCard';
-import SimpleCarousel from '@/components/vehicles/VehicleCarousel';
+
+const responsive = {
+  desktop: {
+    breakpoint: { max: 3000, min: 1024 },
+    items: 4,
+    slidesToSlide: 1,
+  },
+  tablet: {
+    breakpoint: { max: 1024, min: 464 },
+    items: 2,
+    slidesToSlide: 1,
+  },
+  mobile: {
+    breakpoint: { max: 464, min: 0 },
+    items: 1,
+    slidesToSlide: 1,
+  },
+};
 
 export default function WelcomeSection() {
   const { client } = useClientStore();
@@ -57,12 +72,50 @@ export default function WelcomeSection() {
             </div>
           </div>
 
-          {/* Carrusel mejorado con autoloop continuo */}
+          {/* Carousel */}
           <div className='mt-16'>
-            <SimpleCarousel vehicles={vehicles} isLoading={isLoading} />
+            <Carousel
+              responsive={responsive}
+              infinite={true}
+              autoPlay={true}
+              autoPlaySpeed={3000}
+              keyBoardControl={true}
+              arrows={false}
+              customTransition='transform 300ms ease-in-out'
+              transitionDuration={300}
+              containerClass='carousel-container'
+              removeArrowOnDeviceType={['tablet', 'mobile']}
+              itemClass='carousel-item-padding-40-px'
+            >
+              {isLoading
+                ? skeletonArray.map((_, index) => (
+                    <div key={`skeleton-${index}`} className='p-2'>
+                      <div className='w-[300px]'>
+                        <VehicleCardSkeleton />
+                      </div>
+                    </div>
+                  ))
+                : duplicatedVehicles.map((vehicle, index) => (
+                    <div key={`${vehicle.id}-${index}`} className='p-2'>
+                      <VehicleCard vehicle={vehicle} />
+                    </div>
+                  ))}
+            </Carousel>
           </div>
         </div>
       </div>
+
+      <style jsx global>{`
+        .carousel-container {
+          padding: 20px 0;
+        }
+        .carousel-item-padding-40-px {
+          transition: transform 0.2s ease;
+        }
+        .carousel-item-padding-40-px:hover {
+          transform: scale(1.02);
+        }
+      `}</style>
     </div>
   );
 }
