@@ -3,10 +3,6 @@
 import { Button } from '@heroui/react';
 import useVehiclesStore from '../../store/useVehiclesStore';
 import useClientStore from '../../store/useClientStore';
-import Carousel from 'react-multi-carousel';
-import 'react-multi-carousel/lib/styles.css';
-import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
-import VehicleCard from '@/components/vehicles/VehicleCard';
 import ContinuousCarousel from '@/components/vehicles/VehicleCarousel';
 
 const responsive = {
