@@ -7,6 +7,7 @@ import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
 import VehicleCard from '@/components/vehicles/VehicleCard';
+import ContinuousCarousel from '@/components/vehicles/VehicleCarousel';
 
 const responsive = {
   desktop: {
@@ -74,48 +75,10 @@ export default function WelcomeSection() {
 
           {/* Carousel */}
           <div className='mt-16'>
-            <Carousel
-              responsive={responsive}
-              infinite={true}
-              autoPlay={true}
-              autoPlaySpeed={3000}
-              keyBoardControl={true}
-              arrows={false}
-              customTransition='transform 300ms ease-in-out'
-              transitionDuration={300}
-              containerClass='carousel-container'
-              removeArrowOnDeviceType={['tablet', 'mobile']}
-              itemClass='carousel-item-padding-40-px'
-            >
-              {isLoading
-                ? skeletonArray.map((_, index) => (
-                    <div key={`skeleton-${index}`} className='p-2'>
-                      <div className='w-[300px]'>
-                        <VehicleCardSkeleton />
-                      </div>
-                    </div>
-                  ))
-                : duplicatedVehicles.map((vehicle, index) => (
-                    <div key={`${vehicle.id}-${index}`} className='p-2'>
-                      <VehicleCard vehicle={vehicle} />
-                    </div>
-                  ))}
-            </Carousel>
+            <ContinuousCarousel />
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        .carousel-container {
-          padding: 20px 0;
-        }
-        .carousel-item-padding-40-px {
-          transition: transform 0.2s ease;
-        }
-        .carousel-item-padding-40-px:hover {
-          transform: scale(1.02);
-        }
-      `}</style>
     </div>
   );
 }
