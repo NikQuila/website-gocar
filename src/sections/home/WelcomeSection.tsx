@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@heroui/react';
-import useVehiclesStore from '../../store/useVehiclesStore';
 import useClientStore from '../../store/useClientStore';
 import ContinuousCarousel from '@/components/vehicles/VehicleCarousel';
 
@@ -25,13 +24,6 @@ const responsive = {
 
 export default function WelcomeSection() {
   const { client } = useClientStore();
-  const { vehicles, isLoading } = useVehiclesStore();
-
-  // Duplicar los vehículos para crear un efecto infinito más suave
-  const duplicatedVehicles = [...vehicles, ...vehicles, ...vehicles];
-
-  // Array para los skeletons mientras carga
-  const skeletonArray = Array(6).fill(null);
 
   return (
     <div className='bg-white'>
