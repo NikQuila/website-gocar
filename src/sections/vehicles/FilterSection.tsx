@@ -33,7 +33,7 @@ const VehicleFilters = ({
   onClearFilters,
 }: VehicleFiltersProps) => {
   return (
-    <div className='bg-white p-4 h-full overflow-y-auto'>
+    <div className='bg-white p-4  overflow-y-auto'>
       <div className='space-y-6'>
         <div className='flex justify-between items-center'>
           <h3 className='text-lg font-semibold'>Filtros</h3>

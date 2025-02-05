@@ -30,7 +30,11 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => {
   };
 
   return (
-    <Card className={`${isSold ? 'opacity-85' : ''} relative overflow-hidden`}>
+    <Card
+      className={`${
+        isSold ? 'opacity-85' : ''
+      } relative overflow-hidden  h-[50vh]`}
+    >
       <div
         className={`${
           !vehicle?.discount_percentage ||

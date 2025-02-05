@@ -99,7 +99,7 @@ const VehiclesPage = () => {
           isMd ? 'w-[250px] min-w-[250px] h-screen sticky top-0' : ''
         }`}
       >
-        <div className='h-full pt-20'>
+        <div className=''>
           <ModalSlideFilter
             isOpen={isFilterOpen}
             onClose={() => setIsFilterOpen(false)}
