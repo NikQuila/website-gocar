@@ -22,11 +22,10 @@ const useVehiclesStore = create<VehiclesStore>((set) => ({
     console.log('Iniciando fetchVehicles con clientId:', clientId);
     set({ isLoading: true });
     try {
-      console.log('clientId:', clientId);
       const { data, error } = await supabase
         .from('vehicles')
         .select('*, brand:brand_id(id, name), model:model_id(id, name)')
-        .or(`client_id.eq.${clientId},client_id.eq.1`)
+        .eq('client_id', clientId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       console.log('Respuesta de Supabase:', { data, error });
