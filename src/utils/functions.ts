@@ -33,3 +33,28 @@ export const mapConditionTypeToSpanish = (
 
   return conditionTypeMap[conditionType];
 };
+
+export const contactByWhatsApp = (phone: string, message?: string): string => {
+  // Remove any non-numeric characters from phone (including +)
+  const cleanPhone = phone.replace(/\D/g, '');
+
+  // Handle different phone formats
+  let fullPhone = cleanPhone;
+  if (cleanPhone.length === 9) {
+    // Format: 955675053
+    fullPhone = `56${cleanPhone}`;
+  } else if (cleanPhone.length === 11) {
+    // Format: 56955675053
+    fullPhone = cleanPhone;
+  }
+
+  // Encode message for URL
+  const encodedMessage = message ? encodeURIComponent(message) : '';
+
+  // Generate WhatsApp URL
+  const whatsappUrl = `https://wa.me/${fullPhone}${
+    encodedMessage ? `?text=${encodedMessage}` : ''
+  }`;
+
+  return whatsappUrl;
+};

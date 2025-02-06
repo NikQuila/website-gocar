@@ -16,6 +16,7 @@ import { Client, Vehicle } from '../../utils/types';
 import {
   mapFuelTypeToSpanish,
   mapTransmissionTypeToSpanish,
+  contactByWhatsApp,
 } from '@/utils/functions';
 
 interface VehicleDetailSectionProps {
@@ -252,13 +253,29 @@ export default function VehicleDetailSection({
         </div>
 
         <div className='flex flex-col gap-3 sm:flex-row'>
-          <Button
+          {/*   <Button
             size='lg'
             color='primary'
             as='a'
             href={`tel:${client?.contact?.phone}`}
             className='font-semibold'
             startContent={<Icon icon='mdi:phone' />}
+          >
+            Llamar
+          </Button> */}
+
+          <Button
+            size='lg'
+            color='success'
+            as='a'
+            href={contactByWhatsApp(
+              client?.contact?.phone || '',
+              `Hola, me interesa el ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year}`
+            )}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='font-semibold'
+            startContent={<Icon icon='mdi:whatsapp' />}
           >
             Contactar Vendedor
           </Button>
