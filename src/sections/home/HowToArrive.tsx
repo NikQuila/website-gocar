@@ -172,7 +172,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
               <img
                 src={client.logo}
                 alt={client.name}
-                className='h-12 w-auto mb-2'
+                className='h-12 w-auto mb-2 object-contain'
               />
             )}
 

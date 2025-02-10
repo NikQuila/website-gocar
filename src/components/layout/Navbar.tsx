@@ -54,7 +54,11 @@ const Navbar = () => {
       <NavbarContent justify='start'>
         <NavbarBrand>
           <Link href='/'>
-            <img src={client?.logo} alt={client?.name} className='h-8 w-auto' />
+            <img
+              src={client?.logo}
+              alt={client?.name}
+              className='h-8 w-auto object-contain'
+            />
           </Link>
         </NavbarBrand>
       </NavbarContent>
