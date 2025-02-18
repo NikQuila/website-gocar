@@ -115,7 +115,7 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => {
           color={isSold ? 'danger' : 'primary'}
           fullWidth
           isDisabled={isSold}
-          className={`font-semibold ${
+          className={`font-semibold min-h-[40px] ${
             isSold ? 'bg-sold hover:bg-sold-600' : ''
           }`}
         >
