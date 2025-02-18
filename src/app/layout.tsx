@@ -6,6 +6,7 @@ import { ClientProvider } from '@/providers/ClientProvider';
 import Navbar from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import ThemeProvider from '@/providers/ThemeProvider';
+import { VisitTracker } from '@/components/analytics/VisitTracker';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
@@ -45,6 +46,7 @@ export default function RootLayout({
         <HeroUIProvider>
           <ClientProvider>
             <ThemeProvider>
+              <VisitTracker />
               <Navbar />
               {children}
               <Footer />
