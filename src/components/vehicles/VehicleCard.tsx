@@ -43,7 +43,7 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => {
       onPress={handleViewDetails}
       className='group relative overflow-hidden border border-black/10 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl hover:border-primary/30 h-[450px] flex flex-col'
     >
-      {vehicle.discount_percentage > 0 && !isSold && (
+      {vehicle?.discount_percentage > 0 && !isSold && (
         <div className='absolute top-2 left-2 z-30'>
           <Chip
             color='warning'
