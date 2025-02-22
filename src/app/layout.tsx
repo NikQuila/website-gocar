@@ -20,6 +20,9 @@ export async function generateMetadata() {
   return {
     title: client?.seo?.title || 'Automotora',
     description: client?.seo?.description || 'Descripción por defecto',
+    verification: {
+      google: 'mM5DNzGoLlVxLaeEWPJsO2lRxjqYdwjGjTVqSGKhxQ8',
+    },
     openGraph: {
       title: client?.seo?.title,
       description: client?.seo?.description,
