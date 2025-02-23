@@ -167,7 +167,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
 
         <div className='grid md:grid-cols-3 gap-8 items-start'>
           {/* Contact Info with Navigation */}
-          <div className='md:col-span-1 space-y-6 p-6  h-full flex flex-col justify-between bg-white dark:bg-dark-card rounded-xl shadow-sm dark:border dark:border-dark-border'>
+          <div className='md:col-span-1 space-y-6 p-6 max-w-[90vw] h-full flex flex-col justify-between bg-white dark:bg-dark-card rounded-xl shadow-sm dark:border dark:border-dark-border'>
             {client?.logo && (
               <img
                 src={client.logo}
