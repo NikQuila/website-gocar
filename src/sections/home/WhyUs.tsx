@@ -32,10 +32,7 @@ const WhyUs = () => {
               className='text-center p-6 bg-white dark:bg-dark-card rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 dark:border dark:border-dark-border dark:hover:border-primary/30'
             >
               <div className='flex justify-center mb-4'>
-                <Icon
-                  icon={feature.icon}
-                  className='w-12 h-12 text-primary dark:text-secondary'
-                />
+                <Icon icon={feature.icon} className='w-12 h-12 text-primary ' />
               </div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-dark-text'>
                 {feature.title}

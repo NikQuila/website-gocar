@@ -29,9 +29,14 @@ export interface Client {
   logo: string;
   favicon: string;
   theme: {
-    primary: string;
-    secondary: string;
-    mode?: 'light' | 'dark';
+    light: {
+      primary: string;
+      secondary: string;
+    };
+    dark: {
+      primary: string;
+      secondary: string;
+    };
   };
   seo: {
     title: string;

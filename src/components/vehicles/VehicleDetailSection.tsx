@@ -187,7 +187,7 @@ export default function VehicleDetailSection({
               >
                 <Icon
                   icon='mdi:share-variant'
-                  className='text-3xl text-primary dark:text-white'
+                  className='text-3xl text-primary'
                 />
               </Button>
             </div>
@@ -223,7 +223,7 @@ export default function VehicleDetailSection({
               >
                 <Icon
                   icon='mdi:share-variant'
-                  className='text-3xl text-primary dark:text-white'
+                  className='text-3xl text-primary'
                 />
               </Button>
             </div>
@@ -268,11 +268,7 @@ export default function VehicleDetailSection({
           </h2>
           <div className='flex flex-wrap gap-2'>
             {vehicle.features?.map((feature, index) => (
-              <Chip
-                key={index}
-                color='primary'
-                className='dark:bg-dark-card dark:text-white'
-              >
+              <Chip key={index} color='primary' className=''>
                 {feature}
               </Chip>
             ))}
@@ -301,7 +297,7 @@ export default function VehicleDetailSection({
               size='lg'
               variant={isLiked ? 'solid' : 'bordered'}
               color='primary'
-              className='font-semibold dark:text-black dark:bg-white'
+              className='font-semibold'
               startContent={
                 <Icon icon={isLiked ? 'mdi:heart-outline' : 'mdi:heart'} />
               }
@@ -334,7 +330,7 @@ function DetailCard({ icon, label, value }: DetailCardProps) {
   return (
     <Card className='bg-gray-50 dark:bg-dark-card'>
       <CardBody className='gap-2 p-3'>
-        <Icon icon={icon} className='text-2xl text-primary dark:text-white' />
+        <Icon icon={icon} className='text-2xl text-primary' />
         <p className='text-sm text-gray-600 dark:text-gray-400'>{label}</p>
         <p className='font-semibold text-gray-900 dark:text-white'>{value}</p>
       </CardBody>

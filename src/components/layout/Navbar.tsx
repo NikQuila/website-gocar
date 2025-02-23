@@ -94,7 +94,7 @@ const Navbar = () => {
             as='a'
             color='primary'
             href='/contact'
-            className='font-semibold bg-primary text-secondary hover:bg-primary/90 dark:bg-white dark:text-black dark:hover:bg-white/90'
+            className='font-semibold bg-primary text-secondary hover:bg-primary/90 dark:bg-primary dark:text-secondary dark:hover:bg-primary/90'
           >
             Contactar
           </Button>

@@ -210,7 +210,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                 <div className='flex items-start space-x-3'>
                   <Icon
                     icon='mdi:map-marker'
-                    className='text-2xl text-primary dark:text-white flex-shrink-0 mt-1'
+                    className='text-2xl text-primary  flex-shrink-0 mt-1'
                   />
                   <div>
                     <h4 className='font-medium text-gray-900 dark:text-dark-text'>
@@ -225,7 +225,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                 <div className='flex items-start space-x-3'>
                   <Icon
                     icon='mdi:phone'
-                    className='text-2xl text-primary dark:text-white flex-shrink-0 mt-1'
+                    className='text-2xl text-primary  flex-shrink-0 mt-1'
                   />
                   <div>
                     <h4 className='font-medium text-gray-900 dark:text-dark-text'>
@@ -240,7 +240,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                 <div className='flex items-start space-x-3'>
                   <Icon
                     icon='mdi:email'
-                    className='text-2xl text-primary dark:text-white flex-shrink-0 mt-1'
+                    className='text-2xl text-primary  flex-shrink-0 mt-1'
                   />
                   <div className='min-w-0'>
                     <h4 className='font-medium text-gray-900 dark:text-dark-text'>
@@ -257,7 +257,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
             <Button
               color='primary'
               startContent={<Icon icon='mdi:navigation' />}
-              className='w-full mt-6 dark:text-black dark:bg-white dark:hover:bg-white/90 '
+              className='w-full mt-6  '
               onPress={() =>
                 selectedDealership && handleMarkerClick(selectedDealership)
               }
