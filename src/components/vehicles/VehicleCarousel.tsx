@@ -3,7 +3,7 @@
 import React from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-import VehicleCard from '@/components/vehicles/VehicleCard';
+import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
 import useVehiclesStore from '../../store/useVehiclesStore';
 
@@ -34,7 +34,7 @@ export default function EmblaAutoplayCarousel() {
             : duplicatedVehicles.map((vehicle, index) => (
                 <div className='embla__slide' key={`${vehicle.id}-${index}`}>
                   <div className='card-wrapper'>
-                    <VehicleCard vehicle={vehicle} />
+                    <VehicleVerticalCard vehicle={vehicle} />
                   </div>
                 </div>
               ))}

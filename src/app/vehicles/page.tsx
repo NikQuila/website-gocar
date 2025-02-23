@@ -8,7 +8,7 @@ import { VehicleFilters as VehicleFiltersType } from '@/utils/types';
 import { Button, Skeleton } from '@heroui/react';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
 import ModalSlideFilter from '@/components/filters/ModalSlideFilter';
-import VehicleCard from '@/components/vehicles/VehicleCard';
+import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
 
 const VehiclesPage = () => {
   const { vehicles, isLoading } = useVehiclesStore();
@@ -152,7 +152,7 @@ const VehiclesPage = () => {
               </div>
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4'>
                 {filteredVehicles.map((vehicle) => (
-                  <VehicleCard key={vehicle.id} vehicle={vehicle} />
+                  <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
                 ))}
               </div>
             </>

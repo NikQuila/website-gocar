@@ -16,10 +16,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import ThemeToggle from '../ThemeToggle';
 
-const navigation = [
-  { name: 'Inicio', href: '/' },
-  { name: 'Vehículos', href: '/vehicles' },
-];
+const navigation = [{ name: 'Inicio', href: '/' }];
 
 const Navbar = () => {
   const { client } = useClientStore();

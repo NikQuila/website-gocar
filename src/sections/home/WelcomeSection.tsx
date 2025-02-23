@@ -39,7 +39,7 @@ export default function WelcomeSection() {
               Explora nuestra selección de vehículos de alta calidad. Tenemos el
               vehículo perfecto para ti.
             </p>
-            <div className='mt-10 flex items-center justify-center gap-x-6'>
+            {/*  <div className='mt-10 flex items-center justify-center gap-x-6'>
               <Button
                 as='a'
                 href='/vehicles'
@@ -58,13 +58,13 @@ export default function WelcomeSection() {
               >
                 Contáctanos
               </Button>
-            </div>
+            </div> */}
           </div>
 
           {/* Carousel */}
-          <div className='mt-16'>
+          {/*    <div className='mt-16'>
             <ContinuousCarousel />
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
