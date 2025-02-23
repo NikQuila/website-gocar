@@ -5,7 +5,7 @@ import { HeroUIProvider } from '@/providers/HeroUIProvider';
 import { ClientProvider } from '@/providers/ClientProvider';
 import Navbar from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import ThemeProvider from '@/providers/ThemeProvider';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
 
 const poppins = Poppins({
@@ -44,15 +44,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang='es'>
+    <html lang='es' suppressHydrationWarning>
       <body className={`${poppins.variable} antialiased`}>
         <HeroUIProvider>
           <ClientProvider>
             <ThemeProvider>
-              <VisitTracker />
-              <Navbar />
-              {children}
-              <Footer />
+              <div className='min-h-screen bg-white dark:bg-dark-bg transition-colors'>
+                <VisitTracker />
+                <Navbar />
+                {children}
+                <Footer />
+              </div>
             </ThemeProvider>
           </ClientProvider>
         </HeroUIProvider>

@@ -45,7 +45,7 @@ export default function EmblaAutoplayCarousel() {
         .embla {
           overflow: hidden;
           width: 100%;
-          background: white;
+          background: transparent;
           padding: 20px 0;
         }
         .embla__viewport {

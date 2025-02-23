@@ -24,6 +24,12 @@ export default {
           800: '#065F46',
           900: '#064E3B',
         },
+        dark: {
+          bg: '#1a1a1a',
+          card: '#2d2d2d',
+          text: '#e5e5e5',
+          border: '#404040',
+        },
       },
 
       fontFamily: {

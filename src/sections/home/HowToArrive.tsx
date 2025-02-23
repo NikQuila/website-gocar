@@ -159,20 +159,20 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
   }
 
   return (
-    <div className='bg-gray-50 py-12 rounded-2xl'>
+    <div className='bg-gray-50 dark:bg-dark-bg py-12 rounded-2xl'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <h3 className='text-4xl font-semibold text-primary text-center mb-8'>
+        <h3 className='text-4xl font-semibold text-primary text-center mb-8 dark:text-dark-text'>
           ¿Cómo llegar?
         </h3>
 
         <div className='grid md:grid-cols-3 gap-8 items-start'>
           {/* Contact Info with Navigation */}
-          <div className='md:col-span-1 space-y-6 p-6 h-full flex flex-col justify-between bg-white rounded-xl shadow-sm'>
+          <div className='md:col-span-1 space-y-6 p-6 h-full flex flex-col justify-between bg-white dark:bg-dark-card rounded-xl shadow-sm dark:border dark:border-dark-border'>
             {client?.logo && (
               <img
                 src={client.logo}
                 alt={client.name}
-                className='h-12 w-auto mb-2 object-contain'
+                className='h-12 w-auto mb-2 object-contain dark:brightness-90'
               />
             )}
 
@@ -180,11 +180,14 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
               <div className='flex items-center justify-between mb-4'>
                 <button
                   onClick={handlePrevDealership}
-                  className='p-2 hover:bg-gray-100 rounded-full'
+                  className='p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full'
                 >
-                  <Icon icon='mdi:chevron-left' className='text-2xl' />
+                  <Icon
+                    icon='mdi:chevron-left'
+                    className='text-2xl dark:text-dark-text'
+                  />
                 </button>
-                <span className='text-sm text-gray-500'>
+                <span className='text-sm text-gray-500 dark:text-gray-400'>
                   {dealerships.findIndex(
                     (d) => d.id === selectedDealership?.id
                   ) + 1}{' '}
@@ -192,9 +195,12 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                 </span>
                 <button
                   onClick={handleNextDealership}
-                  className='p-2 hover:bg-gray-100 rounded-full'
+                  className='p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full'
                 >
-                  <Icon icon='mdi:chevron-right' className='text-2xl' />
+                  <Icon
+                    icon='mdi:chevron-right'
+                    className='text-2xl dark:text-dark-text'
+                  />
                 </button>
               </div>
             )}
@@ -204,11 +210,13 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                 <div className='flex items-start space-x-3'>
                   <Icon
                     icon='mdi:map-marker'
-                    className='text-2xl text-primary flex-shrink-0 mt-1'
+                    className='text-2xl text-primary dark:text-white flex-shrink-0 mt-1'
                   />
                   <div>
-                    <h4 className='font-medium text-gray-900'>Dirección</h4>
-                    <p className='text-gray-600'>
+                    <h4 className='font-medium text-gray-900 dark:text-dark-text'>
+                      Dirección
+                    </h4>
+                    <p className='text-gray-600 dark:text-gray-400'>
                       {selectedDealership.address}
                     </p>
                   </div>
@@ -217,22 +225,30 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                 <div className='flex items-start space-x-3'>
                   <Icon
                     icon='mdi:phone'
-                    className='text-2xl text-primary flex-shrink-0 mt-1'
+                    className='text-2xl text-primary dark:text-white flex-shrink-0 mt-1'
                   />
                   <div>
-                    <h4 className='font-medium text-gray-900'>Teléfono</h4>
-                    <p className='text-gray-600'>{selectedDealership.phone}</p>
+                    <h4 className='font-medium text-gray-900 dark:text-dark-text'>
+                      Teléfono
+                    </h4>
+                    <p className='text-gray-600 dark:text-gray-400'>
+                      {selectedDealership.phone}
+                    </p>
                   </div>
                 </div>
 
                 <div className='flex items-start space-x-3'>
                   <Icon
                     icon='mdi:email'
-                    className='text-2xl text-primary flex-shrink-0 mt-1'
+                    className='text-2xl text-primary dark:text-white flex-shrink-0 mt-1'
                   />
                   <div>
-                    <h4 className='font-medium text-gray-900'>Email</h4>
-                    <p className='text-gray-600'>{selectedDealership.email}</p>
+                    <h4 className='font-medium text-gray-900 dark:text-dark-text'>
+                      Email
+                    </h4>
+                    <p className='text-gray-600 dark:text-gray-400'>
+                      {selectedDealership.email}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -241,8 +257,8 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
             <Button
               color='primary'
               startContent={<Icon icon='mdi:navigation' />}
-              className='w-full mt-6'
-              onClick={() =>
+              className='w-full mt-6 dark:text-black dark:bg-white dark:hover:bg-white/90 '
+              onPress={() =>
                 selectedDealership && handleMarkerClick(selectedDealership)
               }
             >
@@ -254,7 +270,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
           <div className='md:col-span-2'>
             <div
               style={{ height, width: '100%' }}
-              className='rounded-xl overflow-hidden shadow-lg'
+              className='rounded-xl overflow-hidden shadow-lg dark:border dark:border-dark-border'
             >
               <GoogleMap
                 zoom={13}

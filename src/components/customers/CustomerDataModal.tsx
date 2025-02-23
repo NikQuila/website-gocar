@@ -37,11 +37,22 @@ export const CustomerDataModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      classNames={{
+        base: 'dark:bg-dark-bg',
+        header: 'dark:bg-dark-card dark:text-white',
+        body: 'dark:bg-dark-card',
+        footer: 'dark:bg-dark-card',
+      }}
+    >
       <ModalContent>
-        <ModalHeader>¡Guarda tus vehículos favoritos!</ModalHeader>
+        <ModalHeader className='dark:text-white'>
+          ¡Guarda tus vehículos favoritos!
+        </ModalHeader>
         <ModalBody>
-          <p className='text-sm text-gray-600 mb-4'>
+          <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
             Te notificaremos cuando encontremos vehículos similares a buen
             precio.
           </p>
@@ -52,6 +63,11 @@ export const CustomerDataModal = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, first_name: e.target.value }))
               }
+              classNames={{
+                label: 'dark:text-gray-400',
+                input:
+                  'dark:bg-dark-card dark:text-white dark:border-dark-border',
+              }}
               required
             />
             <Input
@@ -60,6 +76,11 @@ export const CustomerDataModal = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, last_name: e.target.value }))
               }
+              classNames={{
+                label: 'dark:text-gray-400',
+                input:
+                  'dark:bg-dark-card dark:text-white dark:border-dark-border',
+              }}
               required
             />
             <Input
@@ -69,6 +90,11 @@ export const CustomerDataModal = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, email: e.target.value }))
               }
+              classNames={{
+                label: 'dark:text-gray-400',
+                input:
+                  'dark:bg-dark-card dark:text-white dark:border-dark-border',
+              }}
               required
             />
             <Input
@@ -78,15 +104,29 @@ export const CustomerDataModal = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, phone: e.target.value }))
               }
+              classNames={{
+                label: 'dark:text-gray-400',
+                input:
+                  'dark:bg-dark-card dark:text-white dark:border-dark-border',
+              }}
               required
             />
           </form>
         </ModalBody>
         <ModalFooter>
-          <Button color='danger' variant='light' onPress={onClose}>
+          <Button
+            color='danger'
+            variant='light'
+            onPress={onClose}
+            className='dark:text-white'
+          >
             Cancelar
           </Button>
-          <Button color='primary' onPress={handleSubmit}>
+          <Button
+            color='primary'
+            onPress={handleSubmit}
+            className='dark:text-white'
+          >
             Guardar
           </Button>
         </ModalFooter>

@@ -3,33 +3,17 @@ import { Modal, ModalBody, ModalContent } from '@heroui/react';
 
 // Custom hook for media query with optimized dependencies
 const useMediaQuery = (query: string) => {
-  const [matches, setMatches] = useState(() => {
-    // Initialize with the current match state if window is available
-    if (typeof window !== 'undefined') {
-      return window.matchMedia(query).matches;
-    }
-    return false;
-  });
+  const [matches, setMatches] = useState(false); // Always start with false for SSR
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
+    // Run the media query check only on the client side
     const media = window.matchMedia(query);
     setMatches(media.matches);
 
-    // Modern event listener approach
     const listener = (e: MediaQueryListEvent) => setMatches(e.matches);
-
-    // Use modern addEventListener if available, fallback to addListener
-    if (media.addEventListener) {
-      media.addEventListener('change', listener);
-      return () => media.removeEventListener('change', listener);
-    } else {
-      // Fallback for older browsers
-      media.addListener(listener);
-      return () => media.removeListener(listener);
-    }
-  }, [query]); // Remove matches from dependencies
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, [query]);
 
   return matches;
 };
@@ -68,10 +52,20 @@ const modalClassNames = {
 
 const ModalSlideFilter = React.memo(
   ({ children, isOpen, onClose }: ModalSlideFilterProps) => {
+    const [isMounted, setIsMounted] = useState(false);
     const isMd = useMediaQuery('(min-width: 768px)');
 
+    useEffect(() => {
+      setIsMounted(true);
+    }, []);
+
+    // Don't render anything until mounted to prevent hydration mismatch
+    if (!isMounted) {
+      return null;
+    }
+
     // Memoize the desktop version class names
-    const desktopClassName = `h-screen bg-white shadow-md transition-all duration-300 ${
+    const desktopClassName = `h-screen bg-white dark:bg-dark-card shadow-md transition-all duration-300 ${
       isOpen ? 'translate-x-0 w-64' : '-translate-x-full w-0'
     } overflow-hidden`;
 

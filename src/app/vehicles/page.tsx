@@ -67,16 +67,16 @@ const VehiclesPage = () => {
       <div className='mb-6'>
         <div className='flex justify-between items-center'>
           <div className='space-y-2'>
-            <Skeleton className='w-32 rounded-lg'>
-              <div className='h-8 w-32 rounded-lg bg-default-300'></div>
+            <Skeleton className='w-32 rounded-lg dark:bg-dark-card'>
+              <div className='h-8 w-32 rounded-lg bg-default-300 dark:bg-dark-border'></div>
             </Skeleton>
-            <Skeleton className='w-48 rounded-lg'>
-              <div className='h-4 w-48 rounded-lg bg-default-200'></div>
+            <Skeleton className='w-48 rounded-lg dark:bg-dark-card'>
+              <div className='h-4 w-48 rounded-lg bg-default-200 dark:bg-dark-border'></div>
             </Skeleton>
           </div>
           {!isMd && (
-            <Skeleton className='w-24 rounded-lg'>
-              <div className='h-10 w-24 rounded-lg bg-default-300'></div>
+            <Skeleton className='w-24 rounded-lg dark:bg-dark-card'>
+              <div className='h-10 w-24 rounded-lg bg-default-300 dark:bg-dark-border'></div>
             </Skeleton>
           )}
         </div>
@@ -92,13 +92,9 @@ const VehiclesPage = () => {
   );
 
   return (
-    <div className='flex min-h-screen bg-white'>
+    <div className='flex min-h-screen bg-white dark:bg-dark-bg'>
       {/* Sidebar */}
-      <aside
-        className={`${
-          isMd ? 'w-[250px] min-w-[250px] h-screen sticky top-0' : ''
-        }`}
-      >
+      <aside className='hidden md:block w-[250px] min-w-[250px] h-screen sticky top-0 border-r border-gray-100 dark:border-dark-border'>
         <div className=''>
           <ModalSlideFilter
             isOpen={isFilterOpen}
@@ -130,24 +126,28 @@ const VehiclesPage = () => {
               <div className='mb-6'>
                 <div className='flex justify-between items-center'>
                   <div>
-                    <h2 className='text-2xl font-bold'>Vehículos</h2>
-                    <p className='text-sm text-gray-600'>
+                    <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
+                      Vehículos
+                    </h2>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>
                       {filteredVehicles.length} vehículos encontrados
                     </p>
                   </div>
-                  {!isMd && (
-                    <Button
-                      onClick={() => setIsFilterOpen(true)}
-                      className='md:hidden'
-                      color='primary'
-                      variant='light'
-                      startContent={
-                        <Icon icon='solar:filter-linear' width={20} />
-                      }
-                    >
-                      Filtros
-                    </Button>
-                  )}
+                  <Button
+                    onClick={() => setIsFilterOpen(true)}
+                    className='md:hidden'
+                    color='primary'
+                    variant='light'
+                    startContent={
+                      <Icon
+                        icon='solar:filter-linear'
+                        width={20}
+                        className='dark:text-white'
+                      />
+                    }
+                  >
+                    Filtros
+                  </Button>
                 </div>
               </div>
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4'>

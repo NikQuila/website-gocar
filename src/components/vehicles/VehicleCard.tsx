@@ -39,9 +39,8 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => {
 
   return (
     <Card
-      isPressable
-      onPress={handleViewDetails}
-      className='group relative overflow-hidden border border-black/10 transition-all duration-300 hover:scale-[1.05] hover:shadow-xl hover:border-primary/30 h-[450px] flex flex-col'
+      className='group relative overflow-hidden border transition-all duration-300 hover:scale-[1.05] hover:shadow-xl hover:border-primary/30 h-[450px] flex flex-col
+      dark:bg-dark-card dark:border-dark-border dark:text-dark-text '
     >
       {(vehicle?.discount_percentage ?? 0) > 0 && !isSold && (
         <div className='absolute top-2 left-2 z-30'>
@@ -80,13 +79,15 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => {
       </CardBody>
 
       <CardFooter className='flex flex-col p-4 flex-grow justify-between'>
-        <div className='space-y-1.5'>
-          <p className='text-gray-600'>
+        <div className='space-y-1.5 text-center'>
+          <p className='text-sm text-gray-600 dark:text-gray-400'>
             {vehicle.brand?.name} {vehicle.year}
           </p>
-          <h3 className='text-xl font-bold'>{vehicle.model?.name}</h3>
+          <h3 className='text-xl font-bold dark:text-dark-text'>
+            {vehicle.model?.name}
+          </h3>
 
-          <div className='flex items-center gap-2 text-sm text-gray-600'>
+          <div className='flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400'>
             <span>{vehicle.mileage.toLocaleString()} km</span>
             <span>•</span>
             <span>{mapFuelTypeToSpanish(vehicle.fuel_type)}</span>
@@ -100,7 +101,7 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => {
                 key={index}
                 size='sm'
                 variant='flat'
-                className='bg-gray-100'
+                className='bg-gray-100 dark:bg-dark-border dark:text-dark-text'
               >
                 {feature}
               </Chip>
@@ -109,12 +110,12 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => {
         </div>
 
         <div className='mt-2'>
-          <Divider className='my-2' />
+          <Divider className='my-2 dark:border-dark-border' />
 
           <div>
             {vehicle.discount_percentage ? (
-              <div className='flex flex-col'>
-                <p className='text-sm line-through text-gray-400 mb-1'>
+              <div className='flex flex-col items-center'>
+                <p className='text-sm line-through text-gray-400 dark:text-gray-500 mb-1'>
                   {formattedPrice}
                 </p>
                 <p className='text-2xl font-bold text-black bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent'>
@@ -125,7 +126,9 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => {
                 </p>
               </div>
             ) : (
-              <p className='text-2xl font-bold'>{formattedPrice}</p>
+              <p className='text-2xl font-bold dark:text-dark-text text-center'>
+                {formattedPrice}
+              </p>
             )}
           </div>
 
@@ -135,8 +138,10 @@ const VehicleCard = ({ vehicle }: VehicleCardProps) => {
             fullWidth
             isDisabled={isSold}
             className={`font-semibold mt-1 ${
-              isSold ? 'bg-sold hover:bg-sold-600' : ''
-            }`}
+              isSold
+                ? 'bg-sold hover:bg-sold-600'
+                : 'dark:text-black dark:bg-white'
+            } `}
           >
             {isSold ? 'Vehículo vendido' : 'Ver detalles'}
           </Button>

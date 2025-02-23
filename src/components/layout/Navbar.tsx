@@ -14,6 +14,7 @@ import {
 import useClientStore from '@/store/useClientStore';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import ThemeToggle from '../ThemeToggle';
 
 const navigation = [
   { name: 'Inicio', href: '/' },
@@ -47,7 +48,9 @@ const Navbar = () => {
       isMenuOpen={isMenuOpen}
       onMenuOpenChange={setIsMenuOpen}
       className={`transition-all duration-300 fixed top-0 ${
-        isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-white'
+        isScrolled
+          ? 'bg-white/90 dark:bg-dark-bg/90 backdrop-blur-md shadow-sm'
+          : 'bg-white dark:bg-dark-bg'
       }`}
     >
       {/* Logo a la izquierda */}
@@ -57,7 +60,7 @@ const Navbar = () => {
             <img
               src={client?.logo}
               alt={client?.name}
-              className='h-8 w-auto object-contain'
+              className='h-8 w-auto object-contain dark:brightness-200'
             />
           </Link>
         </NavbarBrand>
@@ -71,8 +74,8 @@ const Navbar = () => {
               href={item.href}
               className={`px-3 py-2 transition-colors ${
                 isActive(item.href)
-                  ? 'text-primary font-semibold'
-                  : 'text-gray-700 hover:text-gray-900'
+                  ? 'text-primary dark:text-secondary font-semibold'
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               {item.name}
@@ -81,34 +84,37 @@ const Navbar = () => {
         ))}
       </NavbarContent>
 
-      {/* Botón de contacto y hamburger a la derecha */}
-      <NavbarContent justify='end'>
+      {/* Botón de contacto, theme toggle y hamburger a la derecha */}
+      <NavbarContent justify='end' className='gap-2'>
+        <NavbarItem>
+          <ThemeToggle />
+        </NavbarItem>
         <NavbarItem className='hidden sm:flex'>
           <Button
             as='a'
             color='primary'
             href='/contact'
-            className='font-semibold'
+            className='font-semibold bg-primary text-secondary hover:bg-primary/90 dark:bg-white dark:text-black dark:hover:bg-white/90'
           >
             Contactar
           </Button>
         </NavbarItem>
         <NavbarMenuToggle
           aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-          className='sm:hidden'
+          className='sm:hidden text-gray-700 dark:text-white'
         />
       </NavbarContent>
 
       {/* Menú móvil */}
-      <NavbarMenu>
+      <NavbarMenu className='bg-white dark:bg-dark-bg pt-6'>
         {navigation.map((item) => (
           <NavbarMenuItem key={item.name}>
             <Link
               href={item.href}
               className={`w-full py-2 transition-colors ${
                 isActive(item.href)
-                  ? 'text-primary font-medium'
-                  : 'text-gray-700 hover:text-gray-900'
+                  ? 'text-primary dark:text-secondary font-medium'
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
               }`}
               onClick={() => setIsMenuOpen(false)}
             >
@@ -121,9 +127,7 @@ const Navbar = () => {
             as='a'
             color='primary'
             href='/contact'
-            className={`mt-4 w-full ${
-              isActive('/contact') ? 'font-medium' : ''
-            }`}
+            className='mt-4 w-full font-semibold bg-primary text-secondary hover:bg-primary/90 dark:bg-secondary dark:text-primary dark:hover:bg-secondary/90'
             onPress={() => setIsMenuOpen(false)}
           >
             Contactar

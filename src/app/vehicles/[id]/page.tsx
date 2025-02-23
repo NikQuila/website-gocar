@@ -64,11 +64,11 @@ export default function VehicleDetailsPage() {
   };
 
   return (
-    <div className='container mx-auto px-4 py-20'>
+    <div className='container mx-auto px-4 py-20 bg-white dark:bg-dark-bg min-h-screen'>
       <div className='mb-8'>
         <button
           onClick={() => router.back()}
-          className='flex items-center gap-2 text-gray-600 hover:text-gray-800'
+          className='flex items-center gap-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors'
         >
           <Icon icon='mdi:arrow-left' className='text-xl' />
           <span>Volver</span>

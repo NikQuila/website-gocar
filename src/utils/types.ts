@@ -31,6 +31,7 @@ export interface Client {
   theme: {
     primary: string;
     secondary: string;
+    mode?: 'light' | 'dark';
   };
   seo: {
     title: string;
