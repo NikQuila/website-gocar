@@ -167,7 +167,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
 
         <div className='grid md:grid-cols-3 gap-8 items-start'>
           {/* Contact Info with Navigation */}
-          <div className='md:col-span-1 space-y-6 p-6 max-w-[90vw] h-full flex flex-col justify-between bg-white dark:bg-dark-card rounded-xl shadow-sm dark:border dark:border-dark-border'>
+          <div className='md:col-span-1 space-y-6 p-6 h-full flex flex-col justify-between bg-white dark:bg-dark-card rounded-xl shadow-sm dark:border dark:border-dark-border mx-auto w-full'>
             {client?.logo && (
               <img
                 src={client.logo}
@@ -242,11 +242,11 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                     icon='mdi:email'
                     className='text-2xl text-primary dark:text-white flex-shrink-0 mt-1'
                   />
-                  <div>
+                  <div className='min-w-0'>
                     <h4 className='font-medium text-gray-900 dark:text-dark-text'>
                       Email
                     </h4>
-                    <p className='text-gray-600 dark:text-gray-400'>
+                    <p className='text-gray-600 dark:text-gray-400 break-words'>
                       {selectedDealership.email}
                     </p>
                   </div>
