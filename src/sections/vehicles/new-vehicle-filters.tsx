@@ -9,10 +9,6 @@ import {
   Slider,
   Accordion,
   AccordionItem,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { VehicleFilters as VehicleFiltersType } from '@/utils/types';
@@ -144,6 +140,13 @@ const NewVehicleFilters = ({
                 maxValue={1000000000}
                 step={1000000}
                 className='max-w-full'
+                classNames={{
+                  base: 'dark:bg-dark-card',
+                  track: 'dark:bg-dark-border',
+                  filler: 'dark:bg-primary',
+                  thumb: 'dark:bg-primary dark:border-dark-border',
+                  label: 'dark:text-white',
+                }}
                 aria-label='Rango de precio'
               />
               <div className='flex justify-between mt-2 text-xs text-gray-500'>
@@ -173,7 +176,15 @@ const NewVehicleFilters = ({
             placeholder='Selecciona una marca'
             selectedKeys={filters.brand ? [filters.brand] : []}
             onChange={(e) => onFilterChange('brand', e.target.value)}
-            className='w-full'
+            classNames={{
+              base: 'dark:bg-dark-card',
+              trigger:
+                'dark:bg-dark-card dark:text-white dark:border-dark-border',
+              listbox: 'dark:bg-dark-card dark:text-white',
+              popoverContent: 'dark:bg-dark-card dark:border-dark-border',
+              value: 'dark:text-white',
+              label: 'dark:text-gray-400',
+            }}
           >
             {[
               ...new Map(brands.map((brand) => [brand.id, brand])).values(),

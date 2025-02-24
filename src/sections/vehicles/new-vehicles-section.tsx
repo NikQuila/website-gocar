@@ -403,8 +403,9 @@ const NewVehiclesSection = () => {
         isOpen={isOpen}
         onClose={onClose}
         placement='left'
+        className='bg-white dark:bg-dark-card'
         classNames={{
-          base: 'sm:max-w-[90%] md:max-w-[400px]',
+          base: 'sm:max-w-[90%] md:max-w-[400px] ',
           header: 'border-b border-gray-200 dark:border-dark-border',
           body: 'p-0',
           footer: 'border-t border-gray-200 dark:border-dark-border px-4 py-4',
