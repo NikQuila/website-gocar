@@ -7,6 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
+import RoutePrefetcher from '@/components/routing/RoutePrefetcher';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
@@ -38,6 +39,9 @@ export async function generateMetadata() {
   };
 }
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
+
 export default function RootLayout({
   children,
 }: {
@@ -51,6 +55,7 @@ export default function RootLayout({
             <ThemeProvider>
               <div className='min-h-screen bg-white dark:bg-dark-bg transition-colors'>
                 <VisitTracker />
+                <RoutePrefetcher routes={['/', '/contact', '/vehicles']} />
                 <Navbar />
                 {children}
                 <Footer />
