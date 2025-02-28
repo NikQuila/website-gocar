@@ -194,3 +194,36 @@ export interface VehicleFilters {
   color?: VehicleColor;
   condition?: VehicleCondition;
 }
+
+export interface Lead {
+  id: string;
+  client_id: string;
+  customer_id?: string;
+  customer?: Customer;
+  search_params: {
+    brand?: string;
+    model?: string;
+    year?: {
+      min: number;
+      max: number;
+    };
+    price?: {
+      min: number;
+      max: number;
+    };
+    mileage?: {
+      min: number;
+      max: number;
+    };
+    color?: VehicleColor;
+    fuel_type?: VehicleFuelType;
+    transmission?: VehicleTransmission;
+    condition?: VehicleCondition;
+  };
+  status: 'pending' | 'assigned' | 'completed' | 'cancelled';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  assigned_to?: string; // ID del usuario asignado para seguimiento
+  matched_vehicles?: Vehicle[]; // Vehículos que coinciden con la búsqueda
+}
