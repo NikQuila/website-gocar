@@ -13,6 +13,8 @@ import {
 import { useState } from 'react';
 
 interface CustomerDataModalProps {
+  title?: string;
+  description?: string;
   isOpen: boolean;
   onClose: () => void;
   onSave: (customerData: Omit<Customer, 'id' | 'created_at'>) => void;
@@ -22,6 +24,8 @@ export const CustomerDataModal = ({
   isOpen,
   onClose,
   onSave,
+  title = '¡Guarda tus vehículos favoritos!',
+  description = 'Te notificaremos cuando encontremos vehículos similares a buen precio.',
 }: CustomerDataModalProps) => {
   const [formData, setFormData] = useState({
     email: '',
@@ -48,13 +52,10 @@ export const CustomerDataModal = ({
       }}
     >
       <ModalContent>
-        <ModalHeader className='dark:text-white'>
-          ¡Guarda tus vehículos favoritos!
-        </ModalHeader>
+        <ModalHeader className='dark:text-white'>{title}</ModalHeader>
         <ModalBody>
           <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
-            Te notificaremos cuando encontremos vehículos similares a buen
-            precio.
+            {description}
           </p>
           <form onSubmit={handleSubmit} className='space-y-4'>
             <Input
