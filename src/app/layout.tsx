@@ -17,16 +17,12 @@ const poppins = Poppins({
 
 export async function generateMetadata() {
   const client = await getClient();
-  console.log('Client data for favicon:', {
-    favicon: client?.favicon,
-    domain: client?.domain,
-  });
 
   return {
     title: client?.seo?.title || 'Automotora',
     description: client?.seo?.description || 'Descripción por defecto',
     icons: {
-      icon: client?.favicon || '/favicon.ico',
+      icon: client?.favicon,
     },
     verification: {
       google: 'mM5DNzGoLlVxLaeEWPJsO2lRxjqYdwjGjTVqSGKhxQ8',

@@ -213,13 +213,16 @@ export default function WelcomeSection() {
               Encuentra tu próximo vehículo en{' '}
               <span className='text-primary'>{client?.name}</span>
             </h1>
-            <p className='mt-6 text-xl leading-8 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto'>
+            {/*   <p className='mt-6 text-xl leading-8 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto'>
               Describe el vehículo de tus sueños y deja que nuestra IA encuentre
               las mejores opciones para ti.
+            </p> */}
+            <p className='mt-6 text-xl leading-8 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto'>
+              Busca tu vehículo ideal en nuestra amplia variedad de autos nuevos
+              y usados.
             </p>
 
-            {/* AI Search Bar */}
-            <div className='mt-8 max-w-2xl mx-auto'>
+            {/* <div className='mt-8 max-w-2xl mx-auto'>
               <div className='relative'>
                 <Input
                   type='text'
@@ -262,7 +265,6 @@ export default function WelcomeSection() {
                 />
               </div>
 
-              {/* Search Results Display */}
               {(searchParams || matchCount !== null) && (
                 <div className='mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-left'>
                   {matchCount !== null && (
@@ -325,7 +327,6 @@ export default function WelcomeSection() {
                 </div>
               )}
 
-              {/* Vehicle Results */}
               {vehicles.length > 0 && (
                 <div className='mt-8 relative'>
                   <div className='absolute left-0 top-1/2 transform -translate-y-1/2 z-10'>
@@ -362,7 +363,6 @@ export default function WelcomeSection() {
                 </div>
               )}
 
-              {/* No Results Message */}
               {matchCount === 0 && !showThankYouMessage && (
                 <div className='mt-8 text-center'>
                   <p className='text-gray-600 dark:text-gray-400 mb-4'>
@@ -379,7 +379,6 @@ export default function WelcomeSection() {
                 </div>
               )}
 
-              {/* Thank You Message */}
               {showThankYouMessage && (
                 <div className='mt-8 text-center'>
                   <p className='text-xl font-semibold text-primary mb-2'>
@@ -406,7 +405,7 @@ export default function WelcomeSection() {
                   </p>
                 </div>
               )}
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
