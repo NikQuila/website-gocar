@@ -12,7 +12,7 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function loadClientAndVehicles() {
       const domain = window.location.host;
-      console.log(domain);
+
       const { data: clientData, error: clientError } = await supabase
         .from('clients')
         .select('*, dealerships(*)')

@@ -22,7 +22,18 @@ export async function generateMetadata() {
     title: client?.seo?.title || 'Automotora',
     description: client?.seo?.description || 'Descripción por defecto',
     icons: {
-      icon: client?.favicon,
+      icon: [
+        {
+          url: client?.favicon || '/favicon.ico',
+          sizes: 'any',
+          type: 'image/x-icon',
+        },
+        {
+          url: client?.favicon || '/favicon.ico',
+          sizes: '32x32',
+          type: 'image/png',
+        },
+      ],
     },
     verification: {
       google: 'mM5DNzGoLlVxLaeEWPJsO2lRxjqYdwjGjTVqSGKhxQ8',
