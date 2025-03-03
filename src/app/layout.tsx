@@ -21,6 +21,9 @@ export async function generateMetadata() {
   return {
     title: client?.seo?.title || 'Automotora',
     description: client?.seo?.description || 'Descripción por defecto',
+    icons: {
+      icon: client?.favicon,
+    },
     verification: {
       google: 'mM5DNzGoLlVxLaeEWPJsO2lRxjqYdwjGjTVqSGKhxQ8',
     },
