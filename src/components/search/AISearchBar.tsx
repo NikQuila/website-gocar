@@ -330,7 +330,7 @@ export default function AISearchBar({
                 <div className='mt-4'>
                   <p className='text-gray-600 dark:text-gray-400 mb-4'>
                     {matchCount === 0
-                      ? '¿Te gustaría que te avisemos cuando llegue un vehículo que coincida con tu búsqueda?'
+                      ? '¿Te gustaría que te avisemos cuando llegue un vehículo que coincida con lo que buscas?'
                       : '¿Te gustaría que te notifiquemos sobre vehículos similares?'}
                   </p>
                   <Button
