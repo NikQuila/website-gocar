@@ -7,6 +7,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import useClientStore from '@/store/useClientStore';
 import { Dealership, Location } from '@/utils/types';
 import { supabase } from '@/lib/supabase';
+import useThemeStore from '@/store/useThemeStore';
 
 interface HowToArriveProps {
   height?: string;
@@ -87,6 +88,7 @@ const MapMarker = ({
 
 export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
   const { client } = useClientStore();
+  const { theme } = useThemeStore();
   const [dealerships, setDealerships] = useState<Dealership[]>([]);
   const [selectedDealership, setSelectedDealership] =
     useState<Dealership | null>(null);
@@ -257,7 +259,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
             <Button
               color='primary'
               startContent={<Icon icon='mdi:navigation' />}
-              className='w-full mt-6  '
+              className={`w-full mt-6 ${theme === 'dark' ? 'text-black' : ''}`}
               onPress={() =>
                 selectedDealership && handleMarkerClick(selectedDealership)
               }
