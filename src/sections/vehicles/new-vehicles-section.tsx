@@ -25,6 +25,7 @@ import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
 import VehicleHorizontalCard from '@/components/vehicles/VehicleHorizontalCard';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
 import useMediaQuery from '@/hooks/useMediaQuery';
+import useThemeStore from '@/store/useThemeStore';
 
 const vehicleCategories = [
   {
@@ -98,6 +99,7 @@ const sortOptions = [
 ];
 
 const NewVehiclesSection = () => {
+  const { theme } = useThemeStore();
   const { vehicles, isLoading } = useVehiclesStore();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(true);
@@ -219,7 +221,11 @@ const NewVehiclesSection = () => {
                     }
                     onClick={() => setSelectedCategory(category.id)}
                     className={`whitespace-nowrap hover:-translate-y-0.5 transition-transform
-                    ${selectedCategory === category.id ? 'text-black' : ''}`}
+                    ${
+                      selectedCategory === category.id && theme === 'dark'
+                        ? 'text-black'
+                        : ''
+                    }`}
                     startContent={
                       <Icon icon={category.icon} className='text-xl' />
                     }
