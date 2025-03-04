@@ -21,8 +21,8 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
 
       if (clientData) {
         setClient(clientData);
-        // Fetch vehicles for this client
-        await fetchVehicles(clientData.id);
+        // Fetch vehicles for this client, including demo vehicles if has_demo is true
+        await fetchVehicles(clientData.id, clientData.has_demo);
       }
 
       console.log('Client data:', clientData);
