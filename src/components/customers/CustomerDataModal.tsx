@@ -48,15 +48,14 @@ export const CustomerDataModal = ({
       scrollBehavior='inside'
       placement='center'
       classNames={{
-        base: 'dark:bg-dark-bg mx-auto my-0 sm:m-4 w-full rounded-2xl h-[100dvh] sm:h-auto sm:max-h-[90vh]',
+        base: 'dark:bg-dark-bg mx-auto my-0 sm:m-4 w-full rounded-2xl max-h-[90vh]',
         header:
-          'dark:bg-dark-card dark:text-white border-b border-gray-200 dark:border-gray-700 rounded-t-2xl bg-white dark:bg-dark-bg',
-        body: 'dark:bg-dark-card p-4 sm:p-6 overflow-y-auto flex-1',
+          'dark:bg-dark-card dark:text-white border-b border-gray-200 dark:border-gray-700 rounded-t-2xl sticky top-0 z-10 bg-white dark:bg-dark-bg',
+        body: 'dark:bg-dark-card p-4 sm:p-6 overflow-y-auto',
         footer:
-          'dark:bg-dark-card border-t border-gray-200 dark:border-gray-700 p-4 rounded-b-2xl bg-white dark:bg-dark-bg',
+          'dark:bg-dark-card border-t border-gray-200 dark:border-gray-700 p-4 rounded-b-2xl sticky bottom-0 z-10 bg-white dark:bg-dark-bg',
         backdrop: 'bg-black/50',
-        wrapper:
-          'flex items-start sm:items-center justify-center min-h-screen px-4',
+        wrapper: 'flex items-center justify-center min-h-screen px-4',
       }}
       motionProps={{
         variants: {
@@ -81,7 +80,7 @@ export const CustomerDataModal = ({
         },
       }}
     >
-      <ModalContent className='w-full max-w-md mx-auto rounded-2xl overflow-hidden flex flex-col h-[100dvh] sm:h-auto sm:max-h-[90vh]'>
+      <ModalContent className='w-full max-w-md mx-auto rounded-2xl overflow-hidden flex flex-col max-h-[90vh]'>
         {(onClose) => (
           <>
             <ModalHeader className='text-xl sm:text-2xl font-semibold'>
@@ -91,7 +90,10 @@ export const CustomerDataModal = ({
               <p className='text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6'>
                 {description}
               </p>
-              <form onSubmit={handleSubmit} className='space-y-5'>
+              <form
+                onSubmit={handleSubmit}
+                className='space-y-5 max-h-[30vh] overflow-y-auto sm:max-h-none sm:overflow-visible'
+              >
                 <Input
                   label='Nombre'
                   value={formData.first_name}
