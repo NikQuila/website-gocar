@@ -393,7 +393,7 @@ export default function AISearchBar({
       </div>
 
       {showThankYouMessage && (
-        <div className='mt-8 p-6 bg-gray-100 dark:bg-gray-800 rounded-lg text-center'>
+        <div className='mt-8 p-6 bg-gray-100 dark:bg-dark-card rounded-lg text-center'>
           <p className='text-2xl font-semibold text-primary mb-4'>
             ¡Gracias por tu interés!
           </p>
