@@ -218,9 +218,12 @@ const NewVehiclesSection = () => {
                       selectedCategory === category.id ? 'primary' : 'default'
                     }
                     onClick={() => setSelectedCategory(category.id)}
-                    className='whitespace-nowrap hover:-translate-y-0.5 transition-transform dark:text-white'
+                    className='whitespace-nowrap hover:-translate-y-0.5 transition-transform dark:text-black'
                     startContent={
-                      <Icon icon={category.icon} className='text-xl' />
+                      <Icon
+                        icon={category.icon}
+                        className='text-xl dark:text-black'
+                      />
                     }
                     size='sm'
                   >
