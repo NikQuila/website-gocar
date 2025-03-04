@@ -2,6 +2,18 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+interface Client {
+  id: string;
+  name: string;
+  logo: string;
+  favicon: string;
+  domain: string;
+  seo?: {
+    title?: string;
+    description?: string;
+  };
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_KEY!
@@ -14,13 +26,15 @@ export const config = {
     '/vehicles/:path*',
     '/contact',
     '/about',
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/favicon.ico',
+    '/((?!api|_next/static|_next/image).*)',
   ],
 };
 
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host');
   const userAgent = request.headers.get('user-agent')?.toLowerCase() || '';
+  const isFaviconRequest = request.nextUrl.pathname === '/favicon.ico';
 
   const isCrawler =
     userAgent.includes('bot') ||
@@ -33,14 +47,18 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
 
   try {
-    const { data: client } = await supabase
+    const { data: client } = (await supabase
       .from('clients')
       .select(isCrawler ? '*' : 'id, name, logo, favicon')
       .eq('domain', hostname)
-      .single();
+      .single()) as { data: Client | null };
 
     if (!client) {
       return NextResponse.redirect(new URL('/404', request.url));
+    }
+
+    if (isFaviconRequest && client.favicon) {
+      return NextResponse.redirect(new URL(client.favicon, request.url));
     }
 
     requestHeaders.set('x-client-data', JSON.stringify(client));
