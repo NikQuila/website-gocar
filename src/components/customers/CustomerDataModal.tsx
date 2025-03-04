@@ -162,7 +162,7 @@ export const CustomerDataModal = ({
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, phone: e.target.value }))
                   }
-                  className='pb-10 md:pb-0'
+                  className='pb-20 md:pb-0'
                   classNames={{
                     label: 'dark:text-gray-400 text-sm font-medium',
                     input:
