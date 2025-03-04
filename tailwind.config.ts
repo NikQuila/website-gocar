@@ -25,7 +25,8 @@ export default {
           900: '#064E3B',
         },
         dark: {
-          bg: '#1a1a1a',
+          /* bg: '#1a1a1a', */
+          bg: '#000000',
           card: '#2d2d2d',
           text: '#e5e5e5',
           border: '#404040',
