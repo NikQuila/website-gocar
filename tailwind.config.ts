@@ -27,7 +27,7 @@ export default {
         dark: {
           /* bg: '#1a1a1a', */
           bg: '#000000',
-          card: '#2d2d2d',
+          card: '#1a1a1a',
           text: '#e5e5e5',
           border: '#404040',
         },

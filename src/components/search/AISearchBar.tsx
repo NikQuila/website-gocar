@@ -317,7 +317,7 @@ export default function AISearchBar({
       </div>
       <div className='max-w-2xl mx-auto'>
         {(searchParams || matchCount !== null) && !showThankYouMessage && (
-          <div className='mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-left'>
+          <div className='mt-4 p-4 bg-gray-100 dark:bg-dark-card rounded-lg text-left'>
             {matchCount !== null && (
               <div className='text-center  mb-3'>
                 <p className='text-lg font-medium text-gray-900 dark:text-white'>
