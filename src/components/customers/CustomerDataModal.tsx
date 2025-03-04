@@ -48,12 +48,12 @@ export const CustomerDataModal = ({
       scrollBehavior='inside'
       placement='center'
       classNames={{
-        base: 'dark:bg-dark-bg mx-auto my-0 sm:m-4 w-full rounded-2xl',
+        base: 'dark:bg-dark-bg mx-auto my-0 sm:m-4 w-full rounded-2xl max-h-[90vh]',
         header:
-          'dark:bg-dark-card dark:text-white border-b border-gray-200 dark:border-gray-700 rounded-t-2xl',
-        body: 'dark:bg-dark-card p-4 sm:p-6',
+          'dark:bg-dark-card dark:text-white border-b border-gray-200 dark:border-gray-700 rounded-t-2xl sticky top-0 z-10 bg-white dark:bg-dark-bg',
+        body: 'dark:bg-dark-card p-4 sm:p-6 overflow-y-auto',
         footer:
-          'dark:bg-dark-card border-t border-gray-200 dark:border-gray-700 p-4 rounded-b-2xl',
+          'dark:bg-dark-card border-t border-gray-200 dark:border-gray-700 p-4 rounded-b-2xl sticky bottom-0 z-10 bg-white dark:bg-dark-bg',
         backdrop: 'bg-black/50',
         wrapper: 'flex items-center justify-center min-h-screen px-4',
       }}
@@ -80,7 +80,7 @@ export const CustomerDataModal = ({
         },
       }}
     >
-      <ModalContent className='w-full max-w-md mx-auto rounded-2xl overflow-hidden'>
+      <ModalContent className='w-full max-w-md mx-auto rounded-2xl overflow-hidden flex flex-col max-h-[90vh]'>
         {(onClose) => (
           <>
             <ModalHeader className='text-xl sm:text-2xl font-semibold'>
