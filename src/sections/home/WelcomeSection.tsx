@@ -13,7 +13,7 @@ export default function WelcomeSection() {
           {/* Hero content - Centered */}
           <div className='text-center'>
             <h1
-              className='text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl max-w-3xl mx-auto'
+              className='text-5xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-6xl max-w-3xl mx-auto'
               style={{ lineHeight: '1.1' }}
             >
               Encuentra tu próximo vehículo en{' '}
