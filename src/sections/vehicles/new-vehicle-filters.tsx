@@ -208,7 +208,7 @@ const NewVehicleFilters = ({
                 onClick={() =>
                   onFilterChange('category', category.id.toString())
                 }
-                className='cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
+                className=' capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
                 color={
                   filters.category === category.id.toString()
                     ? 'primary'
@@ -244,7 +244,7 @@ const NewVehicleFilters = ({
               <Chip
                 key={type.id}
                 onClick={() => onFilterChange('fuel_type', type.id.toString())}
-                className='cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
+                className=' capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
                 color={
                   filters.fuel_type === type.id.toString()
                     ? 'primary'
@@ -282,7 +282,7 @@ const NewVehicleFilters = ({
                 onClick={() =>
                   onFilterChange('condition', condition.id.toString())
                 }
-                className='cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
+                className=' capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
                 color={
                   filters.condition === condition.id.toString()
                     ? 'primary'
@@ -320,7 +320,7 @@ const NewVehicleFilters = ({
               <button
                 key={color.id}
                 onClick={() => onFilterChange('color', color.id.toString())}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg border transition-all
+                className={`capitalize w-full flex items-center gap-3 px-3 py-2 rounded-lg border transition-all
                   ${
                     filters.color === color.id.toString()
                       ? 'border-primary bg-primary/5 dark:bg-primary/10'

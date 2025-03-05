@@ -108,7 +108,7 @@ const VehicleHorizontalCard = ({ vehicle }: VehicleHorizontalCardProps) => {
             <div className='flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400'>
               <span>{vehicle.mileage.toLocaleString()} km</span>
               <span>•</span>
-              <span>{mapFuelTypeToSpanish(vehicle.fuel_type)}</span>
+              <span className='capitalize'>{vehicle?.fuel_type_new?.name}</span>
               <span>•</span>
               <span>{mapTransmissionTypeToSpanish(vehicle.transmission)}</span>
             </div>
