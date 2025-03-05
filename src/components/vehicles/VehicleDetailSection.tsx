@@ -18,6 +18,7 @@ import {
   mapTransmissionTypeToSpanish,
   contactByWhatsApp,
 } from '@/utils/functions';
+import useThemeStore from '@/store/useThemeStore';
 
 interface VehicleDetailSectionProps {
   vehicle: Vehicle | null;
@@ -40,6 +41,7 @@ export default function VehicleDetailSection({
 }: VehicleDetailSectionProps) {
   const [currentModalImage, setCurrentModalImage] = useState<string>('');
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { theme } = useThemeStore();
 
   if (loading || !vehicle) {
     return <VehicleDetailSkeleton />;
@@ -241,14 +243,18 @@ export default function VehicleDetailSection({
           <DetailCard
             icon='mdi:gas-station'
             label='Combustible'
-            value={mapFuelTypeToSpanish(vehicle.fuel_type)}
+            value={vehicle?.fuel_type_new?.name}
           />
           <DetailCard
             icon='mdi:car-shift-pattern'
             label='Transmisión'
             value={mapTransmissionTypeToSpanish(vehicle.transmission)}
           />
-          <DetailCard icon='mdi:palette' label='Color' value={vehicle.color} />
+          <DetailCard
+            icon='mdi:palette'
+            label='Color'
+            value={vehicle?.color_new?.name}
+          />
         </div>
 
         <Divider className='dark:border-dark-border' />
@@ -268,7 +274,7 @@ export default function VehicleDetailSection({
           </h2>
           <div className='flex flex-wrap gap-2'>
             {vehicle.features?.map((feature, index) => (
-              <Chip key={index} color='primary' className=''>
+              <Chip key={index} color='primary' className='d'>
                 {feature}
               </Chip>
             ))}
@@ -286,7 +292,7 @@ export default function VehicleDetailSection({
             )}
             target='_blank'
             rel='noopener noreferrer'
-            className='font-semibold dark:text-white'
+            className='font-semibold dark:text-black'
             startContent={<Icon icon='mdi:whatsapp' />}
           >
             Contactar Vendedor
