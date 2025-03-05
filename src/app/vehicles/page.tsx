@@ -48,13 +48,13 @@ const VehiclesPage = () => {
     let matches = true;
 
     if (filters.brand && vehicle?.brand?.id !== filters.brand) matches = false;
-    if (filters.category && vehicle?.category !== filters.category)
+    if (filters.category && vehicle?.category_new?.name !== filters.category)
       matches = false;
-    if (filters.fuel_type && vehicle?.fuel_type !== filters.fuel_type)
+    if (filters.fuel_type && vehicle?.fuel_type_new?.name !== filters.fuel_type)
       matches = false;
     if (filters.transmission && vehicle.transmission !== filters.transmission)
       matches = false;
-    if (filters.condition && vehicle?.condition !== filters.condition)
+    if (filters.condition && vehicle?.condition_new?.name !== filters.condition)
       matches = false;
     if (vehicle?.price < priceRange[0] || vehicle?.price > priceRange[1])
       matches = false;
