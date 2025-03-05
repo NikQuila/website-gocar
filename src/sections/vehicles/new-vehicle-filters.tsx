@@ -12,20 +12,12 @@ import {
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { VehicleFilters as VehicleFiltersType } from '@/utils/types';
-import {
-  mapConditionTypeToSpanish,
-  mapFuelTypeToSpanish,
-  mapTransmissionTypeToSpanish,
-} from '@/utils/functions';
+import { useGeneralStore } from '@/store/useGeneralStore';
 
 interface NewVehicleFiltersProps {
   filters: VehicleFiltersType;
   priceRange: number[];
   brands: any[];
-  categories: string[];
-  fuelTypes: string[];
-  transmissions: string[];
-  conditions: string[];
   onFilterChange: (key: keyof VehicleFiltersType, value: any) => void;
   onPriceRangeChange: (value: number[]) => void;
   onClearFilters: () => void;
@@ -35,14 +27,12 @@ const NewVehicleFilters = ({
   filters,
   priceRange,
   brands,
-  categories,
-  fuelTypes,
-  transmissions,
-  conditions,
   onFilterChange,
   onPriceRangeChange,
   onClearFilters,
 }: NewVehicleFiltersProps) => {
+  const { colors, categories, fuelTypes, conditions } = useGeneralStore();
+
   const activeFiltersCount =
     Object.keys(filters).length +
     (priceRange[0] > 0 || priceRange[1] < 1000000000 ? 1 : 0);
@@ -214,13 +204,21 @@ const NewVehicleFilters = ({
           <div className='grid grid-cols-2 sm:flex sm:flex-wrap gap-2'>
             {categories.map((category) => (
               <Chip
-                key={category}
-                onClick={() => onFilterChange('category', category)}
+                key={category.id}
+                onClick={() =>
+                  onFilterChange('category', category.id.toString())
+                }
                 className='cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
-                color={filters.category === category ? 'primary' : 'default'}
-                variant={filters.category === category ? 'solid' : 'flat'}
+                color={
+                  filters.category === category.id.toString()
+                    ? 'primary'
+                    : 'default'
+                }
+                variant={
+                  filters.category === category.id.toString() ? 'solid' : 'flat'
+                }
               >
-                {category}
+                {category.name}
               </Chip>
             ))}
           </div>
@@ -244,46 +242,19 @@ const NewVehicleFilters = ({
           <div className='grid grid-cols-2 sm:flex sm:flex-wrap gap-2'>
             {fuelTypes.map((type) => (
               <Chip
-                key={type}
-                onClick={() => onFilterChange('fuel_type', type)}
+                key={type.id}
+                onClick={() => onFilterChange('fuel_type', type.id.toString())}
                 className='cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
-                color={filters.fuel_type === type ? 'primary' : 'default'}
-                variant={filters.fuel_type === type ? 'solid' : 'flat'}
+                color={
+                  filters.fuel_type === type.id.toString()
+                    ? 'primary'
+                    : 'default'
+                }
+                variant={
+                  filters.fuel_type === type.id.toString() ? 'solid' : 'flat'
+                }
               >
-                {mapFuelTypeToSpanish(type as any)}
-              </Chip>
-            ))}
-          </div>
-        </AccordionItem>
-
-        <AccordionItem
-          key='transmission'
-          aria-label='Transmisión'
-          startContent={
-            <Icon
-              icon='mdi:car-shift-pattern'
-              className='text-xl text-primary'
-            />
-          }
-          title='Transmisión'
-          classNames={{
-            base: 'group-[.is-splitted]:ps-0 py-0',
-            heading:
-              'px-2 sm:px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
-            trigger: 'px-0',
-            content: 'px-2 sm:px-4 py-3',
-          }}
-        >
-          <div className='grid grid-cols-2 sm:flex sm:flex-wrap gap-2'>
-            {transmissions.map((type) => (
-              <Chip
-                key={type}
-                onClick={() => onFilterChange('transmission', type)}
-                className='cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
-                color={filters.transmission === type ? 'primary' : 'default'}
-                variant={filters.transmission === type ? 'solid' : 'flat'}
-              >
-                {mapTransmissionTypeToSpanish(type as any)}
+                {type.name}
               </Chip>
             ))}
           </div>
@@ -307,20 +278,106 @@ const NewVehicleFilters = ({
           <div className='grid grid-cols-2 sm:flex sm:flex-wrap gap-2'>
             {conditions.map((condition) => (
               <Chip
-                key={condition}
-                onClick={() => onFilterChange('condition', condition)}
+                key={condition.id}
+                onClick={() =>
+                  onFilterChange('condition', condition.id.toString())
+                }
                 className='cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
-                color={filters.condition === condition ? 'primary' : 'default'}
-                variant={filters.condition === condition ? 'solid' : 'flat'}
+                color={
+                  filters.condition === condition.id.toString()
+                    ? 'primary'
+                    : 'default'
+                }
+                variant={
+                  filters.condition === condition.id.toString()
+                    ? 'solid'
+                    : 'flat'
+                }
               >
-                {mapConditionTypeToSpanish(condition as any)}
+                {condition.name}
               </Chip>
+            ))}
+          </div>
+        </AccordionItem>
+
+        <AccordionItem
+          key='color'
+          aria-label='Color'
+          startContent={
+            <Icon icon='mdi:palette' className='text-xl text-primary' />
+          }
+          title='Color'
+          classNames={{
+            base: 'group-[.is-splitted]:ps-0 py-0',
+            heading:
+              'px-2 sm:px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+            trigger: 'px-0',
+            content: 'px-2 sm:px-4 py-3',
+          }}
+        >
+          <div className='grid  grid-cols-1 md:grid-cols-2 gap-2'>
+            {colors.map((color) => (
+              <button
+                key={color.id}
+                onClick={() => onFilterChange('color', color.id.toString())}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg border transition-all
+                  ${
+                    filters.color === color.id.toString()
+                      ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                      : 'border-gray-200 dark:border-dark-border bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-border/50'
+                  }
+                `}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full border-2
+                    ${
+                      filters.color === color.id.toString()
+                        ? 'border-primary'
+                        : 'border-gray-200 dark:border-dark-border'
+                    }
+                  `}
+                  style={{
+                    backgroundColor: color.hex,
+                  }}
+                />
+                <span
+                  className={`text-sm
+                  ${
+                    filters.color === color.id.toString()
+                      ? 'text-primary font-medium'
+                      : 'text-gray-700 dark:text-gray-300'
+                  }
+                `}
+                >
+                  {color.name}
+                </span>
+                {filters.color === color.id.toString() && (
+                  <Icon
+                    icon='mdi:check'
+                    className='ml-auto text-primary text-lg'
+                  />
+                )}
+              </button>
             ))}
           </div>
         </AccordionItem>
       </Accordion>
     </div>
   );
+};
+
+// Helper function to determine text color based on background
+const getContrastColor = (hexcolor: string) => {
+  // Remove the hash if it exists
+  const hex = hexcolor.replace('#', '');
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  // Calculate luminance
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  // Return black or white based on luminance
+  return luminance > 0.5 ? '#000000' : '#FFFFFF';
 };
 
 export default NewVehicleFilters;

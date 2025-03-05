@@ -112,18 +112,6 @@ const NewVehiclesSection = () => {
 
   // Extract unique values for filters
   const brands = [...new Set(vehicles.map((v) => v.brand))];
-  const categories = [
-    'SUV',
-    'Sedan',
-    'Hatchback',
-    'Pickup',
-    'Van',
-    'Coupe',
-    'Wagon',
-  ];
-  const fuelTypes = ['Gasoline', 'Diesel', 'Hybrid', 'Electric', 'Gas'];
-  const transmissions = ['Manual', 'Automatic'];
-  const conditions = ['New', 'Used', 'Certified Pre-Owned'];
 
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
     setFilters((prev) => ({
@@ -142,20 +130,45 @@ const NewVehiclesSection = () => {
     .filter((vehicle) => {
       let matches = true;
 
-      if (selectedCategory !== 'all' && vehicle?.category !== selectedCategory)
+      // Category from tabs
+      if (
+        selectedCategory !== 'all' &&
+        vehicle?.category_new?.name !== selectedCategory
+      ) {
         matches = false;
-      if (filters.brand && vehicle?.brand?.id !== filters.brand)
+      }
+
+      // Filters from sidebar
+      if (filters.brand && vehicle?.brand?.id.toString() !== filters.brand) {
         matches = false;
-      if (filters.category && vehicle?.category !== filters.category)
+      }
+      if (
+        filters.category &&
+        vehicle?.category_new?.id.toString() !== filters.category
+      ) {
         matches = false;
-      if (filters.fuel_type && vehicle?.fuel_type !== filters.fuel_type)
+      }
+      if (
+        filters.fuel_type &&
+        vehicle?.fuel_type_new?.id.toString() !== filters.fuel_type
+      ) {
         matches = false;
-      if (filters.transmission && vehicle.transmission !== filters.transmission)
+      }
+      if (
+        filters.condition &&
+        vehicle?.condition_new?.id.toString() !== filters.condition
+      ) {
         matches = false;
-      if (filters.condition && vehicle?.condition !== filters.condition)
+      }
+      if (
+        filters.color &&
+        vehicle?.color_new?.id.toString() !== filters.color
+      ) {
         matches = false;
-      if (vehicle?.price < priceRange[0] || vehicle?.price > priceRange[1])
+      }
+      if (vehicle?.price < priceRange[0] || vehicle?.price > priceRange[1]) {
         matches = false;
+      }
 
       return matches;
     })
@@ -254,10 +267,6 @@ const NewVehiclesSection = () => {
                   filters={filters}
                   priceRange={priceRange}
                   brands={brands}
-                  categories={categories}
-                  fuelTypes={fuelTypes}
-                  transmissions={transmissions}
-                  conditions={conditions}
                   onFilterChange={handleFilterChange}
                   onPriceRangeChange={setPriceRange}
                   onClearFilters={clearFilters}
@@ -426,10 +435,6 @@ const NewVehiclesSection = () => {
                   filters={filters}
                   priceRange={priceRange}
                   brands={brands}
-                  categories={categories}
-                  fuelTypes={fuelTypes}
-                  transmissions={transmissions}
-                  conditions={conditions}
                   onFilterChange={handleFilterChange}
                   onPriceRangeChange={setPriceRange}
                   onClearFilters={clearFilters}

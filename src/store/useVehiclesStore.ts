@@ -27,9 +27,16 @@ const useVehiclesStore = create<VehiclesStore>((set) => ({
     );
     set({ isLoading: true });
     try {
-      let query = supabase
-        .from('vehicles')
-        .select('*, brand:brand_id(id, name), model:model_id(id, name)');
+      let query = supabase.from('vehicles').select(`
+          *,
+          brand:brand_id(*),
+          model:model_id(*),
+          category_new:category_id(*),
+          fuel_type_new:fuel_type_id(*),
+          condition_new:condition_id(*),
+          color_new:color_id(*),
+          dealership:dealership_id(*)
+        `);
 
       if (hasDemo) {
         // If has_demo is true, fetch vehicles from both the client and client_id = 1

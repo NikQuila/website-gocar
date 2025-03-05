@@ -4,10 +4,12 @@ import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import useClientStore from '@/store/useClientStore';
 import useVehiclesStore from '@/store/useVehiclesStore';
+import { useInitializeStore } from '@/hooks/useInitializeStore';
 
 export function ClientProvider({ children }: { children: React.ReactNode }) {
   const { setClient, setIsLoading } = useClientStore();
   const { fetchVehicles } = useVehiclesStore();
+  const { isLoading } = useInitializeStore();
 
   useEffect(() => {
     async function loadClientAndVehicles() {

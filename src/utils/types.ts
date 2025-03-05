@@ -66,34 +66,21 @@ export interface Vehicle {
   model_id: number;
   year: number;
   price: number;
-  discount_percentage?: number; // opcional
+  discount_percentage?: number;
 
-  // Características principales
-  category:
-    | 'SUV'
-    | 'Sedan'
-    | 'Hatchback'
-    | 'Pickup'
-    | 'Van'
-    | 'Coupe'
-    | 'Wagon';
-  mileage: number;
-  fuel_type: 'Gasoline' | 'Diesel' | 'Hybrid' | 'Electric' | 'Gas';
+  // Características principales y relaciones
+  category_new: Category;
+  category_id: number;
+  fuel_type_new: FuelType;
+  fuel_type_id: number;
+  condition_new: Condition;
+  condition_id: number;
+  color_new: Color;
+  color_id: number;
   transmission: 'Manual' | 'Automatic';
-  color:
-    | 'White'
-    | 'Black'
-    | 'Silver'
-    | 'Gray'
-    | 'Red'
-    | 'Blue'
-    | 'Green'
-    | 'Brown'
-    | 'Gold'
-    | 'Other';
+  mileage: number;
 
   // Estado
-  condition: 'New' | 'Used' | 'Certified Pre-Owned';
   status: 'available' | 'sold' | 'reserved';
 
   // Multimedia
@@ -173,11 +160,11 @@ export interface Mail {
 }
 
 // Tipos auxiliares para los filtros
-export type VehicleCategory = Vehicle['category'];
-export type VehicleFuelType = Vehicle['fuel_type'];
+export type VehicleCategory = Category['name'];
+export type VehicleFuelType = FuelType['name'];
 export type VehicleTransmission = Vehicle['transmission'];
-export type VehicleColor = Vehicle['color'];
-export type VehicleCondition = Vehicle['condition'];
+export type VehicleColor = Color['name'];
+export type VehicleCondition = Condition['name'];
 export type VehicleStatus = Vehicle['status'];
 
 // Interfaz para filtros
@@ -226,4 +213,29 @@ export interface Lead {
   updated_at: string;
   assigned_to?: string; // ID del usuario asignado para seguimiento
   matched_vehicles?: Vehicle[]; // Vehículos que coinciden con la búsqueda
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
+export interface FuelType {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
+export interface Condition {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
+export interface Color {
+  id: number;
+  name: string;
+  hex: string;
+  created_at: string;
 }
