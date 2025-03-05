@@ -338,7 +338,9 @@ function DetailCard({ icon, label, value }: DetailCardProps) {
       <CardBody className='gap-2 p-3'>
         <Icon icon={icon} className='text-2xl text-primary' />
         <p className='text-sm text-gray-600 dark:text-gray-400'>{label}</p>
-        <p className='font-semibold text-gray-900 dark:text-white'>{value}</p>
+        <p className='capitalize font-semibold text-gray-900 dark:text-white'>
+          {value}
+        </p>
       </CardBody>
     </Card>
   );
