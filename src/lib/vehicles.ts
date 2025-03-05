@@ -30,13 +30,17 @@ export const getVehicleById = async (vehicleId: string) => {
         `
         *,
         brand:brand_id(id, name),
-        model:model_id(id, name)
+        model:model_id(id, name),
+        fuel_type_new:fuel_type_new_id(id, name),
+        color_new:color_new_id(id, name),
+        condition_new:condition_new_id(id, name),
+        category_new:category_new_id(id, name),
       `
       )
       .eq('id', vehicleId)
       .single();
     if (error) throw error;
-    return data as Vehicle;
+    return data as unknown as Vehicle;
   } catch (error) {
     console.error('Error fetching vehicle:', error);
     throw error;
