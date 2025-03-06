@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Button } from '@heroui/react';
-import { IoChevronBack, IoChevronForward } from 'react-icons/io5';
-import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
-import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
-import { Vehicle } from '@/utils/types';
+import React from "react";
+import { Button } from "@heroui/react";
+import { Icon } from "@iconify/react";
+import VehicleVerticalCard from "@/components/vehicles/VehicleVerticalCard";
+import VehicleCardSkeleton from "@/components/vehicles/VehicleCardSkeleton";
+import { Vehicle } from "@/utils/types";
 
 interface VehicleCarouselProps {
   vehicles: Vehicle[];
@@ -27,7 +27,7 @@ export default function VehicleCarousel({
 
   // Get current window width
   const [windowWidth, setWindowWidth] = React.useState(
-    typeof window !== 'undefined' ? window.innerWidth : 0
+    typeof window !== "undefined" ? window.innerWidth : 0
   );
 
   React.useEffect(() => {
@@ -35,8 +35,8 @@ export default function VehicleCarousel({
       setWindowWidth(window.innerWidth);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Calculate current items per page based on window width
@@ -72,47 +72,47 @@ export default function VehicleCarousel({
   };
 
   return (
-    <div className='w-full  mx-auto relative px-4'>
+    <div className="w-full  mx-auto relative px-4">
       {/* Navigation Buttons */}
       {vehicles.length > currentItemsPerPage && !isLoading && (
         <>
           <Button
             isIconOnly
-            variant='light'
+            variant="light"
             className={`absolute -left-4 top-1/2 transform -translate-y-1/2 z-10 
               bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-md
               transition-all duration-200
               ${
                 !canScrollPrev
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:scale-105'
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:scale-105"
               }`}
             onClick={handlePrevPage}
             disabled={!canScrollPrev}
           >
-            <IoChevronBack size={24} />
+            <Icon icon="mdi:chevron-left" className="text-xl" />
           </Button>
           <Button
             isIconOnly
-            variant='light'
+            variant="light"
             className={`absolute -right-4 top-1/2 transform -translate-y-1/2 z-10 
               bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-md
               transition-all duration-200
               ${
                 !canScrollNext
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:scale-105'
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:scale-105"
               }`}
             onClick={handleNextPage}
             disabled={!canScrollNext}
           >
-            <IoChevronForward size={24} />
+            <Icon icon="mdi:chevron-right" className="text-xl" />
           </Button>
         </>
       )}
 
       {/* Grid Container */}
-      <div className='grid grid-cols-1 md:grid-cols-2  gap-4'>
+      <div className="grid grid-cols-1 md:grid-cols-2  gap-4">
         {isLoading
           ? Array(currentItemsPerPage)
               .fill(null)
@@ -126,15 +126,15 @@ export default function VehicleCarousel({
 
       {/* Pagination Dots */}
       {totalPages > 1 && !isLoading && (
-        <div className='flex justify-center items-center gap-2 mt-6'>
+        <div className="flex justify-center items-center gap-2 mt-6">
           {Array.from({ length: totalPages }).map((_, index) => (
             <button
               key={index}
               className={`w-2 h-2 rounded-full transition-all duration-200 
                 ${
                   index === currentPage
-                    ? 'bg-blue-600'
-                    : 'bg-gray-300 hover:bg-gray-400'
+                    ? "bg-blue-600"
+                    : "bg-gray-300 hover:bg-gray-400"
                 }`}
               onClick={() => setCurrentPage(index)}
               aria-label={`Go to page ${index + 1} of ${totalPages}`}

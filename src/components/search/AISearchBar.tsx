@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { Button, Input, Spinner } from '@heroui/react';
-import { useState, useRef } from 'react';
-import { FaMicrophone } from 'react-icons/fa';
-import { IoSearch, IoChevronForward, IoChevronBack } from 'react-icons/io5';
-import { generateAIQuery, searchVehicles } from '@/lib/vehicles';
-import { Vehicle, Customer, Lead } from '@/utils/types';
-import VehicleCarousel from '@/components/vehicles/VehicleCarousel';
-import { CustomerDataModal } from '@/components/customers/CustomerDataModal';
-import { supabase } from '@/lib/supabase';
-import { updateLeadById } from '@/lib/leads';
-import useVehiclesStore from '@/store/useVehiclesStore';
+import { Button, Input, Spinner } from "@heroui/react";
+import { useState, useRef } from "react";
+
+import { Icon } from "@iconify/react";
+import { generateAIQuery, searchVehicles } from "@/lib/vehicles";
+import { Vehicle, Customer, Lead } from "@/utils/types";
+import VehicleCarousel from "@/components/vehicles/VehicleCarousel";
+import { CustomerDataModal } from "@/components/customers/CustomerDataModal";
+import { supabase } from "@/lib/supabase";
+import { updateLeadById } from "@/lib/leads";
+import useVehiclesStore from "@/store/useVehiclesStore";
 
 interface AISearchBarProps {
   clientId: string;
@@ -22,7 +22,7 @@ export default function AISearchBar({
   clientName,
 }: AISearchBarProps) {
   const [isListening, setIsListening] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchParams, setSearchParams] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingCustomer, setIsSavingCustomer] = useState(false);
@@ -34,15 +34,15 @@ export default function AISearchBar({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { vehicles: allVehicles } = useVehiclesStore();
 
-  const handleScroll = (direction: 'left' | 'right') => {
+  const handleScroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
       const scrollAmount = 300;
       const newScrollLeft =
         scrollContainerRef.current.scrollLeft +
-        (direction === 'right' ? scrollAmount : -scrollAmount);
+        (direction === "right" ? scrollAmount : -scrollAmount);
       scrollContainerRef.current.scrollTo({
         left: newScrollLeft,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
     }
   };
@@ -146,8 +146,8 @@ export default function AISearchBar({
       setVehicles(filteredVehicles);
       setMatchCount(filteredVehicles.length);
     } catch (error) {
-      console.error('Error during search:', error);
-      setSearchParams({ error: 'Error en la búsqueda' });
+      console.error("Error during search:", error);
+      setSearchParams({ error: "Error en la búsqueda" });
     } finally {
       setIsLoading(false);
     }
@@ -155,13 +155,13 @@ export default function AISearchBar({
 
   const handleNotifyClick = async () => {
     // Check if we have a customer email in localStorage
-    const storedEmail = localStorage.getItem('customerEmail');
+    const storedEmail = localStorage.getItem("customerEmail");
     if (storedEmail) {
       // Check if customer exists
       const { data: existingCustomers } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('email', storedEmail)
+        .from("customers")
+        .select("*")
+        .eq("email", storedEmail)
         .limit(1);
 
       if (existingCustomers && existingCustomers.length > 0) {
@@ -181,17 +181,17 @@ export default function AISearchBar({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch(searchQuery);
     }
   };
 
   const startVoiceRecognition = () => {
-    if ('webkitSpeechRecognition' in window) {
+    if ("webkitSpeechRecognition" in window) {
       const recognition = new (window as any).webkitSpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = 'es-ES';
+      recognition.lang = "es-ES";
 
       recognition.onstart = () => {
         setIsListening(true);
@@ -209,20 +209,20 @@ export default function AISearchBar({
 
       recognition.start();
     } else {
-      alert('La entrada por voz no está soportada en este navegador.');
+      alert("La entrada por voz no está soportada en este navegador.");
     }
   };
 
   const handleSaveCustomer = async (
-    customerData: Omit<Customer, 'id' | 'created_at'>
+    customerData: Omit<Customer, "id" | "created_at">
   ) => {
     setIsSavingCustomer(true);
     try {
       // First check if customer exists
       const { data: existingCustomers } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('email', customerData.email)
+        .from("customers")
+        .select("*")
+        .eq("email", customerData.email)
         .limit(1);
 
       let customerId;
@@ -230,20 +230,20 @@ export default function AISearchBar({
       if (existingCustomers && existingCustomers.length > 0) {
         // Update existing customer
         const { error: updateError } = await supabase
-          .from('customers')
+          .from("customers")
           .update({
             first_name: customerData.first_name,
             last_name: customerData.last_name,
             phone: customerData.phone,
           })
-          .eq('id', existingCustomers[0].id);
+          .eq("id", existingCustomers[0].id);
 
         if (updateError) throw updateError;
         customerId = existingCustomers[0].id;
       } else {
         // Create new customer
         const { data: newCustomer, error: createError } = await supabase
-          .from('customers')
+          .from("customers")
           .insert([{ ...customerData, created_at: new Date().toISOString() }])
           .select()
           .single();
@@ -253,7 +253,7 @@ export default function AISearchBar({
       }
 
       // Store email in localStorage for future searches
-      localStorage.setItem('customerEmail', customerData.email);
+      localStorage.setItem("customerEmail", customerData.email);
 
       // Update the lead with the customer id
       if (searchParams && generatedLead) {
@@ -265,49 +265,49 @@ export default function AISearchBar({
       setShowCustomerModal(false);
       setShowThankYouMessage(true);
     } catch (error) {
-      console.error('Error saving customer:', error);
-      alert('Error al guardar los datos del cliente');
+      console.error("Error saving customer:", error);
+      alert("Error al guardar los datos del cliente");
     } finally {
       setIsSavingCustomer(false);
     }
   };
 
   return (
-    <div className=' mx-auto max-w-2xl'>
-      <div className='relative max-w-2xl mx-auto'>
+    <div className=" mx-auto max-w-2xl">
+      <div className="relative max-w-2xl mx-auto">
         <Input
-          type='text'
+          type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={handleKeyPress}
-          placeholder='Busco una Ford Explorer de bajo kilometraje...'
-          size='lg'
-          radius='lg'
-          className='w-full'
+          placeholder="Busco una Ford Explorer de bajo kilometraje..."
+          size="lg"
+          radius="lg"
+          className="w-full"
           isDisabled={isLoading}
           endContent={
-            <div className='flex items-center gap-2'>
+            <div className="flex items-center gap-2">
               {isLoading ? (
-                <Spinner size='sm' />
+                <Spinner size="sm" />
               ) : (
                 <>
                   <button
                     onClick={() => handleSearch(searchQuery)}
-                    className='p-2 text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors disabled:opacity-50'
+                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors disabled:opacity-50"
                     disabled={isLoading}
                   >
-                    <IoSearch size={20} />
+                    <Icon icon="mdi:magnify" />
                   </button>
                   <button
                     onClick={startVoiceRecognition}
                     className={`p-2 ${
                       isListening
-                        ? 'text-primary'
-                        : 'text-gray-600 dark:text-gray-400'
+                        ? "text-primary"
+                        : "text-gray-600 dark:text-gray-400"
                     } hover:text-primary dark:hover:text-primary transition-colors disabled:opacity-50`}
                     disabled={isLoading}
                   >
-                    <FaMicrophone size={20} />
+                    <Icon icon="mdi:microphone" />
                   </button>
                 </>
               )}
@@ -315,42 +315,42 @@ export default function AISearchBar({
           }
         />
       </div>
-      <div className='max-w-2xl mx-auto'>
+      <div className="max-w-2xl mx-auto">
         {(searchParams || matchCount !== null) && !showThankYouMessage && (
-          <div className='mt-4 p-4 bg-gray-100 dark:bg-dark-card rounded-lg text-left'>
+          <div className="mt-4 p-4 bg-gray-100 dark:bg-dark-card rounded-lg text-left">
             {matchCount !== null && (
-              <div className='text-center  mb-3'>
-                <p className='text-lg font-medium text-gray-900 dark:text-white'>
+              <div className="text-center  mb-3">
+                <p className="text-lg font-medium text-gray-900 dark:text-white">
                   {matchCount === 0
-                    ? 'No se encontraron vehículos que coincidan exactamente con tu búsqueda'
+                    ? "No se encontraron vehículos que coincidan exactamente con tu búsqueda"
                     : `Se ${
-                        matchCount === 1 ? 'encontró' : 'encontraron'
-                      } ${matchCount} vehículo${matchCount === 1 ? '' : 's'}`}
+                        matchCount === 1 ? "encontró" : "encontraron"
+                      } ${matchCount} vehículo${matchCount === 1 ? "" : "s"}`}
                 </p>
-                <div className='mt-4'>
-                  <p className='text-gray-600 dark:text-gray-400 mb-4'>
+                <div className="mt-4">
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
                     {matchCount === 0
-                      ? '¿Te gustaría que te avisemos cuando llegue un vehículo que coincida con lo que buscas?'
-                      : '¿Te gustaría que te notifiquemos sobre vehículos similares?'}
+                      ? "¿Te gustaría que te avisemos cuando llegue un vehículo que coincida con lo que buscas?"
+                      : "¿Te gustaría que te notifiquemos sobre vehículos similares?"}
                   </p>
                   <Button
-                    color='primary'
-                    size='md'
-                    className=''
+                    color="primary"
+                    size="md"
+                    className=""
                     onPress={handleNotifyClick}
                   >
                     {matchCount === 0
-                      ? 'Notificarme cuando haya coincidencias'
-                      : 'Recibir notificaciones similares'}
+                      ? "Notificarme cuando haya coincidencias"
+                      : "Recibir notificaciones similares"}
                   </Button>
                 </div>
               </div>
             )}
             {searchParams && !searchParams.error && (
-              <div className='space-y-4'>
-                <div className='text-sm text-gray-500 dark:text-gray-400'>
-                  <p className='font-medium mb-2'>Estamos buscando:</p>
-                  <ul className='list-disc list-inside space-y-1'>
+              <div className="space-y-4">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="font-medium mb-2">Estamos buscando:</p>
+                  <ul className="list-disc list-inside space-y-1">
                     {searchParams.brand && <li>Marca: {searchParams.brand}</li>}
                     {searchParams.model && (
                       <li>Modelo: {searchParams.model}</li>
@@ -373,7 +373,7 @@ export default function AISearchBar({
                     )}
                     {searchParams.mileage?.max && (
                       <li>
-                        Kilometraje máximo:{' '}
+                        Kilometraje máximo:{" "}
                         {searchParams.mileage.max.toLocaleString()} km
                       </li>
                     )}
@@ -393,35 +393,35 @@ export default function AISearchBar({
       </div>
 
       {showThankYouMessage && (
-        <div className='mt-8 p-6 bg-gray-100 dark:bg-dark-card rounded-lg text-center'>
-          <p className='text-2xl font-semibold text-primary mb-4'>
+        <div className="mt-8 p-6 bg-gray-100 dark:bg-dark-card rounded-lg text-center">
+          <p className="text-2xl font-semibold text-primary mb-4">
             ¡Gracias por tu interés!
           </p>
-          <p className='text-gray-600 dark:text-gray-400 mb-6 text-lg'>
+          <p className="text-gray-600 dark:text-gray-400 mb-6 text-lg">
             Te notificaremos cuando encontremos vehículos que coincidan con tu
             búsqueda.
           </p>
           {vehicles.length === 0 && (
-            <p className='text-gray-600 dark:text-gray-400'>
-              Mientras tanto, te invitamos a explorar{' '}
+            <p className="text-gray-600 dark:text-gray-400">
+              Mientras tanto, te invitamos a explorar{" "}
               <button
                 onClick={() => {
                   window.scrollTo({
                     top: window.innerHeight,
-                    behavior: 'smooth',
+                    behavior: "smooth",
                   });
                 }}
-                className='text-primary hover:underline font-medium'
+                className="text-primary hover:underline font-medium"
               >
                 todos nuestros vehículos disponibles
-              </button>{' '}
+              </button>{" "}
               justo debajo.
             </p>
           )}
         </div>
       )}
       {vehicles.length > 0 && (
-        <div className='mt-8 relative'>
+        <div className="mt-8 relative">
           <VehicleCarousel vehicles={vehicles} isLoading={isLoading} />
         </div>
       )}
@@ -431,8 +431,8 @@ export default function AISearchBar({
         isOpen={showCustomerModal}
         onClose={() => setShowCustomerModal(false)}
         onSave={handleSaveCustomer}
-        title='¡Buscamos el vehículo por ti!'
-        description='Te notificaremos cuando encontremos tu vehículo a un buen precio.'
+        title="¡Buscamos el vehículo por ti!"
+        description="Te notificaremos cuando encontremos tu vehículo a un buen precio."
         isLoading={isSavingCustomer}
       />
     </div>
