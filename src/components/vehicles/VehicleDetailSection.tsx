@@ -10,7 +10,7 @@ import {
 import { Icon } from "@iconify/react";
 
 import VehicleDetailSkeleton from "./VehicleDetailSkeleton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import VehicleImagesModal from "./VehicleImagesModal";
 import { Client, Vehicle } from "../../utils/types";
 import {
@@ -39,11 +39,75 @@ export default function VehicleDetailSection({
   showLikeButton = true,
 }: VehicleDetailSectionProps) {
   const [currentModalImage, setCurrentModalImage] = useState<string>("");
+  const [mainImageStyle, setMainImageStyle] = useState({});
+  const [thumbnailStyles, setThumbnailStyles] = useState<Record<string, any>>(
+    {}
+  );
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  useEffect(() => {
+    if (!vehicle) return;
+
+    const img = document.createElement("img");
+    img.onload = () => {
+      if (img.height > img.width * 1.2) {
+        setMainImageStyle({
+          objectPosition: "center 100%",
+          objectFit: "cover",
+          height: "100%",
+          width: "100%",
+          transformOrigin: "center 900%",
+          transform: "scale(1.04)",
+        });
+      } else {
+        // Para imágenes horizontales, ajustamos para que llenen el contenedor
+        setMainImageStyle({
+          objectPosition: "center center",
+          objectFit: "cover",
+          height: "100%",
+          width: "100%",
+        });
+      }
+    };
+    img.src = vehicle.main_image;
+  }, [vehicle?.main_image]);
+
+  useEffect(() => {
+    if (!vehicle) return;
+
+    const allImages = [vehicle.main_image, ...(vehicle.gallery || [])];
+    const styles: Record<string, any> = {};
+
+    allImages.forEach((imageUrl) => {
+      const img = document.createElement("img");
+      img.onload = () => {
+        if (img.height > img.width * 1.2) {
+          styles[imageUrl] = {
+            objectPosition: "center 100%",
+            objectFit: "cover",
+            height: "100%",
+            width: "100%",
+            transformOrigin: "center 1000%",
+            transform: "scale(1.04)",
+          };
+        } else {
+          styles[imageUrl] = {
+            objectPosition: "center center",
+            objectFit: "cover",
+            height: "100%",
+            width: "100%",
+          };
+        }
+        setThumbnailStyles({ ...styles });
+      };
+      img.src = imageUrl;
+    });
+  }, [vehicle?.main_image, vehicle?.gallery]);
 
   if (loading || !vehicle) {
     return <VehicleDetailSkeleton />;
   }
+
   const handleShare = async () => {
     const shareData = {
       title: `${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year}`,
@@ -67,6 +131,7 @@ export default function VehicleDetailSection({
       }
     }
   };
+
   const formattedPrice = new Intl.NumberFormat("es-CL", {
     style: "currency",
     currency: "CLP",
@@ -89,7 +154,6 @@ export default function VehicleDetailSection({
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
-      {/* Image Gallery Section */}
       <div className="space-y-4">
         <Card className="w-full relative dark:bg-dark-card dark:border-dark-border">
           {isSold && (
@@ -110,14 +174,17 @@ export default function VehicleDetailSection({
                 />
               </div>
             ) : (
-              <Image
-                alt={`${vehicle?.brand?.name} ${vehicle?.model?.name}`}
-                className={`h-96 w-full object-cover cursor-pointer ${
-                  isSold ? "opacity-75" : ""
-                }`}
-                src={vehicle.main_image}
-                onClick={() => handleImageClick(vehicle.main_image)}
-              />
+              <div className="h-[500px] w-full overflow-hidden">
+                <Image
+                  alt={`${vehicle?.brand?.name} ${vehicle?.model?.name}`}
+                  className={`w-full h-full object-cover cursor-pointer ${
+                    isSold ? "opacity-75" : ""
+                  }`}
+                  style={mainImageStyle}
+                  src={vehicle.main_image}
+                  onClick={() => handleImageClick(vehicle.main_image)}
+                />
+              </div>
             )}
             {isSold && (
               <div className="absolute inset-0 bg-black/20 z-10"></div>
@@ -130,11 +197,12 @@ export default function VehicleDetailSection({
             <div
               key={index}
               onClick={() => handleImageClick(image)}
-              className="relative cursor-pointer rounded-lg overflow-hidden h-24"
+              className="relative cursor-pointer rounded-lg overflow-hidden h-28"
             >
               <Image
                 alt={`Gallery ${index}`}
-                className="h-24 w-full object-cover"
+                className="h-full w-full object-cover"
+                style={thumbnailStyles[image] || {}}
                 src={image}
               />
             </div>
@@ -142,7 +210,7 @@ export default function VehicleDetailSection({
 
           {remainingPhotos > 0 && (
             <div
-              className="relative cursor-pointer rounded-lg overflow-hidden h-24 bg-gray-100 dark:bg-dark-card flex items-center justify-center"
+              className="relative cursor-pointer rounded-lg overflow-hidden h-28 bg-gray-100 dark:bg-dark-card flex items-center justify-center"
               onClick={() => handleImageClick(allImages[MAX_THUMBNAILS])}
             >
               <div className="text-center">
@@ -169,7 +237,6 @@ export default function VehicleDetailSection({
         </div>
       </div>
 
-      {/* Vehicle Details Section */}
       <div className="space-y-6">
         <div>
           <div className="flex justify-between items-center">

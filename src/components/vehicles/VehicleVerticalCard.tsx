@@ -50,19 +50,23 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
   useEffect(() => {
     const img = document.createElement("img");
     img.onload = () => {
-      // Si la imagen es más alta que ancha (vertical)
       if (img.height > img.width * 1.2) {
-        // Recorte más agresivo de la parte superior
         setImageStyle({
-          objectPosition: "center 95%",
+          objectPosition: "center 100%",
           objectFit: "cover",
           height: "100%",
           width: "100%",
-          transform: "scale(0.6)", // Aumentamos el tamaño para mostrar más del auto
+          transformOrigin: "center 800%",
+          transform: "scale(1.01)",
         });
       } else {
-        // Para imágenes horizontales, no aplicar ningún estilo especial
-        setImageStyle({});
+        // Para imágenes horizontales, ajustamos para que llenen el contenedor
+        setImageStyle({
+          objectPosition: "center center",
+          objectFit: "cover",
+          height: "100%",
+          width: "100%",
+        });
       }
     };
     img.src = vehicle.main_image;
@@ -72,10 +76,10 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
     <Card
       isPressable
       onPress={handleViewDetails}
-      className="overflow-hidden bg-white dark:bg-dark-card"
+      className="overflow-hidden bg-white dark:bg-dark-card h-full"
     >
       <div className="w-full">
-        <div className="relative w-full h-[200px] overflow-hidden">
+        <div className="relative w-full h-[150px] overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center">
             <Image
               alt={`${vehicle.brand?.name} ${vehicle.model?.name}`}
@@ -98,9 +102,9 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
         </div>
       </div>
 
-      <div className="flex flex-col">
-        <CardBody className="flex flex-col flex-grow p-4 ">
-          <div className="space-y-1.5">
+      <div className="flex flex-col h-full">
+        <CardBody className="flex flex-col flex-grow p-4">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {vehicle.brand?.name} {vehicle.year}
@@ -125,7 +129,7 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
                   key={index}
                   size="sm"
                   variant="flat"
-                  className="bg-gray-100 dark:bg-dark-border dark:text-dark-text"
+                  className="bg-gray-100 dark:bg-dark-border dark:text-dark-text text-xs"
                 >
                   {feature}
                 </Chip>

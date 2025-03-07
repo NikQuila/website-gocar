@@ -13,6 +13,7 @@ import {
   mapFuelTypeToSpanish,
   mapTransmissionTypeToSpanish,
 } from "@/utils/functions";
+import { useEffect, useState } from "react";
 
 interface VehicleHorizontalCardProps {
   vehicle: Vehicle;
@@ -20,6 +21,7 @@ interface VehicleHorizontalCardProps {
 
 const VehicleHorizontalCard = ({ vehicle }: VehicleHorizontalCardProps) => {
   const router = useRouter();
+  const [imageStyle, setImageStyle] = useState({});
 
   const formattedPrice = new Intl.NumberFormat("es-CL", {
     style: "currency",
@@ -45,17 +47,43 @@ const VehicleHorizontalCard = ({ vehicle }: VehicleHorizontalCardProps) => {
     router.push(`/vehicles/${vehicle.id}`);
   };
 
+  useEffect(() => {
+    const img = document.createElement("img");
+    img.onload = () => {
+      if (img.height > img.width * 1.2) {
+        setImageStyle({
+          objectPosition: "center 100%",
+          objectFit: "cover",
+          height: "100%",
+          width: "100%",
+          transformOrigin: "center 1000%",
+          transform: "scale(1.04)",
+        });
+      } else {
+        // Para imágenes horizontales, ajustamos para que llenen el contenedor
+        setImageStyle({
+          objectPosition: "center center",
+          objectFit: "cover",
+          height: "100%",
+          width: "100%",
+        });
+      }
+    };
+    img.src = vehicle.main_image;
+  }, [vehicle.main_image]);
+
   return (
     <Card
       isPressable
       onPress={handleViewDetails}
       className="overflow-hidden flex flex-row bg-white dark:bg-dark-card"
     >
-      <div className="w-[300px] flex-shrink-0">
+      <div className="w-[250px] h-[140px] flex-shrink-0">
         <div className="relative w-full h-full">
           <Image
             alt={`${vehicle.brand?.name} ${vehicle.model?.name}`}
             className="object-cover h-full w-full"
+            style={imageStyle}
             src={vehicle.main_image}
           />
           {vehicle.discount_percentage !== undefined &&
@@ -105,7 +133,7 @@ const VehicleHorizontalCard = ({ vehicle }: VehicleHorizontalCardProps) => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
               <span>{vehicle.mileage.toLocaleString()} km</span>
               <span>•</span>
               <span>{mapFuelTypeToSpanish(vehicle.fuel_type)}</span>
@@ -113,17 +141,13 @@ const VehicleHorizontalCard = ({ vehicle }: VehicleHorizontalCardProps) => {
               <span>{mapTransmissionTypeToSpanish(vehicle.transmission)}</span>
             </div>
 
-            {/*   <p className='text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mt-2'>
-              {vehicle.description}
-            </p> */}
-
             <div className="flex flex-wrap gap-2 mt-2">
               {vehicle.features.slice(0, 5).map((feature, index) => (
                 <Chip
                   key={index}
                   size="sm"
                   variant="flat"
-                  className="bg-gray-100 dark:bg-dark-border dark:text-dark-text"
+                  className="bg-gray-100 dark:bg-dark-border dark:text-dark-text text-xs"
                 >
                   {feature}
                 </Chip>
