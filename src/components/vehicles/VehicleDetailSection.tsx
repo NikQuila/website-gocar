@@ -69,13 +69,11 @@ export default function VehicleDetailSection({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { theme } = useThemeStore();
 
-  // Efecto para procesar la imagen principal
   useEffect(() => {
     if (!vehicle?.main_image) return;
 
     const img = document.createElement("img");
     img.onload = () => {
-      // Si la imagen es más alta que ancha (vertical)
       const isVertical = img.height > img.width * 1.2;
       setIsVerticalImage(isVertical);
 
@@ -181,11 +179,9 @@ export default function VehicleDetailSection({
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
-      {/* Sección de imagen principal y galería */}
       <div
         className={`space-y-4 ${isVerticalImage ? "flex flex-row gap-4" : ""}`}
       >
-        {/* Imagen principal */}
         <div className={`${isVerticalImage ? "w-2/3" : "w-full"}`}>
           <Card className="w-full relative dark:bg-dark-card dark:border-dark-border">
             {isSold && (
@@ -236,7 +232,7 @@ export default function VehicleDetailSection({
                   <div
                     key={index}
                     onClick={() => handleImageClick(image)}
-                    className="relative cursor-pointer rounded-lg overflow-hidden w-[140px] h-[120px]"
+                    className="relative cursor-pointer rounded-lg overflow-hidden w-[108px] h-[105px]"
                   >
                     <Image
                       alt={`Gallery ${index}`}
@@ -310,7 +306,6 @@ export default function VehicleDetailSection({
 
       {/* Sección de detalles del vehículo */}
       <div className="space-y-6">
-        {/* Título y año */}
         <div className="flex justify-between items-start">
           <div className="space-y-2">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
@@ -404,6 +399,7 @@ export default function VehicleDetailSection({
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="bg-primary text-white dark:bg-primary dark:text-black hover:bg-primary/90 dark:hover:bg-primary/90"
               >
                 Contactar
               </Button>
