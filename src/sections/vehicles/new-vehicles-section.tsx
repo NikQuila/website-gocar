@@ -326,7 +326,7 @@ const NewVehiclesSection = () => {
                   </DropdownMenu>
                 </Dropdown>
 
-                <div className='hidden sm:flex border-l border-gray-200 dark:border-dark-border pl-3 gap-2'>
+                {/* <div className='hidden sm:flex border-l border-gray-200 dark:border-dark-border pl-3 gap-2'>
                   <Button
                     isIconOnly
                     variant='light'
@@ -347,7 +347,7 @@ const NewVehiclesSection = () => {
                   >
                     <Icon icon='mdi:view-list' className='text-xl' />
                   </Button>
-                </div>
+                </div> */}
               </div>
 
               {activeFiltersCount > 0 && (
