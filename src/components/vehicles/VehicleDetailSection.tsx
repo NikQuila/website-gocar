@@ -317,84 +317,35 @@ export default function VehicleDetailSection({
                 </div>
               )}
             </div>
-
-            <div className="flex justify-center mt-1">
-              <Chip
-                variant="flat"
-                size="sm"
-                className="bg-gray-100 dark:bg-dark-card dark:text-gray-300"
-              >
-                {allImages.length} fotos
-              </Chip>
-            </div>
           </div>
         )}
       </div>
 
       {/* Sección de detalles del vehículo */}
       <div className="space-y-6">
-        <div>
-          <div className="flex justify-between items-center">
+        {/* Título y año */}
+        <div className="flex justify-between items-start">
+          <div className="space-y-2">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-              {vehicle.brand?.name} {vehicle.model?.name} {vehicle.year}
+              {vehicle.brand?.name} {vehicle.model?.name}
             </h1>
-            <div className="hidden sm:block">
-              <Button
-                size="sm"
-                color="primary"
-                variant="flat"
-                className="font-semibold"
-                isIconOnly
-                onPress={handleShare}
-              >
-                <Icon
-                  icon="mdi:share-variant"
-                  className="text-3xl text-primary"
-                />
-              </Button>
-            </div>
+            <p className="text-2xl text-gray-600 dark:text-gray-400">
+              {vehicle.year}
+            </p>
           </div>
-          <div className="mt-2 flex justify-between items-center">
-            <div className="">
-              {vehicle.discount_percentage ? (
-                <>
-                  <p className="text-sm line-through text-gray-400 dark:text-gray-500">
-                    {formattedPrice}
-                  </p>
-                  <p className="text-2xl font-semibold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-                    {new Intl.NumberFormat("es-CL", {
-                      style: "currency",
-                      currency: "CLP",
-                    }).format(discountedPrice!)}
-                  </p>
-                </>
-              ) : (
-                <p className="text-2xl font-semibold text-primary dark:text-white">
-                  {formattedPrice}
-                </p>
-              )}
-            </div>
-            <div className="block sm:hidden">
-              <Button
-                size="sm"
-                color="primary"
-                variant="flat"
-                className="font-semibold"
-                isIconOnly
-                onPress={handleShare}
-              >
-                <Icon
-                  icon="mdi:share-variant"
-                  className="text-3xl text-primary"
-                />
-              </Button>
-            </div>
-          </div>
+          <Button
+            variant="bordered"
+            size="lg"
+            startContent={<Icon icon="mdi:share-variant" className="text-xl" />}
+            onPress={handleShare}
+            className="text-primary"
+          >
+            Compartir
+          </Button>
         </div>
 
-        <Divider className="dark:border-dark-border" />
-
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {/* Cards de características */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <DetailCard
             icon="mdi:speedometer"
             label="Kilometraje"
@@ -403,14 +354,95 @@ export default function VehicleDetailSection({
           <DetailCard
             icon="mdi:gas-station"
             label="Combustible"
-            value={mapFuelTypeToSpanish(vehicle.fuel_type)}
+            value={
+              vehicle.fuel_type_new?.name ||
+              mapFuelTypeToSpanish(vehicle.fuel_type)
+            }
           />
           <DetailCard
             icon="mdi:car-shift-pattern"
             label="Transmisión"
             value={mapTransmissionTypeToSpanish(vehicle.transmission)}
           />
-          <DetailCard icon="mdi:palette" label="Color" value={vehicle.color} />
+          <DetailCard
+            icon="mdi:car-traction-control"
+            label="Tracción"
+            value={vehicle.drive_type || "4×2"}
+          />
+        </div>
+
+        {/* Precio y características */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              {vehicle.discount_percentage ? (
+                <>
+                  <p className="text-sm line-through text-gray-400 dark:text-gray-500">
+                    {formattedPrice}
+                  </p>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                    {new Intl.NumberFormat("es-CL", {
+                      style: "currency",
+                      currency: "CLP",
+                    }).format(discountedPrice!)}
+                  </p>
+                </>
+              ) : (
+                <p className="text-4xl font-bold text-gray-900 dark:text-white">
+                  {formattedPrice}
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                size="lg"
+                variant="bordered"
+                color="primary"
+                startContent={
+                  <Icon icon={isLiked ? "mdi:heart" : "mdi:heart-outline"} />
+                }
+                onPress={() => onLike && onLike(vehicle.id)}
+              >
+                Guardar
+              </Button>
+              <Button
+                size="lg"
+                color="primary"
+                as="a"
+                startContent={<Icon icon="mdi:whatsapp" className="text-xl" />}
+                href={contactByWhatsApp(
+                  client?.contact?.phone || "",
+                  `Hola, me interesa el ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year}`
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Contactar
+              </Button>
+            </div>
+          </div>
+          <Divider className="dark:border-dark-border" />
+
+          {/* Características del vehículo */}
+          <div className="space-y-3">
+            {/*  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+              <Icon icon="mdi:wrench" className="text-xl" />
+              <span>Único dueño – Mantenciones al día</span>
+            </div> */}
+
+            <div className="flex flex-wrap gap-2">
+              {vehicle.features?.map((feature, index) => (
+                <Chip
+                  key={index}
+                  variant="flat"
+                  className="bg-gray-100 dark:bg-dark-card border-none rounded-md"
+                >
+                  {feature}
+                </Chip>
+              ))}
+            </div>
+          </div>
         </div>
 
         <Divider className="dark:border-dark-border" />
@@ -422,52 +454,6 @@ export default function VehicleDetailSection({
           <p className="text-gray-600 dark:text-gray-400">
             {vehicle.description}
           </p>
-        </div>
-
-        <div>
-          <h2 className="mb-3 text-xl font-semibold text-gray-900 dark:text-white">
-            Características
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {vehicle.features?.map((feature, index) => (
-              <Chip key={index} color="primary" className="">
-                {feature}
-              </Chip>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button
-            size="lg"
-            color="success"
-            as="a"
-            href={contactByWhatsApp(
-              client?.contact?.phone || "",
-              `Hola, me interesa el ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year}`
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold dark:text-white"
-            startContent={<Icon icon="mdi:whatsapp" />}
-          >
-            Contactar Vendedor
-          </Button>
-
-          {showLikeButton && onLike && (
-            <Button
-              size="lg"
-              variant={isLiked ? "solid" : "bordered"}
-              color="primary"
-              className="font-semibold"
-              startContent={
-                <Icon icon={isLiked ? "mdi:heart-outline" : "mdi:heart"} />
-              }
-              onPress={() => onLike(vehicle.id)}
-            >
-              {isLiked ? "Guardado en favoritos" : "Guardar en favoritos"}
-            </Button>
-          )}
         </div>
       </div>
 
