@@ -15,11 +15,13 @@ import useClientStore from '@/store/useClientStore';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import ThemeToggle from '../ThemeToggle';
+import useThemeStore from '@/store/useThemeStore';
 
 const navigation = [{ name: 'Inicio', href: '/' }];
 
 const Navbar = () => {
   const { client } = useClientStore();
+  const { theme } = useThemeStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
@@ -55,7 +57,11 @@ const Navbar = () => {
         <NavbarBrand>
           <Link href='/'>
             <img
-              src={client?.logo}
+              src={
+                theme === 'dark' && client?.logo_dark
+                  ? client?.logo
+                  : client?.logo_dark
+              }
               alt={client?.name}
               className='h-8 w-auto object-contain dark:brightness-200'
             />

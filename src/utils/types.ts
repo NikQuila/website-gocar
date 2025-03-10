@@ -27,6 +27,7 @@ export interface Client {
   name: string;
   domain: string;
   logo: string;
+  logo_dark: string;
   favicon: string;
   theme: {
     light: {
