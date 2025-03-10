@@ -101,7 +101,6 @@ export default function VehicleDetailSection({
     img.src = vehicle.main_image;
   }, [vehicle?.main_image]);
 
-  // Efecto para procesar las miniaturas
   useEffect(() => {
     if (!vehicle) return;
 
@@ -146,14 +145,12 @@ export default function VehicleDetailSection({
     };
 
     if (navigator.share && /mobile|android|iphone/i.test(navigator.userAgent)) {
-      // Mobile sharing
       try {
         await navigator.share(shareData);
       } catch (err) {
         console.log("Error sharing:", err);
       }
     } else {
-      // Fallback to clipboard
       try {
         await navigator.clipboard.writeText(window.location.href);
       } catch (err) {
@@ -211,7 +208,7 @@ export default function VehicleDetailSection({
               ) : (
                 <div
                   className={`${
-                    isVerticalImage ? "h-[500px]" : "h-[400px]"
+                    isVerticalImage ? "h-[500px]" : "h-[340px]"
                   } w-full overflow-hidden`}
                 >
                   <Image
@@ -234,12 +231,12 @@ export default function VehicleDetailSection({
           {/* Miniaturas horizontales (solo si la imagen principal es horizontal) */}
           {!isVerticalImage && (
             <div className="mt-2">
-              <div className="grid grid-cols-1 gap-2">
+              <div className="flex gap-2">
                 {displayedImages.map((image, index) => (
                   <div
                     key={index}
                     onClick={() => handleImageClick(image)}
-                    className="relative cursor-pointer rounded-lg overflow-hidden w-[108px] h-[105px]"
+                    className="relative cursor-pointer rounded-lg overflow-hidden w-[140px] h-[120px]"
                   >
                     <Image
                       alt={`Gallery ${index}`}
@@ -252,7 +249,7 @@ export default function VehicleDetailSection({
 
                 {remainingPhotos > 0 && (
                   <div
-                    className="relative cursor-pointer rounded-lg overflow-hidden w-[108px] h-[105px] bg-gray-100 dark:bg-dark-card flex items-center justify-center"
+                    className="relative cursor-pointer rounded-lg overflow-hidden w-[140px] h-[120px] bg-gray-100 dark:bg-dark-card flex items-center justify-center"
                     onClick={() => handleImageClick(allImages[MAX_THUMBNAILS])}
                   >
                     <div className="text-center">
@@ -266,16 +263,6 @@ export default function VehicleDetailSection({
                     </div>
                   </div>
                 )}
-              </div>
-
-              <div className="flex justify-start mt-1">
-                <Chip
-                  variant="flat"
-                  size="sm"
-                  className="bg-gray-100 dark:bg-dark-card dark:text-gray-300"
-                >
-                  {allImages.length} fotos disponibles
-                </Chip>
               </div>
             </div>
           )}
@@ -364,11 +351,11 @@ export default function VehicleDetailSection({
             label="Transmisión"
             value={mapTransmissionTypeToSpanish(vehicle.transmission)}
           />
-          <DetailCard
+          {/* <DetailCard
             icon="mdi:car-traction-control"
             label="Tracción"
             value={vehicle.drive_type || "4×2"}
-          />
+          /> */}
         </div>
 
         {/* Precio y características */}
