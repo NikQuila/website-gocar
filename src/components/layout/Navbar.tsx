@@ -59,8 +59,8 @@ const Navbar = () => {
             <img
               src={
                 theme === 'dark' && client?.logo_dark
-                  ? client?.logo
-                  : client?.logo_dark
+                  ? client?.logo_dark
+                  : client?.logo
               }
               alt={client?.name}
               className='h-8 w-auto object-contain dark:brightness-200'
