@@ -32,7 +32,7 @@ export default function AISearchBar({
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [generatedLead, setGeneratedLead] = useState<Lead | null>(null);
   const [showThankYouMessage, setShowThankYouMessage] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   const { vehicles: allVehicles } = useVehiclesStore();
   const { theme } = useThemeStore();
 
