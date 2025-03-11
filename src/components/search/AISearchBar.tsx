@@ -11,6 +11,7 @@ import { CustomerDataModal } from '@/components/customers/CustomerDataModal';
 import { supabase } from '@/lib/supabase';
 import { updateLeadById } from '@/lib/leads';
 import useVehiclesStore from '@/store/useVehiclesStore';
+import useThemeStore from '@/store/useThemeStore';
 
 interface AISearchBarProps {
   clientId: string;
@@ -33,19 +34,7 @@ export default function AISearchBar({
   const [showThankYouMessage, setShowThankYouMessage] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { vehicles: allVehicles } = useVehiclesStore();
-
-  const handleScroll = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 300;
-      const newScrollLeft =
-        scrollContainerRef.current.scrollLeft +
-        (direction === 'right' ? scrollAmount : -scrollAmount);
-      scrollContainerRef.current.scrollTo({
-        left: newScrollLeft,
-        behavior: 'smooth',
-      });
-    }
-  };
+  const { theme } = useThemeStore;
 
   const filterVehiclesLocally = (params: any) => {
     return allVehicles.filter((vehicle) => {
@@ -338,7 +327,7 @@ export default function AISearchBar({
                   <Button
                     color='primary'
                     size='md'
-                    className=''
+                    className={`${theme === 'dark' ? 'text-black' : ''}`}
                     onPress={handleNotifyClick}
                   >
                     {matchCount === 0
