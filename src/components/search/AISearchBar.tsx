@@ -34,7 +34,7 @@ export default function AISearchBar({
   const [showThankYouMessage, setShowThankYouMessage] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { vehicles: allVehicles } = useVehiclesStore();
-  const { theme } = useThemeStore;
+  const { theme } = useThemeStore();
 
   const filterVehiclesLocally = (params: any) => {
     return allVehicles.filter((vehicle) => {
