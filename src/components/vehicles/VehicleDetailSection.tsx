@@ -33,11 +33,12 @@ interface DetailCardProps {
   icon: string;
   label: string;
   value: string;
+  className?: string;
 }
 
-function DetailCard({ icon, label, value }: DetailCardProps) {
+function DetailCard({ icon, label, value, className }: DetailCardProps) {
   return (
-    <Card className="bg-gray-50 dark:bg-dark-card">
+    <Card className={`bg-gray-50 dark:bg-dark-card ${className || ""}`}>
       <CardBody className="flex flex-col items-center text-center gap-1 p-4">
         <Icon
           icon={icon}
@@ -50,7 +51,7 @@ function DetailCard({ icon, label, value }: DetailCardProps) {
   );
 }
 
-const MAX_THUMBNAILS = 4;
+const MAX_THUMBNAILS = 3;
 
 export default function VehicleDetailSection({
   vehicle,
@@ -178,11 +179,13 @@ export default function VehicleDetailSection({
   const isSold = vehicle.status === "sold";
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
+    <div className="flex flex-col md:grid md:grid-cols-2 gap-8">
       <div
-        className={`space-y-4 ${isVerticalImage ? "flex flex-row gap-4" : ""}`}
+        className={`space-y-4 px-4 md:px-0 ${
+          isVerticalImage ? "md:flex md:flex-row md:gap-4" : ""
+        }`}
       >
-        <div className={`${isVerticalImage ? "w-2/3" : "w-full"}`}>
+        <div className={`${isVerticalImage ? "md:w-2/3" : "w-full"}`}>
           <Card className="w-full relative dark:bg-dark-card dark:border-dark-border">
             {isSold && (
               <div className="absolute top-0 right-0 h-[200px] w-[200px] overflow-hidden z-50 rotate-0">
@@ -192,87 +195,73 @@ export default function VehicleDetailSection({
               </div>
             )}
             <CardBody className="p-0 w-full">
-              {vehicle?.video_url ? (
-                <div className="aspect-video w-full rounded-lg overflow-hidden">
-                  <iframe
-                    src={vehicle.video_url}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              ) : (
-                <div
-                  className={`${
-                    isVerticalImage ? "h-[500px]" : "h-[340px]"
-                  } w-full overflow-hidden`}
-                >
-                  <Image
-                    alt={`${vehicle?.brand?.name} ${vehicle?.model?.name}`}
-                    className={`w-full h-full object-cover cursor-pointer ${
-                      isSold ? "opacity-75" : ""
-                    }`}
-                    style={mainImageStyle}
-                    src={vehicle.main_image}
-                    onClick={() => handleImageClick(vehicle.main_image)}
-                  />
-                </div>
-              )}
-              {isSold && (
-                <div className="absolute inset-0 bg-black/20 z-10"></div>
-              )}
+              <div
+                className={`${
+                  isVerticalImage
+                    ? "h-[415px] md:h-[500px]"
+                    : "h-[200px] sm:h-[300px] md:h-[340px]"
+                } w-full overflow-hidden`}
+              >
+                <Image
+                  alt={`${vehicle?.brand?.name} ${vehicle?.model?.name}`}
+                  className={`w-full h-full object-cover cursor-pointer ${
+                    isSold ? "opacity-75" : ""
+                  }`}
+                  style={mainImageStyle}
+                  src={vehicle.main_image}
+                  onClick={() => handleImageClick(vehicle.main_image)}
+                />
+              </div>
             </CardBody>
           </Card>
-
-          {/* Miniaturas horizontales (solo si la imagen principal es horizontal) */}
-          {!isVerticalImage && (
-            <div className="mt-2">
-              <div className="flex gap-2">
-                {displayedImages.map((image, index) => (
-                  <div
-                    key={index}
-                    onClick={() => handleImageClick(image)}
-                    className="relative cursor-pointer rounded-lg overflow-hidden w-[108px] h-[105px]"
-                  >
-                    <Image
-                      alt={`Gallery ${index}`}
-                      className="h-full w-full object-cover"
-                      style={thumbnailStyles[image] || {}}
-                      src={image}
-                    />
-                  </div>
-                ))}
-
-                {remainingPhotos > 0 && (
-                  <div
-                    className="relative cursor-pointer rounded-lg overflow-hidden w-[140px] h-[120px] bg-gray-100 dark:bg-dark-card flex items-center justify-center"
-                    onClick={() => handleImageClick(allImages[MAX_THUMBNAILS])}
-                  >
-                    <div className="text-center">
-                      <Icon
-                        icon="mdi:image-multiple"
-                        className="text-2xl text-gray-600 dark:text-gray-400"
-                      />
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        +{remainingPhotos}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Miniaturas verticales (solo si la imagen principal es vertical) */}
+        {/* Miniaturas para mobile */}
+        <div className="mt-2 block md:hidden">
+          <div className="flex flex-row justify-between w-full">
+            {displayedImages.map((image, index) => (
+              <div
+                key={index}
+                onClick={() => handleImageClick(image)}
+                className="relative cursor-pointer rounded-lg overflow-hidden w-[65px] h-[65px]"
+              >
+                <Image
+                  alt={`Gallery ${index}`}
+                  className="h-full w-full object-cover"
+                  style={thumbnailStyles[image] || {}}
+                  src={image}
+                />
+              </div>
+            ))}
+
+            {remainingPhotos > 0 && (
+              <div
+                className="relative cursor-pointer rounded-lg overflow-hidden w-[65px] h-[65px] bg-gray-100 dark:bg-dark-card flex items-center justify-center"
+                onClick={() => handleImageClick(allImages[MAX_THUMBNAILS])}
+              >
+                <div className="text-center">
+                  <Icon
+                    icon="mdi:image-multiple"
+                    className="text-xl text-gray-600 dark:text-gray-400"
+                  />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    +{remainingPhotos}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Miniaturas verticales para desktop */}
         {isVerticalImage && (
-          <div className="flex flex-col gap-2 w-1/3">
-            <div className="grid grid-cols-1 gap-2 -mt-10">
+          <div className="hidden md:block md:w-1/3">
+            <div className="flex flex-col gap-2 -mt-12">
               {displayedImages.map((image, index) => (
                 <div
                   key={index}
                   onClick={() => handleImageClick(image)}
-                  className="relative cursor-pointer rounded-lg overflow-hidden w-[120px] h-[140px]"
+                  className="relative cursor-pointer rounded-lg overflow-hidden min-w-[90px] w-[90px] h-[100px] md:w-[120px] md:h-[140px]"
                 >
                   <Image
                     alt={`Gallery ${index}`}
@@ -285,7 +274,7 @@ export default function VehicleDetailSection({
 
               {remainingPhotos > 0 && (
                 <div
-                  className="relative cursor-pointer rounded-lg overflow-hidden w-[120px] h-[140px] bg-gray-100 dark:bg-dark-card flex items-center justify-center"
+                  className="relative cursor-pointer rounded-lg overflow-hidden min-w-[90px] w-[90px] h-[100px] md:w-[120px] md:h-[140px] bg-gray-100 dark:bg-dark-card flex items-center justify-center"
                   onClick={() => handleImageClick(allImages[MAX_THUMBNAILS])}
                 >
                   <div className="text-center">
@@ -304,34 +293,58 @@ export default function VehicleDetailSection({
         )}
       </div>
 
-      {/* Sección de detalles del vehículo */}
-      <div className="space-y-6">
-        <div className="flex justify-between items-start">
+      {/* Vehicle Details Section */}
+      <div className="space-y-6 px-4 md:px-0">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
           <div className="space-y-2">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
               {vehicle.brand?.name} {vehicle.model?.name}
             </h1>
-            <p className="text-2xl text-gray-600 dark:text-gray-400">
-              {vehicle.year}
-            </p>
+            <div className="flex justify-between items-center">
+              <p className="text-2xl text-gray-600 dark:text-gray-400">
+                {vehicle.year}
+              </p>
+              <div className="block sm:hidden">
+                <Button
+                  size="sm"
+                  color="primary"
+                  variant="flat"
+                  className="font-semibold"
+                  startContent={
+                    <Icon
+                      icon="mdi:share-variant"
+                      className="text-xl text-primary"
+                    />
+                  }
+                  onPress={handleShare}
+                >
+                  Compartir
+                </Button>
+              </div>
+            </div>
           </div>
-          <Button
-            variant="bordered"
-            size="lg"
-            startContent={<Icon icon="mdi:share-variant" className="text-xl" />}
-            onPress={handleShare}
-            className="text-primary"
-          >
-            Compartir
-          </Button>
+          <div className="hidden sm:block">
+            <Button
+              variant="bordered"
+              size="lg"
+              startContent={
+                <Icon icon="mdi:share-variant" className="text-xl" />
+              }
+              onPress={handleShare}
+              className="text-primary"
+            >
+              Compartir
+            </Button>
+          </div>
         </div>
 
         {/* Cards de características */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 place-items-center">
           <DetailCard
             icon="mdi:speedometer"
             label="Kilometraje"
             value={`${vehicle.mileage.toLocaleString()} km`}
+            className="w-full max-w-[170px]"
           />
           <DetailCard
             icon="mdi:gas-station"
@@ -340,22 +353,25 @@ export default function VehicleDetailSection({
               vehicle.fuel_type_new?.name ||
               mapFuelTypeToSpanish(vehicle.fuel_type)
             }
+            className="w-full max-w-[170px]"
           />
           <DetailCard
             icon="mdi:car-shift-pattern"
             label="Transmisión"
             value={mapTransmissionTypeToSpanish(vehicle.transmission)}
+            className="w-full max-w-[170px]"
           />
-          {/* <DetailCard
-            icon="mdi:car-traction-control"
-            label="Tracción"
-            value={vehicle.drive_type || "4×2"}
-          /> */}
+          <DetailCard
+            icon="mdi:palette"
+            label="Color"
+            value={vehicle?.color_new?.name}
+            className="w-full max-w-[170px]"
+          />
         </div>
 
         {/* Precio y características */}
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
             <div>
               {vehicle.discount_percentage ? (
                 <>
@@ -376,7 +392,7 @@ export default function VehicleDetailSection({
               )}
             </div>
 
-            <div className="flex gap-3">
+            <div className="hidden sm:flex gap-3">
               <Button
                 size="lg"
                 variant="bordered"
@@ -398,13 +414,43 @@ export default function VehicleDetailSection({
                   `Hola, me interesa el ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year}`
                 )}
                 target="_blank"
-                rel="noopener noreferrer"
                 className="bg-primary text-white dark:bg-primary dark:text-black hover:bg-primary/90 dark:hover:bg-primary/90"
               >
                 Contactar
               </Button>
             </div>
           </div>
+
+          {/* Botones para mobile */}
+          <div className="flex gap-2 sm:hidden mt-4">
+            <Button
+              size="lg"
+              variant="bordered"
+              color="primary"
+              className="flex-1"
+              startContent={
+                <Icon icon={isLiked ? "mdi:heart" : "mdi:heart-outline"} />
+              }
+              onPress={() => onLike && onLike(vehicle.id)}
+            >
+              Guardar
+            </Button>
+            <Button
+              size="lg"
+              color="primary"
+              as="a"
+              className="flex-1 bg-primary text-white dark:bg-primary dark:text-black hover:bg-primary/90 dark:hover:bg-primary/90"
+              startContent={<Icon icon="mdi:whatsapp" className="text-xl" />}
+              href={contactByWhatsApp(
+                client?.contact?.phone || "",
+                `Hola, me interesa el ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year}`
+              )}
+              target="_blank"
+            >
+              Contactar
+            </Button>
+          </div>
+
           <Divider className="dark:border-dark-border" />
 
           {/* Características del vehículo */}
