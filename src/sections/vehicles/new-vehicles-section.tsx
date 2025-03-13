@@ -20,7 +20,7 @@ import {
 import { Icon } from '@iconify/react';
 import NewVehicleFilters from './new-vehicle-filters';
 import useVehiclesStore from '@/store/useVehiclesStore';
-import { VehicleFilters as VehicleFiltersType } from '@/utils/types';
+import { Vehicle, VehicleFilters as VehicleFiltersType } from '@/utils/types';
 import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
 import VehicleHorizontalCard from '@/components/vehicles/VehicleHorizontalCard';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
@@ -133,7 +133,8 @@ const NewVehiclesSection = () => {
       // Category from tabs
       if (
         selectedCategory !== 'all' &&
-        vehicle?.category_new?.name !== selectedCategory
+        vehicle?.category_new?.name.toLowerCase() !==
+          selectedCategory.toLowerCase()
       ) {
         matches = false;
       }
@@ -188,6 +189,19 @@ const NewVehiclesSection = () => {
           return 0;
       }
     });
+
+  const sortVehicles = (vehicles: Vehicle[]) => {
+    return [...vehicles].sort((a, b) => {
+      // Primero los no vendidos
+      if (a.status === 'sold' && b.status !== 'sold') return 1;
+      if (a.status !== 'sold' && b.status === 'sold') return -1;
+
+      return 0;
+    });
+  };
+
+  // Aplicar el ordenamiento antes de renderizar
+  const sortedVehicles = sortVehicles(filteredVehicles);
 
   const activeFiltersCount =
     Object.keys(filters).length +
@@ -375,7 +389,7 @@ const NewVehiclesSection = () => {
                 ? Array(6)
                     .fill(null)
                     .map((_, index) => <VehicleCardSkeleton key={index} />)
-                : filteredVehicles.map((vehicle) =>
+                : sortedVehicles.map((vehicle) =>
                     activeView === 'grid' ? (
                       <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
                     ) : (

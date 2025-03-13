@@ -4,7 +4,7 @@ import VehicleFilters from '../../sections/vehicles/FilterSection';
 import { Icon } from '@iconify/react';
 import useMediaQuery from '../../hooks/useMediaQuery';
 import useVehiclesStore from '../../store/useVehiclesStore';
-import { VehicleFilters as VehicleFiltersType } from '@/utils/types';
+import { Vehicle, VehicleFilters as VehicleFiltersType } from '@/utils/types';
 import { Button, Skeleton } from '@heroui/react';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
 import ModalSlideFilter from '@/components/filters/ModalSlideFilter';
@@ -61,6 +61,17 @@ const VehiclesPage = () => {
 
     return matches;
   });
+
+  const sortVehicles = (vehicles: Vehicle[]) => {
+    return [...vehicles].sort((a, b) => {
+      if (a.status === 'sold' && b.status !== 'sold') return 1;
+      if (a.status !== 'sold' && b.status === 'sold') return -1;
+
+      return 0;
+    });
+  };
+
+  const sortedVehicles = sortVehicles(filteredVehicles);
 
   const LoadingState = () => (
     <div className='w-full'>
@@ -151,7 +162,7 @@ const VehiclesPage = () => {
                 </div>
               </div>
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4'>
-                {filteredVehicles.map((vehicle) => (
+                {sortedVehicles.map((vehicle) => (
                   <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
                 ))}
               </div>
