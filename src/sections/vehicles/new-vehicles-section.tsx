@@ -133,7 +133,8 @@ const NewVehiclesSection = () => {
       // Category from tabs
       if (
         selectedCategory !== "all" &&
-        vehicle?.category_new?.name !== selectedCategory
+        vehicle?.category_new?.name.toLowerCase() !==
+          selectedCategory.toLowerCase()
       ) {
         matches = false;
       }
