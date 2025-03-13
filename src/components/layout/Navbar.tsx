@@ -63,7 +63,7 @@ const Navbar = () => {
                   : client?.logo
               }
               alt={client?.name}
-              className='h-8 w-auto object-contain dark:brightness-200'
+              className='h-12 w-auto object-contain dark:brightness-200'
             />
           </Link>
         </NavbarBrand>
