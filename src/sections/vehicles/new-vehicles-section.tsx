@@ -20,7 +20,7 @@ import {
 import { Icon } from '@iconify/react';
 import NewVehicleFilters from './new-vehicle-filters';
 import useVehiclesStore from '@/store/useVehiclesStore';
-import { VehicleFilters as VehicleFiltersType } from '@/utils/types';
+import { Vehicle, VehicleFilters as VehicleFiltersType } from '@/utils/types';
 import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
 import VehicleHorizontalCard from '@/components/vehicles/VehicleHorizontalCard';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
@@ -196,12 +196,6 @@ const NewVehiclesSection = () => {
       if (a.status === 'sold' && b.status !== 'sold') return 1;
       if (a.status !== 'sold' && b.status === 'sold') return -1;
 
-      // Si ambos están vendidos, ordenar por fecha de venta (más reciente primero)
-      if (a.status === 'sold' && b.status === 'sold') {
-        return new Date(b.sold_at!).getTime() - new Date(a.sold_at!).getTime();
-      }
-
-      // Mantener el ordenamiento existente para los no vendidos
       return 0;
     });
   };
