@@ -17,6 +17,7 @@ const poppins = Poppins({
 
 export async function generateMetadata() {
   const client = await getClient();
+  console.log('client señores', client);
 
   return {
     title: client?.seo?.title || 'Automotora',
