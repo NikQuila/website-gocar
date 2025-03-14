@@ -67,24 +67,16 @@ export interface Vehicle {
   model_id: number;
   year: number;
   price: number;
-  discount_percentage?: number;
+  discount_percentage?: number; // opcional
 
-  // Características principales y relaciones
-  category_new: Category;
-  category_id: number;
-  fuel_type_new: FuelType;
-  fuel_type_id: number;
-  condition_new: Condition;
-  condition_id: number;
-  color_new: Color;
-  color_id: number;
-  transmission: 'Manual' | 'Automatic';
+  // Características principales
+
   mileage: number;
 
-  // Estado
-  status: 'available' | 'sold' | 'reserved';
-  status_new: ClientVehicleStatus;
-  status_id: number;
+  transmission: 'Manual' | 'Automatic';
+
+  status_id: string;
+  status?: ClientVehicleStatus;
 
   // Multimedia
   main_image: string;
@@ -102,6 +94,19 @@ export interface Vehicle {
   // Dealership
   dealership_id: string | number;
   dealership: Dealership;
+
+  //
+  fuel_type_id: number;
+  fuel_type: FuelType;
+
+  condition_id: number;
+  condition: Condition;
+
+  category_id: number;
+  category: Category;
+
+  color_id: number;
+  color: Color;
 
   // Metadatos
   views: number;

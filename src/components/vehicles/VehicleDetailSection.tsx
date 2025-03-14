@@ -176,7 +176,7 @@ export default function VehicleDetailSection({
     onOpen();
   };
 
-  const isSold = vehicle.status === 'sold';
+  const isSold = vehicle.status?.name === 'Vendido';
 
   return (
     <div className='flex flex-col md:grid md:grid-cols-2 gap-8'>
@@ -198,8 +198,8 @@ export default function VehicleDetailSection({
               <div
                 className={`${
                   isVerticalImage
-                    ? "h-[415px] md:h-[500px]"
-                    : "h-[170px] sm:h-[300px] md:h-[340px]"
+                    ? 'h-[415px] md:h-[500px]'
+                    : 'h-[170px] sm:h-[300px] md:h-[340px]'
                 } w-full overflow-hidden`}
               >
                 <Image
@@ -218,17 +218,17 @@ export default function VehicleDetailSection({
 
         {/* Miniaturas para mobile cuando la imagen es vertical */}
         {isVerticalImage && (
-          <div className="mt-2 block md:hidden">
-            <div className="flex flex-row justify-between w-full">
+          <div className='mt-2 block md:hidden'>
+            <div className='flex flex-row justify-between w-full'>
               {displayedImages.map((image, index) => (
                 <div
                   key={index}
                   onClick={() => handleImageClick(image)}
-                  className="relative cursor-pointer rounded-lg overflow-hidden w-[65px] h-[65px]"
+                  className='relative cursor-pointer rounded-lg overflow-hidden w-[65px] h-[65px]'
                 >
                   <Image
                     alt={`Gallery ${index}`}
-                    className="h-full w-full object-cover"
+                    className='h-full w-full object-cover'
                     style={thumbnailStyles[image] || {}}
                     src={image}
                   />
@@ -237,15 +237,15 @@ export default function VehicleDetailSection({
 
               {remainingPhotos > 0 && (
                 <div
-                  className="relative cursor-pointer rounded-lg overflow-hidden w-[65px] h-[65px] bg-gray-100 dark:bg-dark-card flex items-center justify-center"
+                  className='relative cursor-pointer rounded-lg overflow-hidden w-[65px] h-[65px] bg-gray-100 dark:bg-dark-card flex items-center justify-center'
                   onClick={() => handleImageClick(allImages[MAX_THUMBNAILS])}
                 >
-                  <div className="text-center">
+                  <div className='text-center'>
                     <Icon
-                      icon="mdi:image-multiple"
-                      className="text-xl text-gray-600 dark:text-gray-400"
+                      icon='mdi:image-multiple'
+                      className='text-xl text-gray-600 dark:text-gray-400'
                     />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>
                       +{remainingPhotos}
                     </p>
                   </div>
@@ -257,35 +257,34 @@ export default function VehicleDetailSection({
 
         {/* Miniaturas para mobile cuando la imagen NO es vertical */}
         {!isVerticalImage && (
-          <div className="mt-2 block md:hidden">
-            <div className="flex flex-row justify-between gap-2 w-full">
+          <div className='mt-2 block md:hidden'>
+            <div className='flex flex-row justify-between gap-2 w-full'>
               {displayedImages.map((image, index) => (
                 <div
                   key={index}
                   onClick={() => handleImageClick(image)}
-                  className="relative cursor-pointer rounded-lg overflow-hidden w-[85px] h-[60px]"
+                  className='relative cursor-pointer rounded-lg overflow-hidden w-[85px] h-[60px]'
                 >
                   <Image
                     alt={`Gallery ${index}`}
-                    className="h-full w-full object-cover"
+                    className='h-full w-full object-cover'
                     style={thumbnailStyles[image] || {}}
                     src={image}
                   />
-
                 </div>
               ))}
 
               {remainingPhotos > 0 && (
                 <div
-                  className="relative cursor-pointer rounded-lg overflow-hidden w-[85px] h-[43px] bg-gray-100 dark:bg-dark-card flex items-center justify-center"
+                  className='relative cursor-pointer rounded-lg overflow-hidden w-[85px] h-[43px] bg-gray-100 dark:bg-dark-card flex items-center justify-center'
                   onClick={() => handleImageClick(allImages[MAX_THUMBNAILS])}
                 >
-                  <div className="text-center">
+                  <div className='text-center'>
                     <Icon
-                      icon="mdi:image-multiple"
-                      className="text-lg text-gray-600 dark:text-gray-400"
+                      icon='mdi:image-multiple'
+                      className='text-lg text-gray-600 dark:text-gray-400'
                     />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>
                       +{remainingPhotos}
                     </p>
                   </div>
@@ -321,8 +320,8 @@ export default function VehicleDetailSection({
                 >
                   <div className='text-center'>
                     <Icon
-                      icon="mdi:image-multiple"
-                      className="text-xl text-gray-600 dark:text-gray-400"
+                      icon='mdi:image-multiple'
+                      className='text-xl text-gray-600 dark:text-gray-400'
                     />
                     <p className='text-sm text-gray-600 dark:text-gray-400 mt-1'>
                       +{remainingPhotos}
@@ -336,13 +335,13 @@ export default function VehicleDetailSection({
 
         {/* Miniaturas horizontales para desktop cuando la imagen NO es vertical */}
         {!isVerticalImage && (
-          <div className="hidden md:block mt-6">
-            <div className="flex flex-row gap-6 justify-center">
+          <div className='hidden md:block mt-6'>
+            <div className='flex flex-row gap-6 justify-center'>
               {displayedImages.map((image, index) => (
                 <div
                   key={index}
                   onClick={() => handleImageClick(image)}
-                  className="relative cursor-pointer rounded-lg overflow-hidden w-[240px] h-[200px]"
+                  className='relative cursor-pointer rounded-lg overflow-hidden w-[240px] h-[200px]'
                 >
                   <Image
                     alt={`Gallery ${index}`}
@@ -355,15 +354,15 @@ export default function VehicleDetailSection({
 
               {remainingPhotos > 0 && (
                 <div
-                  className="relative cursor-pointer rounded-lg overflow-hidden w-[240px] h-[80px] bg-gray-100 dark:bg-dark-card flex items-center justify-center"
+                  className='relative cursor-pointer rounded-lg overflow-hidden w-[240px] h-[80px] bg-gray-100 dark:bg-dark-card flex items-center justify-center'
                   onClick={() => handleImageClick(allImages[MAX_THUMBNAILS])}
                 >
                   <div className='text-center'>
                     <Icon
-                      icon="mdi:image-multiple"
-                      className="text-xl text-gray-600 dark:text-gray-400"
+                      icon='mdi:image-multiple'
+                      className='text-xl text-gray-600 dark:text-gray-400'
                     />
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    <p className='text-sm text-gray-600 dark:text-gray-400 mt-2'>
                       +{remainingPhotos}
                     </p>
                   </div>
@@ -430,7 +429,7 @@ export default function VehicleDetailSection({
           <DetailCard
             icon='mdi:gas-station'
             label='Combustible'
-            value={vehicle.fuel_type_new?.name}
+            value={vehicle.fuel_type?.name}
             className='w-full max-w-[170px]'
           />
           <DetailCard
@@ -442,7 +441,7 @@ export default function VehicleDetailSection({
           <DetailCard
             icon='mdi:palette'
             label='Color'
-            value={vehicle?.color_new?.name}
+            value={vehicle.color?.name}
             className='w-full max-w-[170px]'
           />
         </div>

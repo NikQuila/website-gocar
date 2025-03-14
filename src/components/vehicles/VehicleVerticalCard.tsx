@@ -39,7 +39,7 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
     currency: 'CLP',
   }).format(savingsAmount);
 
-  const isSold = vehicle.status_new?.name === 'Vendido';
+  const isSold = vehicle.status?.name === 'Vendido';
 
   const handleViewDetails = () => {
     router.push(`/vehicles/${vehicle.id}`);
@@ -98,7 +98,7 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
             <div className='flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400'>
               <span>{vehicle.mileage.toLocaleString()} km</span>
               <span>•</span>
-              <span className='capitalize'>{vehicle?.fuel_type_new?.name}</span>
+              <span className='capitalize'>{vehicle.fuel_type?.name}</span>
               <span>•</span>
               <span>{mapTransmissionTypeToSpanish(vehicle.transmission)}</span>
             </div>

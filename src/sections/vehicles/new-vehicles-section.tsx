@@ -133,8 +133,7 @@ const NewVehiclesSection = () => {
       // Category from tabs
       if (
         selectedCategory !== 'all' &&
-        vehicle?.category_new?.name.toLowerCase() !==
-          selectedCategory.toLowerCase()
+        vehicle?.category?.name.toLowerCase() !== selectedCategory.toLowerCase()
       ) {
         matches = false;
       }
@@ -145,26 +144,23 @@ const NewVehiclesSection = () => {
       }
       if (
         filters.category &&
-        vehicle?.category_new?.id.toString() !== filters.category
+        vehicle?.category?.id.toString() !== filters.category
       ) {
         matches = false;
       }
       if (
         filters.fuel_type &&
-        vehicle?.fuel_type_new?.id.toString() !== filters.fuel_type
+        vehicle?.fuel_type?.id.toString() !== filters.fuel_type
       ) {
         matches = false;
       }
       if (
         filters.condition &&
-        vehicle?.condition_new?.id.toString() !== filters.condition
+        vehicle?.condition?.id.toString() !== filters.condition
       ) {
         matches = false;
       }
-      if (
-        filters.color &&
-        vehicle?.color_new?.id.toString() !== filters.color
-      ) {
+      if (filters.color && vehicle?.color?.id.toString() !== filters.color) {
         matches = false;
       }
       if (vehicle?.price < priceRange[0] || vehicle?.price > priceRange[1]) {
@@ -193,8 +189,10 @@ const NewVehiclesSection = () => {
   const sortVehicles = (vehicles: Vehicle[]) => {
     return [...vehicles].sort((a, b) => {
       // Primero los no vendidos
-      if (a.status === 'sold' && b.status !== 'sold') return 1;
-      if (a.status !== 'sold' && b.status === 'sold') return -1;
+      if (a.status?.name === 'Vendido' && b.status?.name !== 'Vendido')
+        return 1;
+      if (a.status?.name !== 'Vendido' && b.status?.name === 'Vendido')
+        return -1;
 
       return 0;
     });
