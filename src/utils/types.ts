@@ -83,6 +83,8 @@ export interface Vehicle {
 
   // Estado
   status: 'available' | 'sold' | 'reserved';
+  status_new: ClientVehicleStatus;
+  status_id: number;
 
   // Multimedia
   main_image: string;
@@ -239,4 +241,15 @@ export interface Color {
   name: string;
   hex: string;
   created_at: string;
+}
+
+export interface ClientVehicleStatus {
+  id: string;
+  client_id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  order: number;
+  created_at: string;
+  is_disabled: boolean;
 }
