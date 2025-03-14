@@ -90,7 +90,7 @@ export default function AISearchBar({
       // Match fuel type
       if (
         params.fuel_type &&
-        vehicle.fuel_type_new?.name?.toLowerCase() !==
+        vehicle.fuel_type?.name?.toLowerCase() !==
           params.fuel_type.toLowerCase()
       ) {
         matches = false;
@@ -99,7 +99,7 @@ export default function AISearchBar({
       // Match condition
       if (
         params.condition &&
-        vehicle.condition_new?.name?.toLowerCase() !==
+        vehicle.condition?.name?.toLowerCase() !==
           params.condition.toLowerCase()
       ) {
         matches = false;
@@ -108,7 +108,7 @@ export default function AISearchBar({
       // Match color
       if (
         params.color &&
-        vehicle.color_new?.name?.toLowerCase() !== params.color.toLowerCase()
+        vehicle.color?.name?.toLowerCase() !== params.color.toLowerCase()
       ) {
         matches = false;
       }
