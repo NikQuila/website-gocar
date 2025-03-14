@@ -27,6 +27,7 @@ const useVehiclesStore = create<VehiclesStore>((set) => ({
     );
     set({ isLoading: true });
     try {
+      // Realizar una consulta simple para obtener los vehículos con estados Publicado o Vendido
       let query = supabase.from('vehicles').select(`
           *,
           brand:brand_id(*),
@@ -34,16 +35,17 @@ const useVehiclesStore = create<VehiclesStore>((set) => ({
           category:category_id(*),
           fuel_type:fuel_type_id(*),
           condition:condition_id(*),
-          status:status_id(*),
+          status:clients_vehicles_states(*),
           color:color_id(*),
           dealership:dealership_id(*)
         `);
 
+      // Filtrado por cliente
       if (hasDemo) {
-        // If has_demo is true, fetch vehicles from both the client and client_id = 1
+        // Si has_demo es true, obtenemos vehículos del cliente y del cliente_id = 1
         query = query.or(`client_id.eq.${clientId},client_id.eq.1`);
       } else {
-        // Otherwise, just fetch the client's vehicles
+        // Solo obtenemos los vehículos del cliente
         query = query.eq('client_id', clientId);
       }
 
@@ -52,8 +54,17 @@ const useVehiclesStore = create<VehiclesStore>((set) => ({
       });
 
       if (error) throw error;
-      console.log('Respuesta de Supabase:', { data, error });
-      set({ vehicles: data || [], error: null });
+
+      // Filtrar los resultados en memoria para quedarnos solo con los publicados o vendidos
+      const filteredVehicles =
+        data?.filter(
+          (vehicle) =>
+            vehicle.status?.name === 'Publicado' ||
+            vehicle.status?.name === 'Vendido'
+        ) || [];
+
+      console.log('Vehículos filtrados:', filteredVehicles.length);
+      set({ vehicles: filteredVehicles, error: null });
     } catch (error) {
       console.error('Error en fetchVehicles:', error);
       set({ error: (error as Error).message, vehicles: [] });
