@@ -31,10 +31,10 @@ export const getVehicleById = async (vehicleId: string) => {
         *,
         brand:brand_id(id, name),
         model:model_id(id, name),
-        fuel_type_new:fuel_type_id(id, name),
-        color_new:color_id(id, name),
-        condition_new:condition_id(id, name),
-        category_new:category_id(id, name)
+        fuel_type:fuel_type_id(id, name),
+        color:color_id(id, name),
+        condition:condition_id(id, name),
+        category:category_id(id, name)
       `
       )
       .eq('id', vehicleId)
