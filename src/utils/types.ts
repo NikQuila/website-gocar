@@ -112,6 +112,22 @@ export interface Vehicle {
   views: number;
   created_at: string;
   updated_at: string;
+
+  // Extras
+  extras: VehicleExtras[];
+}
+
+export interface VehicleExtras {
+  id: string;
+  title?: string;
+  vehicle_id: string;
+  vehicle: Vehicle;
+  description?: string;
+  amount?: number;
+  type?: 'expense' | 'income' | 'other';
+  doc_url?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Brand {
