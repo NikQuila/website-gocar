@@ -274,3 +274,57 @@ export interface ClientVehicleStatus {
   created_at: string;
   is_disabled: boolean;
 }
+
+export interface ClientWebsiteConfig {
+  id: string;
+  client_id: string;
+
+  // Sections configuration
+  sections: {
+    [key: string]: {
+      id: string;
+      enabled: boolean;
+      order: number;
+    };
+  };
+
+  // Theme configuration
+  theme: {
+    primary_color: string;
+    secondary_color: string;
+    typography: string;
+  };
+
+  // Content configuration
+  content: {
+    hero_title: string;
+    hero_subtitle: string;
+    hero_cta: string;
+    why_us_title: string;
+    why_us_subtitle: string;
+  };
+  // Why Us items
+  why_us_items: Array<{
+    id: string;
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+
+  // Media configuration
+  media: {
+    background_image_url: string;
+    video_url: string;
+  };
+
+  // Integrations
+  integrations: {
+    google_reviews_enabled: boolean;
+    pixel_id: string;
+    gtm_id: string;
+  };
+
+  is_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
