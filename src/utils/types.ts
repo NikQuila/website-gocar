@@ -280,8 +280,13 @@ export interface ClientWebsiteConfig {
   client_id: string;
 
   // Sections configuration
-  enabled_sections: string[];
-  sections_order: string[];
+  sections: {
+    [key: string]: {
+      id: string;
+      enabled: boolean;
+      order: number;
+    };
+  };
 
   // Theme configuration
   theme: {
@@ -295,8 +300,9 @@ export interface ClientWebsiteConfig {
     hero_title: string;
     hero_subtitle: string;
     hero_cta: string;
+    why_us_title: string;
+    why_us_subtitle: string;
   };
-
   // Why Us items
   why_us_items: Array<{
     id: string;
@@ -304,18 +310,6 @@ export interface ClientWebsiteConfig {
     title: string;
     description: string;
   }>;
-
-  // Contact configuration
-  contact_message: string;
-
-  // Metadata configuration
-  meta: {
-    favicon_url: string;
-    og_image: string;
-    seo_title: string;
-    seo_description: string;
-    keywords: string[];
-  };
 
   // Media configuration
   media: {
@@ -330,7 +324,7 @@ export interface ClientWebsiteConfig {
     gtm_id: string;
   };
 
-  // System fields
+  is_enabled: boolean;
   created_at: string;
   updated_at: string;
 }

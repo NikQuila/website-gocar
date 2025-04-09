@@ -51,6 +51,7 @@ export function ClientWebsiteConfigProvider({
           .from('client_website_config')
           .select('*')
           .eq('client_id', client.id)
+          .eq('is_enabled', true)
           .single();
 
         if (error) {
