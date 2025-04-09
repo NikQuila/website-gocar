@@ -54,9 +54,8 @@ export function ClientWebsiteConfigProvider({
           .eq('is_enabled', true)
           .single();
 
+        console.log('Data:', data);
         if (error) {
-          console.error('Error loading website configuration:', error);
-          setError(new Error(error.message));
           setIsLoading(false);
           return;
         }

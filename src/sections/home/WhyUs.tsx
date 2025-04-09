@@ -14,6 +14,7 @@ interface WhyUsItem {
 
 interface WhyUsConfig {
   title: string;
+  subtitle?: string;
   items: WhyUsItem[];
 }
 
@@ -55,8 +56,10 @@ const WhyUs = () => {
         // Check if we have why_us_items in the config
         let whyUsConfig: WhyUsConfig | null = null;
 
-        // Default section title
-        const sectionTitle = '¿Por qué elegirnos?';
+        // Get section title from config or use default
+        const sectionTitle =
+          websiteConfig.content?.why_us_title || '¿Por qué elegirnos?';
+        const sectionSubtitle = websiteConfig.content?.why_us_subtitle;
 
         if (
           websiteConfig.why_us_items &&
@@ -64,6 +67,7 @@ const WhyUs = () => {
         ) {
           whyUsConfig = {
             title: sectionTitle,
+            subtitle: sectionSubtitle,
             items: websiteConfig.why_us_items,
           };
           console.log('Using why_us_items from config:', whyUsConfig);
@@ -71,6 +75,7 @@ const WhyUs = () => {
           // Use default items
           whyUsConfig = {
             title: sectionTitle,
+            subtitle: sectionSubtitle,
             items: defaultItems,
           };
           console.log('Using default items for WhyUs section');
@@ -95,9 +100,13 @@ const WhyUs = () => {
     return (
       <section className='bg-gray-50 dark:bg-dark-bg py-16'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <h2 className='text-3xl font-bold text-gray-900 dark:text-dark-text text-center mb-12'>
+          <h2 className='text-3xl font-bold text-gray-900 dark:text-dark-text text-center mb-4'>
             ¿Por qué elegirnos?
           </h2>
+          {/* Default subtitle placeholder */}
+          <p className='text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto'>
+            Descubre por qué nuestros clientes confían en nosotros
+          </p>
           <div className='grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3'>
             {defaultItems.map((feature, i) => (
               <div
@@ -128,9 +137,15 @@ const WhyUs = () => {
   return (
     <section className='bg-gray-50 dark:bg-dark-bg py-16'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <h2 className='text-3xl font-bold text-gray-900 dark:text-dark-text text-center mb-12'>
+        <h2 className='text-4xl font-semibold text-gray-900 dark:text-dark-text text-center mb-4'>
           {config.title}
         </h2>
+        {config.subtitle && (
+          <p className='text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto'>
+            {config.subtitle}
+          </p>
+        )}
+        {!config.subtitle && <div className='mb-8'></div>}
         <div className='grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3'>
           {config.items.map((item, i) => (
             <div

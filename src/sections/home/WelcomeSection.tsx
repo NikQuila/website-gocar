@@ -27,37 +27,33 @@ export default function WelcomeSection() {
 
     try {
       // Process the configuration from the context
-      if (websiteConfig) {
-        console.log('Processing website config from context:', websiteConfig);
 
-        // Use content from the ClientWebsiteConfig
-        let sectionConfig: WelcomeSectionConfig | null = null;
+      console.log('Processing website config from context:', websiteConfig);
 
-        console.log('content available:', Boolean(websiteConfig.content));
+      // Use content from the ClientWebsiteConfig
+      let sectionConfig: WelcomeSectionConfig | null = null;
 
-        if (websiteConfig.content) {
-          // Use content from the standard structure
-          sectionConfig = {
-            title:
-              websiteConfig.content.hero_title ||
-              'Encuentra tu próximo vehículo en',
-            subtitle:
-              websiteConfig.content.hero_subtitle ||
-              'Describe el vehículo de tus sueños y deja que nuestra IA encuentre las mejores opciones para ti.',
-            primaryColor: websiteConfig.theme?.primary_color || '#0F172A',
-            backgroundColor: '#FFFFFF',
-            textColor: '#111827',
-            subtitleColor: '#4B5563',
-          };
-          console.log('Using content from config:', sectionConfig);
-        }
+      console.log('content available:', Boolean(websiteConfig?.content));
 
-        if (sectionConfig) {
-          console.log('Final configuration to apply:', sectionConfig);
-          setConfig(sectionConfig);
-        } else {
-          console.warn('No valid configuration found to apply');
-        }
+      sectionConfig = {
+        title:
+          websiteConfig?.content?.hero_title ||
+          'Encuentra tu próximo vehículo en',
+        subtitle:
+          websiteConfig?.content?.hero_subtitle ||
+          'Describe el vehículo de tus sueños y deja que nuestra IA encuentre las mejores opciones para ti.',
+        primaryColor: websiteConfig?.theme?.primary_color || '#0F172A',
+        backgroundColor: '#FFFFFF',
+        textColor: '#111827',
+        subtitleColor: '#4B5563',
+      };
+      console.log('Using content from config:', sectionConfig);
+
+      if (sectionConfig) {
+        console.log('Final configuration to apply:', sectionConfig);
+        setConfig(sectionConfig);
+      } else {
+        console.warn('No valid configuration found to apply');
       }
     } catch (error) {
       console.error('Error processing website configuration:', error);
