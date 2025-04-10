@@ -109,6 +109,23 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
         if (data && data.length > 0) {
           setDealerships(data);
           setSelectedDealership(data[0]);
+        } else if (client.location) {
+          // Create a default dealership using client data if no dealerships found
+          const defaultDealership: Dealership = {
+            id: 'default',
+            client_id: client.id,
+            address: client.contact?.address || '',
+            phone: client.contact?.phone || '',
+            email: client.contact?.email || '',
+            location: {
+              lat: Number(client.location.lat),
+              lng: Number(client.location.lng),
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          setDealerships([defaultDealership]);
+          setSelectedDealership(defaultDealership);
         }
       }
       setIsLoading(false);
@@ -163,9 +180,12 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
   return (
     <div className='bg-gray-50 dark:bg-dark-bg py-12 rounded-2xl'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <h3 className='text-4xl font-semibold text-primary text-center mb-8 dark:text-dark-text'>
+        <h3 className='text-4xl font-semibold text-black text-center mb-4 dark:text-dark-text'>
           ¿Cómo llegar?
         </h3>
+        <p className='text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto'>
+          Encuentranos en la siguiente dirección:
+        </p>
 
         <div className='grid md:grid-cols-3 gap-8 items-start'>
           {/* Contact Info with Navigation */}
