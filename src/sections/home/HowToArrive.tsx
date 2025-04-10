@@ -180,7 +180,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
   return (
     <div className='bg-gray-50 dark:bg-dark-bg py-12 rounded-2xl'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <h3 className='text-4xl font-semibold text-blacl text-center mb-4 dark:text-dark-text'>
+        <h3 className='text-4xl font-semibold text-black text-center mb-4 dark:text-dark-text'>
           ¿Cómo llegar?
         </h3>
         <p className='text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto'>
