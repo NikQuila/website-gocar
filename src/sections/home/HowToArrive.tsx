@@ -109,6 +109,23 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
         if (data && data.length > 0) {
           setDealerships(data);
           setSelectedDealership(data[0]);
+        } else if (client.location) {
+          // Create a default dealership using client data if no dealerships found
+          const defaultDealership: Dealership = {
+            id: 'default',
+            client_id: client.id,
+            address: client.contact?.address || '',
+            phone: client.contact?.phone || '',
+            email: client.contact?.email || '',
+            location: {
+              lat: Number(client.location.lat),
+              lng: Number(client.location.lng),
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          setDealerships([defaultDealership]);
+          setSelectedDealership(defaultDealership);
         }
       }
       setIsLoading(false);
