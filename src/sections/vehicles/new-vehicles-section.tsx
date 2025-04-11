@@ -21,27 +21,16 @@ import {
 } from '@heroui/react';
 
 import { Icon } from '@iconify/react';
-
 import NewVehicleFilters from './new-vehicle-filters';
-
 import useVehiclesStore from '@/store/useVehiclesStore';
-
 import { Vehicle, VehicleFilters as VehicleFiltersType } from '@/utils/types';
-
 import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
-
 import VehicleHorizontalCard from '@/components/vehicles/VehicleHorizontalCard';
-
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
-
 import useMediaQuery from '@/hooks/useMediaQuery';
-
 import useThemeStore from '@/store/useThemeStore';
-
 import Link from 'next/link';
-
 import useClientStore from '@/store/useClientStore';
-
 import { formatWhatsAppNumber } from '@/utils/contact-utils';
 
 const vehicleCategories = [
@@ -278,7 +267,7 @@ const NewVehiclesSection = () => {
   return (
     <div className='min-h-screen bg-gray-50 dark:bg-dark-bg'>
       {/* Botón de WhatsApp (posición fija con z-index extremadamente alto) - Solo visible en pantallas mayores a sm */}
-      <div className='fixed bottom-6 right-8 lg:right-2 xl:right-12 2xl:right-96 z-[99999] hidden sm:block'>
+      <div className='fixed bottom-6 right-8 xl:right-12 2xl:right-96 z-[99999] hidden sm:block'>
         <Link href={whatsappUrl} target='_blank' rel='noopener noreferrer'>
           <Button
             isIconOnly
