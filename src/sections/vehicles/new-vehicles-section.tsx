@@ -432,7 +432,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   variant='flat'
                   color='primary'
                   onClose={clearFilters}
-                  className='w-full sm:w-auto justify-center ml-auto sm:ml-0'
+                  className='w-full sm:w-auto justify-center ml-auto sm:ml-0 md:mr-16 lg:mr-24 xl:mr-64 2xl:mr-96'
                 >
                   {activeFiltersCount}{' '}
                   {activeFiltersCount === 1 ? 'filtro' : 'filtros'} activos
