@@ -47,81 +47,50 @@ import { formatWhatsAppNumber } from '@/utils/contact-utils';
 const vehicleCategories = [
   {
     id: 'all',
-
     name: 'Todos los Vehículos',
-
     icon: 'mdi:car-multiple',
-
     description: 'Explora todos nuestros vehículos disponibles',
   },
-
   {
     id: 'SUV',
-
     name: 'SUVs',
-
     icon: 'mdi:car-suv',
-
     description: 'Vehículos espaciosos y versátiles',
   },
-
   {
     id: 'Sedan',
-
     name: 'Sedanes',
-
     icon: 'mdi:car',
-
     description: 'Autos familiares cómodos',
   },
-
   {
     id: 'Hatchback',
-
     name: 'Hatchbacks',
-
     icon: 'mdi:car-hatchback',
-
     description: 'Compactos y eficientes',
   },
-
   {
     id: 'Pickup',
-
     name: 'Pickups',
-
     icon: 'mdi:truck-pickup',
-
     description: 'Vehículos de carga y trabajo',
   },
-
   {
     id: 'Van',
-
     name: 'Vans',
-
     icon: 'mdi:van-passenger',
-
     description: 'Vehículos espaciosos para pasajeros',
   },
-
   {
     id: 'Coupe',
-
     name: 'Coupés',
-
     icon: 'mdi:car-sports',
-
     description: 'Elegantes y deportivos',
   },
-
   {
     id: 'Wagon',
-
     name: 'Wagons',
-
     icon: 'mdi:car-estate',
-
     description: 'Vehículos familiares versátiles',
   },
 ];
@@ -129,62 +98,38 @@ const vehicleCategories = [
 const sortOptions = [
   {
     key: 'price_asc',
-
     label: 'Precio: Menor a Mayor',
-
     icon: 'mdi:sort-ascending',
   },
-
   {
     key: 'price_desc',
-
     label: 'Precio: Mayor a Menor',
-
     icon: 'mdi:sort-descending',
   },
-
   { key: 'year_desc', label: 'Año: Más Reciente', icon: 'mdi:calendar' },
-
   { key: 'year_asc', label: 'Año: Más Antiguo', icon: 'mdi:calendar-outline' },
-
   {
     key: 'mileage_asc',
-
     label: 'Kilometraje: Menor a Mayor',
-
     icon: 'mdi:speedometer-slow',
   },
 ];
 
 const NewVehiclesSection = () => {
   const { theme } = useThemeStore();
-
   const { vehicles, isLoading } = useVehiclesStore();
-
   const { client } = useClientStore();
-
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
   const [showFilters, setShowFilters] = useState(true);
-
   const [filters, setFilters] = useState<VehicleFiltersType>({});
-
   const [priceRange, setPriceRange] = useState([0, 1000000000]);
-
   const [sortBy, setSortBy] = useState('price_asc');
-
   const [activeView, setActiveView] = useState<'grid' | 'list'>('grid');
-
   const { isOpen, onOpen, onClose } = useDisclosure();
-
   const isMd = useMediaQuery('(min-width: 768px)');
-
   const isMobile = useMediaQuery('(max-width: 639px)'); // xs
-
   const isTablet = useMediaQuery('(min-width: 640px) and (max-width: 1023px)'); // sm-md
-
   const isDesktop = useMediaQuery('(min-width: 1024px)'); // lg+
-
   // Extract unique values for filters
 
   const brands = [...new Set(vehicles.map((v) => v.brand))];
@@ -333,7 +278,7 @@ const NewVehiclesSection = () => {
   return (
     <div className='min-h-screen bg-gray-50 dark:bg-dark-bg'>
       {/* Botón de WhatsApp (posición fija con z-index extremadamente alto) - Solo visible en pantallas mayores a sm */}
-      <div className='fixed bottom-6 right-6 z-[99999] hidden sm:block'>
+      <div className='fixed bottom-6 right-8 lg:right-2 xl:right-12 2xl:right-96 z-[99999] hidden sm:block'>
         <Link href={whatsappUrl} target='_blank' rel='noopener noreferrer'>
           <Button
             isIconOnly
