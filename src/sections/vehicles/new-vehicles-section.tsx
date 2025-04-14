@@ -287,15 +287,17 @@ const NewVehiclesSection = () => {
             : 'opacity-0 translate-y-10 pointer-events-none'
         }`}
       >
-        <Link href={whatsappUrl} target='_blank' rel='noopener noreferrer'>
-          <Button
-            isIconOnly
-            className='bg-[#25D366] text-white rounded-full hover:bg-[#22c35e] hover:shadow-lg transition-all duration-200 shadow-md w-12 h-12'
-            aria-label='WhatsApp'
-          >
-            <Icon icon='logos:whatsapp-icon' className='text-xl' />
-          </Button>
-        </Link>
+        <Button
+          isIconOnly
+          className='bg-[#25D366] text-white rounded-full hover:bg-[#22c35e] hover:shadow-lg transition-all duration-200 shadow-md w-12 h-12'
+          aria-label='WhatsApp'
+          as='a'
+          href={whatsappUrl}
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          <Icon icon='logos:whatsapp-icon' className='text-xl' />
+        </Button>
       </div>
 
       {/* Fixed Categories Navigation */}
