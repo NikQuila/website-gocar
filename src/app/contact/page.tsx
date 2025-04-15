@@ -31,6 +31,7 @@ const ContactPage = () => {
         last_name: formData.last_name,
         email: formData.email,
         phone: formData.phone,
+        client_id: client?.id || '',
       });
 
       // Guardamos el email en la base de datos

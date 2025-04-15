@@ -179,6 +179,18 @@ export default function VehicleDetailSection({
   const isSold = vehicle.status?.name === 'Vendido';
   const isReserved = vehicle.status?.name === 'Reservado';
 
+  const handleLike = async (vehicleId: string) => {
+    console.log('🟡 VehicleDetailSection - handleLike iniciado:', {
+      vehicleId,
+      client,
+    });
+    if (!client) {
+      setIsModalOpen(true);
+    } else {
+      (await onLike) && onLike(vehicleId);
+    }
+  };
+
   return (
     <div className='flex flex-col md:grid md:grid-cols-2 gap-8'>
       <div
@@ -485,7 +497,7 @@ export default function VehicleDetailSection({
                 startContent={
                   <Icon icon={isLiked ? 'mdi:heart' : 'mdi:heart-outline'} />
                 }
-                onPress={() => onLike && onLike(vehicle.id)}
+                onPress={() => handleLike(vehicle.id)}
               >
                 Guardar
               </Button>
@@ -516,7 +528,7 @@ export default function VehicleDetailSection({
               startContent={
                 <Icon icon={isLiked ? 'mdi:heart' : 'mdi:heart-outline'} />
               }
-              onPress={() => onLike && onLike(vehicle.id)}
+              onPress={() => handleLike(vehicle.id)}
             >
               Guardar
             </Button>

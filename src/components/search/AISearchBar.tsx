@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { updateLeadById } from '@/lib/leads';
 import useVehiclesStore from '@/store/useVehiclesStore';
 import useThemeStore from '@/store/useThemeStore';
+import useCustomerStore from '@/store/useCustomerStore';
 
 interface AISearchBarProps {
   clientId: string;
@@ -35,6 +36,7 @@ export default function AISearchBar({
 
   const { vehicles: allVehicles } = useVehiclesStore();
   const { theme } = useThemeStore();
+  const { initializeCustomer } = useCustomerStore();
 
   const filterVehiclesLocally = (params: any) => {
     return allVehicles.filter((vehicle) => {
@@ -208,55 +210,31 @@ export default function AISearchBar({
     customerData: Omit<Customer, 'id' | 'created_at'>
   ) => {
     setIsSavingCustomer(true);
+
+    if (!clientId) {
+      alert('Error al guardar los datos del cliente: clientId es requerido');
+      setIsSavingCustomer(false);
+      return;
+    }
+
     try {
-      // First check if customer exists
-      const { data: existingCustomers } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('email', customerData.email)
-        .limit(1);
+      const customer = await initializeCustomer({
+        ...customerData,
+        client_id: clientId,
+      });
 
-      let customerId;
-
-      if (existingCustomers && existingCustomers.length > 0) {
-        // Update existing customer
-        const { error: updateError } = await supabase
-          .from('customers')
-          .update({
-            first_name: customerData.first_name,
-            last_name: customerData.last_name,
-            phone: customerData.phone,
-          })
-          .eq('id', existingCustomers[0].id);
-
-        if (updateError) throw updateError;
-        customerId = existingCustomers[0].id;
-      } else {
-        // Create new customer
-        const { data: newCustomer, error: createError } = await supabase
-          .from('customers')
-          .insert([{ ...customerData, created_at: new Date().toISOString() }])
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        customerId = newCustomer.id;
-      }
-
-      // Store email in localStorage for future searches
       localStorage.setItem('customerEmail', customerData.email);
 
-      // Update the lead with the customer id
       if (searchParams && generatedLead) {
         await updateLeadById(generatedLead.id, {
-          customer_id: customerId,
+          customer_id: customer.id,
         });
       }
 
       setShowCustomerModal(false);
       setShowThankYouMessage(true);
     } catch (error) {
-      console.error('Error saving customer:', error);
+      console.error('Error al guardar cliente:', error);
       alert('Error al guardar los datos del cliente');
     } finally {
       setIsSavingCustomer(false);
