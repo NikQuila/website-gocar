@@ -58,10 +58,11 @@ const useCustomerStore = create(
               ...existingCustomerWithSameClientId,
               ...customerData,
             };
-            set({ customer: updatedCustomer });
+            set({ customer: updatedCustomer, isModalOpen: false });
             return updatedCustomer;
           } else {
             // Crear nuevo cliente (email diferente o mismo email pero diferente client_id)
+
             const { data: newCustomer, error: insertError } = await supabase
               .from('customers')
               .insert([customerData])
@@ -70,7 +71,7 @@ const useCustomerStore = create(
 
             if (insertError) throw insertError;
 
-            set({ customer: newCustomer });
+            set({ customer: newCustomer, isModalOpen: false });
             return newCustomer;
           }
         } catch (error) {
@@ -89,7 +90,7 @@ const useCustomerStore = create(
           return;
         }
 
-        set({ likes: newLikes });
+        set({ likes: newLikes, isModalOpen: false });
 
         // Sincronizar con Supabase
         if (newLikes.includes(vehicleId)) {

@@ -184,12 +184,8 @@ export default function VehicleDetailSection({
       client,
     });
     if (!client) {
-      console.log('🟡 VehicleDetailSection - No hay client, abriendo modal');
       setIsModalOpen(true);
     } else {
-      console.log(
-        '🟡 VehicleDetailSection - Client existe, ejecutando toggleLike'
-      );
       (await onLike) && onLike(vehicleId);
     }
   };
