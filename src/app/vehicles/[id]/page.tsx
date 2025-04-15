@@ -87,7 +87,10 @@ export default function VehicleDetailsPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={async (customerData) => {
-          await initializeCustomer(customerData);
+          await initializeCustomer({
+            ...customerData,
+            client_id: client?.id || '',
+          });
           if (vehicle) {
             await toggleLike(vehicle.id);
           }

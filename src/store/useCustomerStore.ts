@@ -28,52 +28,52 @@ const useCustomerStore = create(
         }
 
         try {
-          // Buscar si existe un customer con ese email
-          const { data: existingCustomerData, error: searchError } =
+          // Primero, buscar todos los clientes con ese email
+          const { data: existingCustomersWithEmail, error: searchError } =
             await supabase
               .from('customers')
               .select('*')
-              .eq('email', customerData?.email)
-              .single();
+              .eq('email', customerData.email);
 
-          if (searchError && searchError.code !== 'PGRST116') {
-            throw searchError;
-          }
+          // Buscar si existe un cliente con el mismo email Y client_id
+          const existingCustomerWithSameClientId =
+            existingCustomersWithEmail?.find(
+              (c) => c.client_id === customerData.client_id
+            );
 
-          if (existingCustomerData) {
-            // Si existe, actualizar el estado local con los datos de Supabase
+          if (existingCustomerWithSameClientId) {
+            // Actualizar cliente existente
+            const { error: updateError } = await supabase
+              .from('customers')
+              .update({
+                first_name: customerData.first_name,
+                last_name: customerData.last_name,
+                phone: customerData.phone,
+              })
+              .eq('id', existingCustomerWithSameClientId.id);
+
+            if (updateError) throw updateError;
+
             const updatedCustomer = {
-              ...existingCustomerData,
+              ...existingCustomerWithSameClientId,
               ...customerData,
             };
-
             set({ customer: updatedCustomer });
-
-            // Actualizar en Supabase si hay nuevos datos
-            if (customerData) {
-              await supabase
-                .from('customers')
-                .update(customerData)
-                .eq('id', existingCustomerData.id);
-            }
-
             return updatedCustomer;
+          } else {
+            // Crear nuevo cliente (email diferente o mismo email pero diferente client_id)
+            const { data: newCustomer, error: insertError } = await supabase
+              .from('customers')
+              .insert([customerData])
+              .select()
+              .single();
+
+            if (insertError) throw insertError;
+
+            set({ customer: newCustomer });
+            return newCustomer;
           }
-
-          // Si no existe, crear nuevo customer en Supabase
-          const { data: newCustomerData, error: insertError } = await supabase
-            .from('customers')
-            .insert([customerData])
-            .select()
-            .single();
-
-          if (insertError) throw insertError;
-
-          // Actualizar el estado local con los datos de Supabase
-          set({ customer: newCustomerData });
-          return newCustomerData;
         } catch (error) {
-          console.error('Error en initializeCustomer:', error);
           throw error;
         }
       },

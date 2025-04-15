@@ -135,6 +135,7 @@ export interface Customer {
   phone: string;
   first_name: string;
   last_name: string;
+  client_id: string;
 }
 
 export interface VehicleLike {
