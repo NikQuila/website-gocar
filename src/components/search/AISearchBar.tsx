@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { updateLeadById } from '@/lib/leads';
 import useVehiclesStore from '@/store/useVehiclesStore';
 import useThemeStore from '@/store/useThemeStore';
+import useCustomerStore from '@/store/useCustomerStore';
 
 interface AISearchBarProps {
   clientId: string;
@@ -35,6 +36,7 @@ export default function AISearchBar({
 
   const { vehicles: allVehicles } = useVehiclesStore();
   const { theme } = useThemeStore();
+  const { initializeCustomer } = useCustomerStore();
 
   const filterVehiclesLocally = (params: any) => {
     return allVehicles.filter((vehicle) => {
@@ -216,74 +218,23 @@ export default function AISearchBar({
     }
 
     try {
-      // Primero verificamos todos los registros con este email
-      const { data: allCustomersWithEmail } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('email', customerData.email);
-
-      // Buscar si existe un customer con ese email y client_id específico
-      const { data: existingCustomers, error: searchError } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('email', customerData.email)
-        .eq('client_id', clientId)
-        .limit(1);
-
-      let customerId;
-
-      if (existingCustomers && existingCustomers.length > 0) {
-        const { error: updateError } = await supabase
-          .from('customers')
-          .update({
-            first_name: customerData.first_name,
-            last_name: customerData.last_name,
-            phone: customerData.phone,
-          })
-          .eq('id', existingCustomers[0].id);
-
-        if (updateError) throw updateError;
-        customerId = existingCustomers[0].id;
-      } else {
-        // Crear el objeto de cliente explícitamente
-        const newCustomerData = {
-          first_name: customerData.first_name,
-          last_name: customerData.last_name,
-          email: customerData.email,
-          phone: customerData.phone,
-          client_id: clientId,
-          created_at: new Date().toISOString(),
-        };
-
-        const { data: newCustomer, error: createError } = await supabase
-          .from('customers')
-          .insert([newCustomerData])
-          .select()
-          .single();
-
-        if (createError) {
-          throw createError;
-        }
-        customerId = newCustomer.id;
-
-        // Verificar nuevamente todos los registros después de la creación
-        const { data: updatedCustomersWithEmail } = await supabase
-          .from('customers')
-          .select('*')
-          .eq('email', customerData.email);
-      }
+      const customer = await initializeCustomer({
+        ...customerData,
+        client_id: clientId,
+      });
 
       localStorage.setItem('customerEmail', customerData.email);
 
       if (searchParams && generatedLead) {
         await updateLeadById(generatedLead.id, {
-          customer_id: customerId,
+          customer_id: customer.id,
         });
       }
 
       setShowCustomerModal(false);
       setShowThankYouMessage(true);
     } catch (error) {
+      console.error('Error al guardar cliente:', error);
       alert('Error al guardar los datos del cliente');
     } finally {
       setIsSavingCustomer(false);
