@@ -21,107 +21,65 @@ import {
 } from '@heroui/react';
 
 import { Icon } from '@iconify/react';
-
 import NewVehicleFilters from './new-vehicle-filters';
-
 import useVehiclesStore from '@/store/useVehiclesStore';
-
 import { Vehicle, VehicleFilters as VehicleFiltersType } from '@/utils/types';
-
 import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
-
 import VehicleHorizontalCard from '@/components/vehicles/VehicleHorizontalCard';
-
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
-
 import useMediaQuery from '@/hooks/useMediaQuery';
-
 import useThemeStore from '@/store/useThemeStore';
-
 import Link from 'next/link';
-
 import useClientStore from '@/store/useClientStore';
-
 import { formatWhatsAppNumber } from '@/utils/contact-utils';
 
 const vehicleCategories = [
   {
     id: 'all',
-
     name: 'Todos los Vehículos',
-
     icon: 'mdi:car-multiple',
-
     description: 'Explora todos nuestros vehículos disponibles',
   },
-
   {
     id: 'SUV',
-
     name: 'SUVs',
-
     icon: 'mdi:car-suv',
-
     description: 'Vehículos espaciosos y versátiles',
   },
-
   {
     id: 'Sedan',
-
     name: 'Sedanes',
-
     icon: 'mdi:car',
-
     description: 'Autos familiares cómodos',
   },
-
   {
     id: 'Hatchback',
-
     name: 'Hatchbacks',
-
     icon: 'mdi:car-hatchback',
-
     description: 'Compactos y eficientes',
   },
-
   {
     id: 'Pickup',
-
     name: 'Pickups',
-
     icon: 'mdi:truck-pickup',
-
     description: 'Vehículos de carga y trabajo',
   },
-
   {
     id: 'Van',
-
     name: 'Vans',
-
     icon: 'mdi:van-passenger',
-
     description: 'Vehículos espaciosos para pasajeros',
   },
-
   {
     id: 'Coupe',
-
     name: 'Coupés',
-
     icon: 'mdi:car-sports',
-
     description: 'Elegantes y deportivos',
   },
-
   {
     id: 'Wagon',
-
     name: 'Wagons',
-
     icon: 'mdi:car-estate',
-
     description: 'Vehículos familiares versátiles',
   },
 ];
@@ -129,62 +87,38 @@ const vehicleCategories = [
 const sortOptions = [
   {
     key: 'price_asc',
-
     label: 'Precio: Menor a Mayor',
-
     icon: 'mdi:sort-ascending',
   },
-
   {
     key: 'price_desc',
-
     label: 'Precio: Mayor a Menor',
-
     icon: 'mdi:sort-descending',
   },
-
   { key: 'year_desc', label: 'Año: Más Reciente', icon: 'mdi:calendar' },
-
   { key: 'year_asc', label: 'Año: Más Antiguo', icon: 'mdi:calendar-outline' },
-
   {
     key: 'mileage_asc',
-
     label: 'Kilometraje: Menor a Mayor',
-
     icon: 'mdi:speedometer-slow',
   },
 ];
 
 const NewVehiclesSection = () => {
   const { theme } = useThemeStore();
-
   const { vehicles, isLoading } = useVehiclesStore();
-
   const { client } = useClientStore();
-
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
   const [showFilters, setShowFilters] = useState(true);
-
   const [filters, setFilters] = useState<VehicleFiltersType>({});
-
   const [priceRange, setPriceRange] = useState([0, 1000000000]);
-
   const [sortBy, setSortBy] = useState('price_asc');
-
   const [activeView, setActiveView] = useState<'grid' | 'list'>('grid');
-
   const { isOpen, onOpen, onClose } = useDisclosure();
-
   const isMd = useMediaQuery('(min-width: 768px)');
-
   const isMobile = useMediaQuery('(max-width: 639px)'); // xs
-
   const isTablet = useMediaQuery('(min-width: 640px) and (max-width: 1023px)'); // sm-md
-
   const isDesktop = useMediaQuery('(min-width: 1024px)'); // lg+
-
   // Extract unique values for filters
 
   const brands = [...new Set(vehicles.map((v) => v.brand))];
@@ -333,7 +267,7 @@ const NewVehiclesSection = () => {
   return (
     <div className='min-h-screen bg-gray-50 dark:bg-dark-bg'>
       {/* Botón de WhatsApp (posición fija con z-index extremadamente alto) - Solo visible en pantallas mayores a sm */}
-      <div className='fixed bottom-6 right-6 z-[99999] hidden sm:block'>
+      <div className='fixed bottom-6 right-8 xl:right-12 2xl:right-96 z-[99999] hidden sm:block'>
         <Link href={whatsappUrl} target='_blank' rel='noopener noreferrer'>
           <Button
             isIconOnly
@@ -353,15 +287,17 @@ const NewVehiclesSection = () => {
             : 'opacity-0 translate-y-10 pointer-events-none'
         }`}
       >
-        <Link href={whatsappUrl} target='_blank' rel='noopener noreferrer'>
-          <Button
-            isIconOnly
-            className='bg-[#25D366] text-white rounded-full hover:bg-[#22c35e] hover:shadow-lg transition-all duration-200 shadow-md w-12 h-12'
-            aria-label='WhatsApp'
-          >
-            <Icon icon='logos:whatsapp-icon' className='text-xl' />
-          </Button>
-        </Link>
+        <Button
+          isIconOnly
+          className='bg-[#25D366] text-white rounded-full hover:bg-[#22c35e] hover:shadow-lg transition-all duration-200 shadow-md w-12 h-12'
+          aria-label='WhatsApp'
+          as='a'
+          href={whatsappUrl}
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          <Icon icon='logos:whatsapp-icon' className='text-xl' />
+        </Button>
       </div>
 
       {/* Fixed Categories Navigation */}
@@ -498,7 +434,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   variant='flat'
                   color='primary'
                   onClose={clearFilters}
-                  className='w-full sm:w-auto justify-center ml-auto sm:ml-0'
+                  className='w-full sm:w-auto justify-center ml-auto sm:ml-0 md:mr-16 lg:mr-24 xl:mr-64 2xl:mr-96'
                 >
                   {activeFiltersCount}{' '}
                   {activeFiltersCount === 1 ? 'filtro' : 'filtros'} activos

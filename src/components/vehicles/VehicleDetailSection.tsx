@@ -177,6 +177,7 @@ export default function VehicleDetailSection({
   };
 
   const isSold = vehicle.status?.name === 'Vendido';
+  const isReserved = vehicle.status?.name === 'Reservado';
 
   const handleLike = async (vehicleId: string) => {
     console.log('🟡 VehicleDetailSection - handleLike iniciado:', {
@@ -206,6 +207,13 @@ export default function VehicleDetailSection({
                 </div>
               </div>
             )}
+            {isReserved && (
+              <div className='absolute top-0 right-0 h-[200px] w-[200px] overflow-hidden z-50 rotate-0'>
+                <div className='absolute top-[30px] right-[-50px] bg-yellow-500 text-white font-bold py-2 w-[250px] text-center transform rotate-45'>
+                  RESERVADO
+                </div>
+              </div>
+            )}
             <CardBody className='p-0 w-full'>
               <div
                 className={`${
@@ -217,7 +225,7 @@ export default function VehicleDetailSection({
                 <Image
                   alt={`${vehicle?.brand?.name} ${vehicle?.model?.name}`}
                   className={`w-full h-full object-cover cursor-pointer ${
-                    isSold ? 'opacity-75' : ''
+                    isSold || isReserved ? 'opacity-75' : ''
                   }`}
                   style={mainImageStyle}
                   src={vehicle.main_image}

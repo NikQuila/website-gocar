@@ -5,40 +5,33 @@
  */
 export const formatWhatsAppNumber = (contact: any) => {
   try {
-    if (!contact) return '56996366455';
+    let phoneNumber = '';
 
+    // Extraer el número de teléfono según el tipo de datos
     if (typeof contact === 'string') {
       try {
+        // Intentar parsear como JSON
         const contactData = JSON.parse(contact);
-        if (contactData.phone) {
-          const cleanPhone = contactData.phone
-            .replace(/\s+/g, '')
-            .replace(/[()-]/g, '');
-          if (cleanPhone.startsWith('+')) {
-            return cleanPhone.substring(1); // WhatsApp no necesita el +
-          } else if (cleanPhone.startsWith('9')) {
-            return `56${cleanPhone}`;
-          } else {
-            return `56${cleanPhone}`;
-          }
-        }
+        phoneNumber = contactData.phone || contact;
       } catch (e) {
-        return `56${contact.replace(/\s+/g, '')}`;
+        // Si no es JSON válido, usar el string directamente
+        phoneNumber = contact;
       }
     } else if (typeof contact === 'object' && contact.phone) {
-      const cleanPhone = contact.phone
-        .replace(/\s+/g, '')
-        .replace(/[()-]/g, '');
-      if (cleanPhone.startsWith('+')) {
-        return cleanPhone.substring(1);
-      } else {
-        return `56${cleanPhone}`;
-      }
+      phoneNumber = contact.phone;
     }
 
-    return '56996366455';
+    const cleanPhone = phoneNumber.replace(/\s+/g, '').replace(/[()-]/g, '');
+
+    // Dar formato adecuado para WhatsApp
+    if (cleanPhone.startsWith('+')) {
+      return cleanPhone.substring(1); // WhatsApp no necesita el +
+    } else if (cleanPhone.startsWith('56')) {
+      return cleanPhone;
+    } else {
+      return `56${cleanPhone}`;
+    }
   } catch (error) {
     console.error('Error al formatear número de WhatsApp:', error);
-    return '56996366455';
   }
 };

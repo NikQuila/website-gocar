@@ -188,7 +188,8 @@ ${formData.message}
             <Button
               type='submit'
               color='primary'
-              className='w-full py-3 font-medium'
+              fullWidth
+              className='font-semibold bg-primary text-secondary hover:bg-primary/90 dark:bg-primary dark:text-secondary dark:hover:bg-primary/90'
               isLoading={loading}
             >
               Enviar Mensaje

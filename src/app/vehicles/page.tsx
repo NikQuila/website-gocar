@@ -69,6 +69,11 @@ const VehiclesPage = () => {
       if (a.status?.name !== 'Vendido' && b.status?.name === 'Vendido')
         return -1;
 
+      if (a.status?.name === 'Reservado' && b.status?.name !== 'Reservado')
+        return 1;
+      if (a.status?.name !== 'Reservado' && b.status?.name === 'Reservado')
+        return -1;
+
       return 0;
     });
   };

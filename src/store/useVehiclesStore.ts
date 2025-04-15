@@ -60,7 +60,8 @@ const useVehiclesStore = create<VehiclesStore>((set) => ({
         data?.filter(
           (vehicle) =>
             vehicle.status?.name === 'Publicado' ||
-            vehicle.status?.name === 'Vendido'
+            vehicle.status?.name === 'Vendido' ||
+            vehicle.status?.name === 'Reservado'
         ) || [];
 
       console.log('Vehículos filtrados:', filteredVehicles.length);

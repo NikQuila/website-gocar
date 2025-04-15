@@ -40,6 +40,7 @@ const VehicleHorizontalCard = ({ vehicle }: VehicleHorizontalCardProps) => {
   }).format(savingsAmount);
 
   const isSold = vehicle.status?.name === 'Vendido';
+  const isReserved = vehicle.status?.name === 'Reservado';
 
   const handleViewDetails = () => {
     router.push(`/vehicles/${vehicle.id}`);
@@ -47,10 +48,10 @@ const VehicleHorizontalCard = ({ vehicle }: VehicleHorizontalCardProps) => {
 
   return (
     <Card
-      isPressable={!isSold}
+      isPressable={!isSold && !isReserved}
       onPress={handleViewDetails}
       className={`overflow-hidden flex flex-row bg-white dark:bg-dark-card ${
-        isSold ? 'opacity-75' : ''
+        isSold || isReserved ? 'opacity-75' : ''
       }`}
     >
       <div className='w-[300px] flex-shrink-0'>
@@ -62,12 +63,20 @@ const VehicleHorizontalCard = ({ vehicle }: VehicleHorizontalCardProps) => {
               </div>
             </div>
           )}
+          {isReserved && (
+            <div className='absolute top-0 right-0 h-[200px] w-[200px] overflow-hidden z-50 rotate-0'>
+              <div className='absolute top-[30px] right-[-50px] bg-yellow-500 text-white font-bold py-2 w-[250px] text-center transform rotate-45'>
+                RESERVADO
+              </div>
+            </div>
+          )}
           <Image
             alt={`${vehicle.brand?.name} ${vehicle.model?.name}`}
             className='object-cover h-full w-full'
             src={vehicle.main_image}
           />
           {!isSold &&
+            !isReserved &&
             vehicle.discount_percentage !== undefined &&
             vehicle.discount_percentage > 0 && (
               <div className='absolute bottom-2 right-2 z-10'>
