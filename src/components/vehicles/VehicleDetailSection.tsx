@@ -19,6 +19,7 @@ import {
   contactByWhatsApp,
 } from '@/utils/functions';
 import useThemeStore from '@/store/useThemeStore';
+import useCustomerStore from '@/store/useCustomerStore';
 
 interface VehicleDetailSectionProps {
   vehicle: Vehicle | null;
@@ -69,6 +70,7 @@ export default function VehicleDetailSection({
   );
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { theme } = useThemeStore();
+  const { setIsModalOpen } = useCustomerStore();
 
   useEffect(() => {
     if (!vehicle?.main_image) return;
@@ -180,14 +182,10 @@ export default function VehicleDetailSection({
   const isReserved = vehicle.status?.name === 'Reservado';
 
   const handleLike = async (vehicleId: string) => {
-    console.log('🟡 VehicleDetailSection - handleLike iniciado:', {
-      vehicleId,
-      client,
-    });
     if (!client) {
       setIsModalOpen(true);
     } else {
-      (await onLike) && onLike(vehicleId);
+      onLike && onLike(vehicleId);
     }
   };
 
