@@ -210,17 +210,10 @@ export default function AISearchBar({
     setIsSavingCustomer(true);
 
     if (!clientId) {
-      console.error('❌ Error: clientId es requerido');
       alert('Error al guardar los datos del cliente: clientId es requerido');
       setIsSavingCustomer(false);
       return;
     }
-
-    console.log('🔵 Iniciando guardado de cliente:', {
-      ...customerData,
-      clientId,
-      mensaje: 'Cliente a guardar',
-    });
 
     try {
       // Primero verificamos todos los registros con este email
@@ -229,16 +222,6 @@ export default function AISearchBar({
         .select('*')
         .eq('email', customerData.email);
 
-      console.log('🔍 Clientes existentes con este email:', {
-        cantidad: allCustomersWithEmail?.length || 0,
-        clientes: allCustomersWithEmail?.map((c) => ({
-          id: c.id,
-          email: c.email,
-          client_id: c.client_id,
-          nombre: `${c.first_name} ${c.last_name}`,
-        })),
-      });
-
       // Buscar si existe un customer con ese email y client_id específico
       const { data: existingCustomers, error: searchError } = await supabase
         .from('customers')
@@ -246,13 +229,6 @@ export default function AISearchBar({
         .eq('email', customerData.email)
         .eq('client_id', clientId)
         .limit(1);
-
-      console.log('🎯 Búsqueda específica de cliente:', {
-        encontrado: existingCustomers && existingCustomers.length > 0,
-        email: customerData.email,
-        clientId,
-        cliente: existingCustomers?.[0],
-      });
 
       let customerId;
 
@@ -274,9 +250,7 @@ export default function AISearchBar({
 
         if (updateError) throw updateError;
         customerId = existingCustomers[0].id;
-        console.log('✅ Cliente actualizado exitosamente');
       } else {
-        console.log('🆕 Creando nuevo cliente para client_id:', clientId);
         // Crear el objeto de cliente explícitamente
         const newCustomerData = {
           first_name: customerData.first_name,
@@ -296,31 +270,15 @@ export default function AISearchBar({
           .single();
 
         if (createError) {
-          console.error('❌ Error al crear nuevo cliente:', createError);
           throw createError;
         }
         customerId = newCustomer.id;
-        console.log('✅ Nuevo cliente creado:', {
-          id: newCustomer.id,
-          client_id: newCustomer.client_id,
-          email: newCustomer.email,
-        });
 
         // Verificar nuevamente todos los registros después de la creación
         const { data: updatedCustomersWithEmail } = await supabase
           .from('customers')
           .select('*')
           .eq('email', customerData.email);
-
-        console.log('📊 Estado actual de registros con este email:', {
-          cantidad: updatedCustomersWithEmail?.length || 0,
-          clientes: updatedCustomersWithEmail?.map((c) => ({
-            id: c.id,
-            email: c.email,
-            client_id: c.client_id,
-            nombre: `${c.first_name} ${c.last_name}`,
-          })),
-        });
       }
 
       localStorage.setItem('customerEmail', customerData.email);
@@ -339,7 +297,6 @@ export default function AISearchBar({
       setShowCustomerModal(false);
       setShowThankYouMessage(true);
     } catch (error) {
-      console.error('❌ Error detallado al guardar cliente:', error);
       alert('Error al guardar los datos del cliente');
     } finally {
       setIsSavingCustomer(false);
