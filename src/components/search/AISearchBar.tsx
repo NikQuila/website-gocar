@@ -233,12 +233,6 @@ export default function AISearchBar({
       let customerId;
 
       if (existingCustomers && existingCustomers.length > 0) {
-        console.log('📝 Actualizando cliente existente:', {
-          id: existingCustomers[0].id,
-          client_id: existingCustomers[0].client_id,
-          email: existingCustomers[0].email,
-        });
-
         const { error: updateError } = await supabase
           .from('customers')
           .update({
@@ -261,8 +255,6 @@ export default function AISearchBar({
           created_at: new Date().toISOString(),
         };
 
-        console.log('📦 Datos a insertar:', newCustomerData);
-
         const { data: newCustomer, error: createError } = await supabase
           .from('customers')
           .insert([newCustomerData])
@@ -284,11 +276,6 @@ export default function AISearchBar({
       localStorage.setItem('customerEmail', customerData.email);
 
       if (searchParams && generatedLead) {
-        console.log('📝 Actualizando lead:', {
-          leadId: generatedLead.id,
-          customerId,
-          clientId,
-        });
         await updateLeadById(generatedLead.id, {
           customer_id: customerId,
         });
