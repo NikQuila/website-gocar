@@ -46,7 +46,7 @@ const NewVehicleFilters = ({
   };
 
   return (
-    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm'>
+    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-64'>
       <div className='p-4 border-b border-gray-200 dark:border-dark-border'>
         <div className='flex flex-col sm:flex-row justify-between gap-2'>
           <h3 className='text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2'>
@@ -81,21 +81,24 @@ const NewVehicleFilters = ({
           key='price'
           aria-label='Rango de Precio'
           startContent={
-            <Icon icon='mdi:cash' className='text-xl text-primary' />
+            <Icon icon='mdi:cash' className='text-xl text-primary mr-1' />
           }
           title='Rango de Precio'
           classNames={{
-            base: 'group-[.is-splitted]:ps-0 py-0',
+            base: 'group-[.is-splitted]:ps-0 py-0 w-full',
             heading:
-              'px-2 sm:px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
-            trigger: 'px-0',
-            content: 'px-2 sm:px-4 py-3',
+              'px-1 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+            trigger: 'px-0 flex items-center w-full',
+            content: 'px-2 py-2',
+            title: 'flex-1',
+            indicator: 'ml-0',
           }}
         >
-          <div className='space-y-6'>
-            <div className='flex flex-col sm:flex-row justify-between items-center gap-4'>
+          <div className='space-y-4'>
+            <div className='flex justify-between items-center gap-2'>
               <Input
                 type='text'
+                size='sm'
                 placeholder='Mínimo'
                 value={priceRange[0].toString()}
                 onChange={(e) => {
@@ -103,13 +106,20 @@ const NewVehicleFilters = ({
                   onPriceRangeChange([Number(value), priceRange[1]]);
                 }}
                 startContent={
-                  <span className='text-gray-500 dark:text-gray-400'>$</span>
+                  <span className='text-gray-500 dark:text-gray-400 text-xs'>
+                    $
+                  </span>
                 }
-                className='w-full'
+                className='w-full text-xs'
+                classNames={{
+                  input: 'text-xs',
+                  inputWrapper: 'h-8',
+                }}
               />
-              <span className='hidden sm:block text-gray-400'>-</span>
+              <span className='text-gray-400 text-xs'>-</span>
               <Input
                 type='text'
+                size='sm'
                 placeholder='Máximo'
                 value={priceRange[1].toString()}
                 onChange={(e) => {
@@ -117,12 +127,18 @@ const NewVehicleFilters = ({
                   onPriceRangeChange([priceRange[0], Number(value)]);
                 }}
                 startContent={
-                  <span className='text-gray-500 dark:text-gray-400'>$</span>
+                  <span className='text-gray-500 dark:text-gray-400 text-xs'>
+                    $
+                  </span>
                 }
-                className='w-full'
+                className='w-full text-xs'
+                classNames={{
+                  input: 'text-xs',
+                  inputWrapper: 'h-8',
+                }}
               />
             </div>
-            <div className='px-2'>
+            <div className='px-1'>
               <Slider
                 value={priceRange}
                 onChange={(value) => onPriceRangeChange(value as number[])}
@@ -130,16 +146,17 @@ const NewVehicleFilters = ({
                 maxValue={1000000000}
                 step={1000000}
                 className='max-w-full'
+                size='sm'
                 classNames={{
                   base: 'dark:bg-dark-card',
                   track: 'dark:bg-dark-border',
                   filler: 'dark:bg-primary',
-                  thumb: 'dark:bg-primary dark:border-dark-border',
+                  thumb: 'dark:bg-primary dark:border-dark-border h-3 w-3',
                   label: 'dark:text-white',
                 }}
                 aria-label='Rango de precio'
               />
-              <div className='flex justify-between mt-2 text-xs text-gray-500'>
+              <div className='flex justify-between mt-1 text-[10px] text-gray-500'>
                 <span>{formatPrice(priceRange[0])}</span>
                 <span>{formatPrice(priceRange[1])}</span>
               </div>
@@ -157,9 +174,9 @@ const NewVehicleFilters = ({
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
-              'px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
             trigger: 'px-0',
-            content: 'px-4 py-3',
+            content: 'px-2 py-2',
           }}
         >
           <Select
@@ -196,9 +213,9 @@ const NewVehicleFilters = ({
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
-              'px-2 sm:px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
             trigger: 'px-0',
-            content: 'px-2 sm:px-4 py-3',
+            content: 'px-2 py-2',
           }}
         >
           <div className='grid grid-cols-2 sm:flex sm:flex-wrap gap-2'>
@@ -234,9 +251,9 @@ const NewVehicleFilters = ({
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
-              'px-2 sm:px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
             trigger: 'px-0',
-            content: 'px-2 sm:px-4 py-3',
+            content: 'px-2 py-2',
           }}
         >
           <div className='grid grid-cols-2 sm:flex sm:flex-wrap gap-2'>
@@ -270,9 +287,9 @@ const NewVehicleFilters = ({
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
-              'px-2 sm:px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
             trigger: 'px-0',
-            content: 'px-2 sm:px-4 py-3',
+            content: 'px-2 py-2',
           }}
         >
           <div className='grid grid-cols-2 sm:flex sm:flex-wrap gap-2'>
@@ -310,9 +327,9 @@ const NewVehicleFilters = ({
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
-              'px-2 sm:px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
             trigger: 'px-0',
-            content: 'px-2 sm:px-4 py-3',
+            content: 'px-2 py-2',
           }}
         >
           <div className='grid  grid-cols-1 md:grid-cols-2 gap-2'>

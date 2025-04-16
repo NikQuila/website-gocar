@@ -50,7 +50,7 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
     <Card
       isPressable={!isSold && !isReserved}
       onPress={handleViewDetails}
-      className={`overflow-hidden bg-white dark:bg-dark-card ${
+      className={`overflow-hidden bg-white dark:bg-dark-card  ${
         isSold || isReserved ? 'opacity-75' : ''
       }`}
     >
@@ -113,16 +113,17 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
             </div>
 
             <div className='flex flex-wrap gap-2'>
-              {vehicle.features.slice(0, 3).map((feature, index) => (
-                <Chip
-                  key={index}
-                  size='sm'
-                  variant='flat'
-                  className='bg-gray-100 dark:bg-dark-border dark:text-dark-text'
-                >
-                  {feature}
-                </Chip>
-              ))}
+              {vehicle.features &&
+                vehicle.features.slice(0, 3).map((feature, index) => (
+                  <Chip
+                    key={index}
+                    size='sm'
+                    variant='flat'
+                    className='bg-gray-100 dark:bg-dark-border dark:text-dark-text'
+                  >
+                    {feature}
+                  </Chip>
+                ))}
             </div>
           </div>
         </CardBody>
