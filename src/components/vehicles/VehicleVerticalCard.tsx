@@ -55,7 +55,7 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
       }`}
     >
       <div className='w-full'>
-        <div className='relative w-full aspect-[16/10]'>
+        <div className='relative w-full aspect-[16/9]'>
           {isSold && (
             <div className='absolute top-0 right-0 h-[200px] w-[200px] overflow-hidden z-50 rotate-0'>
               <div className='absolute top-[30px] right-[-50px] bg-sold text-white font-bold py-2 w-[250px] text-center transform rotate-45'>
@@ -72,7 +72,7 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
           )}
           <Image
             alt={`${vehicle.brand?.name} ${vehicle.model?.name}`}
-            className='object-cover w-full h-full'
+            className='object-cover w-full h-full object-top'
             src={vehicle.main_image}
           />
           {!isSold &&
