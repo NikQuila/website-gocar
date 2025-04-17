@@ -386,7 +386,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
       {/* Main Content */}
 
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'>
-        <div className='flex flex-col md:flex-row gap-6'>
+        <div className='flex flex-col md:flex-row gap-10'>
           {/* Espacio reservado para el filtro en desktop */}
           <div
             ref={filterSpacerRef}
@@ -396,16 +396,14 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
           </div>
 
           {/* Filtro fijo (siempre en la misma posición) */}
-          {isMd && (
+          {isMd && showFixedFilter && (
             <div
-              className='fixed z-[20] w-64 max-h-[85vh] overflow-y-auto bg-white dark:bg-dark-bg p-3 rounded-lg shadow-md'
+              className='fixed z-[20] w-72 max-h-[85vh] overflow-y-auto bg-white dark:bg-dark-bg p-4 rounded-xl'
               style={{
                 top: `${FILTER_TOP_POSITION}px`,
                 left: 'max(1rem, calc((100% - 1280px)/2 + 1rem))',
-                opacity: showFixedFilter ? 1 : 0,
-                visibility: showFixedFilter ? 'visible' : 'hidden',
-                transition: 'opacity 0.3s ease',
-                pointerEvents: showFixedFilter ? 'auto' : 'none',
+                boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)', // Sombra más suave y difusa para efecto nube
+                border: '1px solid rgba(0,0,0,0.05)',
               }}
             >
               <NewVehicleFilters
