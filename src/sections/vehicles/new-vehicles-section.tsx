@@ -124,11 +124,20 @@ const NewVehiclesSection = () => {
   const brands = [...new Set(vehicles.map((v) => v.brand))];
 
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
-    setFilters((prev) => ({
-      ...prev,
+    setFilters((prev) => {
+      // Si el valor es undefined, eliminamos la propiedad del objeto
+      if (value === undefined) {
+        const newFilters = { ...prev };
+        delete newFilters[key];
+        return newFilters;
+      }
 
-      [key]: value,
-    }));
+      // Si no, actualizamos normalmente
+      return {
+        ...prev,
+        [key]: value,
+      };
+    });
   };
 
   const clearFilters = () => {

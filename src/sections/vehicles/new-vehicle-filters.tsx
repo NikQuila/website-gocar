@@ -32,10 +32,27 @@ const NewVehicleFilters = ({
   onClearFilters,
 }: NewVehicleFiltersProps) => {
   const { colors, categories, fuelTypes, conditions } = useGeneralStore();
+  // Estado para controlar qué acordeón está abierto (solo uno a la vez o ninguno)
+  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
   const activeFiltersCount =
     Object.keys(filters).length +
     (priceRange[0] > 0 || priceRange[1] < 1000000000 ? 1 : 0);
+
+  // Función para manejar la apertura/cierre de acordeones
+  const handleAccordionSelection = (key: string) => {
+    setOpenAccordion(openAccordion === key ? null : key);
+  };
+
+  // Función para eliminar un filtro individual
+  const handleRemoveFilter = (key: keyof VehicleFiltersType) => {
+    onFilterChange(key, undefined);
+  };
+
+  // Función para resetear el rango de precios
+  const handleResetPriceRange = () => {
+    onPriceRangeChange([0, 1000000000]);
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', {
@@ -45,8 +62,29 @@ const NewVehicleFilters = ({
     }).format(price);
   };
 
+  const getFilterName = (key: keyof VehicleFiltersType, id: string) => {
+    switch (key) {
+      case 'brand':
+        return brands.find((b) => b.id.toString() === id)?.name || 'Marca';
+      case 'category':
+        return categories.find((c) => c.id.toString() === id)?.name || 'Tipo';
+      case 'fuel_type':
+        return (
+          fuelTypes.find((f) => f.id.toString() === id)?.name || 'Combustible'
+        );
+      case 'condition':
+        return (
+          conditions.find((c) => c.id.toString() === id)?.name || 'Condición'
+        );
+      case 'color':
+        return colors.find((c) => c.id.toString() === id)?.name || 'Color';
+      default:
+        return 'Filtro';
+    }
+  };
+
   return (
-    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-64'>
+    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-full'>
       <div className='p-4 border-b border-gray-200 dark:border-dark-border'>
         <div className='flex flex-col sm:flex-row justify-between gap-2'>
           <h3 className='text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2'>
@@ -57,33 +95,59 @@ const NewVehicleFilters = ({
               </Chip>
             )}
           </h3>
-          <div className='flex items-center'>
-            {activeFiltersCount > 0 && (
-              <Button
-                size='sm'
-                variant='light'
-                color='danger'
-                onClick={onClearFilters}
-                startContent={
-                  <Icon icon='mdi:filter-off' className='text-lg' />
-                }
-                className='font-medium w-full sm:w-auto'
-              >
-                Limpiar
-              </Button>
-            )}
-          </div>
+          {activeFiltersCount > 0 && (
+            <Button
+              size='sm'
+              variant='light'
+              color='danger'
+              onClick={onClearFilters}
+              className='text-xs'
+              startContent={
+                <Icon icon='mdi:filter-remove' className='text-xs' />
+              }
+            >
+              Limpiar
+            </Button>
+          )}
         </div>
       </div>
 
-      <Accordion>
+      <Accordion
+        selectionMode='single'
+        selectedKeys={openAccordion ? [openAccordion] : []}
+        onSelectionChange={(keys) => {
+          const selectedKey = Array.from(keys)[0]?.toString() || null;
+          setOpenAccordion(selectedKey);
+        }}
+      >
         <AccordionItem
           key='price'
           aria-label='Rango de Precio'
           startContent={
             <Icon icon='mdi:cash' className='text-xl text-primary mr-1' />
           }
-          title='Rango de Precio'
+          title={
+            <div className='flex flex-col items-start'>
+              <div>Rango de Precio</div>
+              {(priceRange[0] > 0 || priceRange[1] < 1000000000) && (
+                <Chip
+                  size='sm'
+                  color='primary'
+                  variant='flat'
+                  className='text-xs py-0 h-5 mt-1 ml-0 pl-0'
+                  classNames={{
+                    content: 'pl-1 text-[10px]',
+                    base: 'ml-8 pl-0',
+                  }}
+                  onClose={() => handleResetPriceRange()}
+                >
+                  {`${formatPrice(priceRange[0])} - ${formatPrice(
+                    priceRange[1]
+                  )}`}
+                </Chip>
+              )}
+            </div>
+          }
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0 w-full',
             heading:
@@ -170,7 +234,22 @@ const NewVehicleFilters = ({
           startContent={
             <Icon icon='mdi:car-estate' className='text-xl text-primary' />
           }
-          title='Marca'
+          title={
+            <div className='flex items-center gap-2'>
+              Marca
+              {filters.brand && (
+                <Chip
+                  size='sm'
+                  color='primary'
+                  variant='flat'
+                  className='text-xs py-0 h-5'
+                  onClose={() => handleRemoveFilter('brand')}
+                >
+                  {getFilterName('brand', filters.brand)}
+                </Chip>
+              )}
+            </div>
+          }
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
@@ -209,7 +288,22 @@ const NewVehicleFilters = ({
           startContent={
             <Icon icon='mdi:car-side' className='text-xl text-primary' />
           }
-          title='Tipo de Vehículo'
+          title={
+            <div className='flex items-center gap-2'>
+              Tipo de Vehículo
+              {filters.category && (
+                <Chip
+                  size='sm'
+                  color='primary'
+                  variant='flat'
+                  className='text-xs py-0 h-5'
+                  onClose={() => handleRemoveFilter('category')}
+                >
+                  {getFilterName('category', filters.category)}
+                </Chip>
+              )}
+            </div>
+          }
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
@@ -247,7 +341,22 @@ const NewVehicleFilters = ({
           startContent={
             <Icon icon='mdi:gas-station' className='text-xl text-primary' />
           }
-          title='Combustible'
+          title={
+            <div className='flex items-center gap-2'>
+              Combustible
+              {filters.fuel_type && (
+                <Chip
+                  size='sm'
+                  color='primary'
+                  variant='flat'
+                  className='text-xs py-0 h-5'
+                  onClose={() => handleRemoveFilter('fuel_type')}
+                >
+                  {getFilterName('fuel_type', filters.fuel_type)}
+                </Chip>
+              )}
+            </div>
+          }
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
@@ -283,7 +392,22 @@ const NewVehicleFilters = ({
           startContent={
             <Icon icon='mdi:car-info' className='text-xl text-primary' />
           }
-          title='Condición'
+          title={
+            <div className='flex items-center gap-2'>
+              Condición
+              {filters.condition && (
+                <Chip
+                  size='sm'
+                  color='primary'
+                  variant='flat'
+                  className='text-xs py-0 h-5'
+                  onClose={() => handleRemoveFilter('condition')}
+                >
+                  {getFilterName('condition', filters.condition)}
+                </Chip>
+              )}
+            </div>
+          }
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
@@ -323,7 +447,22 @@ const NewVehicleFilters = ({
           startContent={
             <Icon icon='mdi:palette' className='text-xl text-primary' />
           }
-          title='Color'
+          title={
+            <div className='flex items-center gap-2'>
+              Color
+              {filters.color && (
+                <Chip
+                  size='sm'
+                  color='primary'
+                  variant='flat'
+                  className='text-xs py-0 h-5'
+                  onClose={() => handleRemoveFilter('color')}
+                >
+                  {getFilterName('color', filters.color)}
+                </Chip>
+              )}
+            </div>
+          }
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
@@ -332,12 +471,12 @@ const NewVehicleFilters = ({
             content: 'px-2 py-2',
           }}
         >
-          <div className='grid  grid-cols-1 md:grid-cols-2 gap-2'>
+          <div className='grid grid-cols-2 gap-2 pb-2 mb-4'>
             {colors.map((color) => (
               <button
                 key={color.id}
                 onClick={() => onFilterChange('color', color.id.toString())}
-                className={`capitalize w-full flex items-center gap-3 px-3 py-2 rounded-lg border transition-all
+                className={`capitalize w-full flex items-center gap-2 px-2 py-1 rounded-lg border transition-all
                   ${
                     filters.color === color.id.toString()
                       ? 'border-primary bg-primary/5 dark:bg-primary/10'
@@ -346,7 +485,7 @@ const NewVehicleFilters = ({
                 `}
               >
                 <div
-                  className={`w-4 h-4 rounded-full border-2
+                  className={`w-3.5 h-3.5 rounded-full border
                     ${
                       filters.color === color.id.toString()
                         ? 'border-primary'
@@ -358,7 +497,7 @@ const NewVehicleFilters = ({
                   }}
                 />
                 <span
-                  className={`text-sm
+                  className={`text-xs
                   ${
                     filters.color === color.id.toString()
                       ? 'text-primary font-medium'
@@ -381,20 +520,6 @@ const NewVehicleFilters = ({
       </Accordion>
     </div>
   );
-};
-
-// Helper function to determine text color based on background
-const getContrastColor = (hexcolor: string) => {
-  // Remove the hash if it exists
-  const hex = hexcolor.replace('#', '');
-  // Convert to RGB
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
-  // Calculate luminance
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  // Return black or white based on luminance
-  return luminance > 0.5 ? '#000000' : '#FFFFFF';
 };
 
 export default NewVehicleFilters;
