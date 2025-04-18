@@ -118,25 +118,24 @@ const NewVehicleFilters = ({
   return (
     <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-full sticky top-20 transition-opacity duration-300'>
       <div className='p-4 border-b border-gray-200 dark:border-dark-border'>
-        <div className='flex flex-col sm:flex-row justify-between gap-2'>
-          <h3 className='text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2'>
-            Filtros
-            {activeFiltersCount > 0 && (
-              <Chip size='sm' color='primary' variant='flat'>
-                {activeFiltersCount}
-              </Chip>
-            )}
-          </h3>
+        <div className='flex justify-between items-center'>
+          <div>
+            <h3 className='text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2'>
+              Filtros
+              {activeFiltersCount > 0 && (
+                <Chip size='sm' color='primary' variant='flat'>
+                  {activeFiltersCount}
+                </Chip>
+              )}
+            </h3>
+          </div>
           {activeFiltersCount > 0 && (
             <Button
               size='sm'
               variant='light'
               color='danger'
               onClick={onClearFilters}
-              className='text-xs'
-              startContent={
-                <Icon icon='mdi:filter-remove' className='text-xs' />
-              }
+              className='text-[13px] py-0 px-0 font-normal bg-transparent min-w-0'
             >
               Limpiar
             </Button>
