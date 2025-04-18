@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Button,
   Chip,
@@ -34,10 +34,42 @@ const NewVehicleFilters = ({
   const { colors, categories, fuelTypes, conditions } = useGeneralStore();
   // Estado para controlar qué acordeón está abierto (solo uno a la vez o ninguno)
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+  // Estado para controlar la visibilidad del filtro basado en el scroll
+  const [isVisible, setIsVisible] = useState(true);
 
   const activeFiltersCount =
     Object.keys(filters).length +
     (priceRange[0] > 0 || priceRange[1] < 1000000000 ? 1 : 0);
+
+  // Efecto para manejar el scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const comoLlegarElement =
+        document.querySelector(
+          'h3.text-4xl.font-semibold.text-black, h3.text-4xl.font-semibold.text-dark-text'
+        ) ||
+        Array.from(document.querySelectorAll('h3')).find((el) =>
+          el.textContent?.includes('¿Cómo llegar?')
+        );
+
+      if (comoLlegarElement) {
+        const sectionRect = comoLlegarElement.getBoundingClientRect();
+
+        setIsVisible(sectionRect.top > window.innerHeight * 1.0);
+
+        const filterParent = document.querySelector('.fixed.z-\\[20\\].w-72');
+        if (filterParent) {
+          (filterParent as HTMLElement).style.display =
+            sectionRect.top > window.innerHeight * 1.0 ? 'block' : 'none';
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    setTimeout(handleScroll, 500);
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Función para manejar la apertura/cierre de acordeones
   const handleAccordionSelection = (key: string) => {
@@ -84,7 +116,7 @@ const NewVehicleFilters = ({
   };
 
   return (
-    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-full'>
+    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-full sticky top-20 transition-opacity duration-300'>
       <div className='p-4 border-b border-gray-200 dark:border-dark-border'>
         <div className='flex flex-col sm:flex-row justify-between gap-2'>
           <h3 className='text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2'>
