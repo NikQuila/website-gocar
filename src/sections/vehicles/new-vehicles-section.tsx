@@ -433,12 +433,12 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
 
             <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky bg-gray-50 dark:bg-dark-bg py-2 px-4 -mx-4 sm:px-0 sm:mx-0 rounded-lg relative z-10'>
               {/* Botón para abrir filtros en móvil */}
-              <div className='md:hidden'>
+              <div className='md:hidden w-full'>
                 <Button
                   variant='light'
                   onPress={onOpen}
                   startContent={<Icon icon='mdi:filter' className='text-xl' />}
-                  className='bg-white dark:bg-dark-card shadow-sm'
+                  className='bg-white dark:bg-dark-card shadow-sm w-full'
                 >
                   Filtros {activeFiltersCount > 0 && `(${activeFiltersCount})`}
                 </Button>
@@ -557,10 +557,10 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
       <Drawer
         isOpen={isOpen}
         onClose={onClose}
-        placement='left'
+        placement='bottom'
         className='bg-white dark:bg-dark-card'
         classNames={{
-          base: 'sm:max-w-[90%] md:max-w-[400px] ',
+          base: 'h-[90vh] rounded-t-xl',
           header: 'border-b border-gray-200 dark:border-dark-border',
           body: 'p-0',
           footer: 'border-t border-gray-200 dark:border-dark-border px-4 py-4',
@@ -569,8 +569,8 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
         <DrawerContent>
           <DrawerHeader className='font-bold'>Filtros</DrawerHeader>
           <DrawerBody>
-            <ScrollShadow className='h-[calc(100vh-8rem)]'>
-              <div className='p-4'>
+            <ScrollShadow className='h-[calc(100vh-12rem)]'>
+              <div className='px-4'>
                 <NewVehicleFilters
                   filters={filters}
                   priceRange={priceRange}

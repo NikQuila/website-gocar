@@ -134,9 +134,17 @@ const NewVehicleFilters = ({
               size='sm'
               variant='light'
               color='danger'
-              onClick={onClearFilters}
-              className='text-[13px] py-0 px-0 font-normal bg-transparent min-w-0'
+              onClick={() => {
+                if (typeof onClearFilters === 'function') {
+                  onClearFilters();
+                }
+              }}
+              className='text-[13px] py-0 px-0 font-normal bg-transparent min-w-0 flex items-center'
             >
+              <Icon
+                icon='solar:filter-linear'
+                className='text-xs mr-1 rotate-180'
+              />
               Limpiar
             </Button>
           )}
