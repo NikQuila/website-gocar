@@ -257,13 +257,8 @@ const NewVehiclesSection = () => {
 
   // Estado para controlar la visibilidad del botón de WhatsApp en móvil
   const [showMobileWhatsApp, setShowMobileWhatsApp] = useState(false);
-  const [showFixedFilter, setShowFixedFilter] = useState(false);
-  // Referencia para el espacio reservado del filtro
-  const filterSpacerRef = useRef<HTMLDivElement>(null);
-  // Posición fija para el filtro (en px desde la parte superior)
-  const FILTER_TOP_POSITION = 180;
 
-  // Detectar scroll para mostrar/ocultar el botón en móvil y el filtro
+  // Detectar scroll para mostrar/ocultar el botón en móvil
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
@@ -274,13 +269,6 @@ const NewVehiclesSection = () => {
       } else {
         setShowMobileWhatsApp(false);
       }
-
-      // Filtro - Ahora aparece después de hacer bastante scroll (varios movimientos)
-      if (scrollPosition > 470) {
-        setShowFixedFilter(true);
-      } else {
-        setShowFixedFilter(false);
-      }
     };
 
     // Ejecutar al montar para establecer valores iniciales
@@ -288,14 +276,6 @@ const NewVehiclesSection = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Ajustar la altura del espacio reservado para el filtro
-  useEffect(() => {
-    if (filterSpacerRef.current) {
-      // Altura fija para mantener el layout consistente
-      filterSpacerRef.current.style.height = '650px';
-    }
   }, []);
 
   return (
@@ -396,33 +376,20 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
 
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'>
         <div className='flex flex-col md:flex-row gap-10'>
-          {/* Espacio reservado para el filtro en desktop */}
-          <div
-            ref={filterSpacerRef}
-            className='hidden md:block w-64 flex-shrink-0'
-          >
-            {/* Este div solo sirve como espacio reservado */}
-          </div>
-
-          {/* Filtro fijo (siempre en la misma posición) */}
-          {isMd && showFixedFilter && (
-            <div
-              className='fixed z-[20] w-72 max-h-[85vh] overflow-y-auto bg-white dark:bg-dark-bg p-4 rounded-xl'
-              style={{
-                top: `${FILTER_TOP_POSITION}px`,
-                left: 'max(1rem, calc((100% - 1280px)/2 + 1rem))',
-                boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)', // Sombra más suave y difusa para efecto nube
-                border: '1px solid rgba(0,0,0,0.05)',
-              }}
-            >
-              <NewVehicleFilters
-                filters={filters}
-                priceRange={priceRange}
-                brands={brands}
-                onFilterChange={handleFilterChange}
-                onPriceRangeChange={setPriceRange}
-                onClearFilters={clearFilters}
-              />
+          {/* Filtro en desktop */}
+          {isMd && (
+            <div className='w-72 md:sticky md:top-[calc(var(--navbar-height)+2rem)] self-start'>
+              <div className='bg-white dark:bg-dark-bg p-3 rounded-xl shadow-sm overflow-y-auto border border-gray-100 dark:border-dark-border'>
+                <NewVehicleFilters
+                  filters={filters}
+                  priceRange={priceRange}
+                  brands={brands}
+                  onFilterChange={handleFilterChange}
+                  onPriceRangeChange={setPriceRange}
+                  onClearFilters={clearFilters}
+                  initialOpenAccordion={filters.color ? 'color' : undefined}
+                />
+              </div>
             </div>
           )}
 
@@ -578,6 +545,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   onFilterChange={handleFilterChange}
                   onPriceRangeChange={setPriceRange}
                   onClearFilters={clearFilters}
+                  initialOpenAccordion={filters.color ? 'color' : undefined}
                 />
               </div>
             </ScrollShadow>

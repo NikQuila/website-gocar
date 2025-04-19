@@ -21,6 +21,7 @@ interface NewVehicleFiltersProps {
   onFilterChange: (key: keyof VehicleFiltersType, value: any) => void;
   onPriceRangeChange: (value: number[]) => void;
   onClearFilters: () => void;
+  initialOpenAccordion?: string;
 }
 
 const NewVehicleFilters = ({
@@ -30,10 +31,13 @@ const NewVehicleFilters = ({
   onFilterChange,
   onPriceRangeChange,
   onClearFilters,
+  initialOpenAccordion,
 }: NewVehicleFiltersProps) => {
   const { colors, categories, fuelTypes, conditions } = useGeneralStore();
   // Estado para controlar qué acordeón está abierto (solo uno a la vez o ninguno)
-  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<string | null>(
+    initialOpenAccordion || null
+  );
   // Estado para controlar la visibilidad del filtro basado en el scroll
   const [isVisible, setIsVisible] = useState(true);
 
