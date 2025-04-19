@@ -124,11 +124,20 @@ const NewVehiclesSection = () => {
   const brands = [...new Set(vehicles.map((v) => v.brand))];
 
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
-    setFilters((prev) => ({
-      ...prev,
+    setFilters((prev) => {
+      // Si el valor es undefined, eliminamos la propiedad del objeto
+      if (value === undefined) {
+        const newFilters = { ...prev };
+        delete newFilters[key];
+        return newFilters;
+      }
 
-      [key]: value,
-    }));
+      // Si no, actualizamos normalmente
+      return {
+        ...prev,
+        [key]: value,
+      };
+    });
   };
 
   const clearFilters = () => {
@@ -253,12 +262,17 @@ const NewVehiclesSection = () => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
+
+      // WhatsApp
       if (scrollPosition > 300) {
         setShowMobileWhatsApp(true);
       } else {
         setShowMobileWhatsApp(false);
       }
     };
+
+    // Ejecutar al montar para establecer valores iniciales
+    handleScroll();
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -301,7 +315,6 @@ const NewVehiclesSection = () => {
       </div>
 
       {/* Fixed Categories Navigation */}
-
       <div className='sticky top-[var(--navbar-height)] z-30 bg-white dark:bg-dark-bg border-b border-gray-200 dark:border-dark-border'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4'>
           <div className='flex flex-col gap-4'>
@@ -362,15 +375,11 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
       {/* Main Content */}
 
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'>
-        <div className='flex flex-col md:flex-row gap-6'>
-          {/* Filters - Desktop */}
-
+        <div className='flex flex-col md:flex-row gap-10'>
+          {/* Filtro en desktop */}
           {isMd && (
-            <div className='hidden md:block w-80 flex-shrink-0'>
-              <div
-                className='sticky'
-                style={{ top: 'calc(var(--navbar-height) + 180px)' }}
-              >
+            <div className='w-72 md:sticky md:top-[calc(var(--navbar-height)+2rem)] self-start'>
+              <div className='bg-white dark:bg-dark-bg p-3 rounded-xl shadow-sm border border-gray-100 dark:border-dark-border max-h-[calc(100vh-130px)] overflow-y-auto'>
                 <NewVehicleFilters
                   filters={filters}
                   priceRange={priceRange}
@@ -378,6 +387,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   onFilterChange={handleFilterChange}
                   onPriceRangeChange={setPriceRange}
                   onClearFilters={clearFilters}
+                  initialOpenAccordion={filters.color ? 'color' : undefined}
                 />
               </div>
             </div>
@@ -388,8 +398,18 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
           <div className='flex-1 min-w-0'>
             {/* Sort and View Options */}
 
-            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky bg-gray-50 dark:bg-dark-bg py-2 px-4 -mx-4 sm:px-0 sm:mx-0 rounded-lg relative'>
-              {/* Columna izquierda - Filtros */}
+            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky bg-gray-50 dark:bg-dark-bg py-2 px-4 -mx-4 sm:px-0 sm:mx-0 rounded-lg relative z-10'>
+              {/* Botón para abrir filtros en móvil */}
+              <div className='md:hidden w-full'>
+                <Button
+                  variant='light'
+                  onPress={onOpen}
+                  startContent={<Icon icon='mdi:filter' className='text-xl' />}
+                  className='bg-white dark:bg-dark-card shadow-sm w-full'
+                >
+                  Filtros {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+                </Button>
+              </div>
 
               {/* Columna central - Dropdown de ordenamiento */}
               <div className='flex-grow flex justify-start'>
@@ -445,11 +465,11 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
             {/* Vehicle Cards */}
 
             <div
-              className={`grid gap-4 sm:gap-6 ${
+              className={`grid gap-4 sm:gap-5 ${
                 activeView === 'grid'
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+                  ? 'grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3'
                   : 'grid-cols-1'
-              }`}
+              } mx-auto`}
             >
               {isLoading
                 ? Array(6)
@@ -504,22 +524,20 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
       <Drawer
         isOpen={isOpen}
         onClose={onClose}
-        placement='left'
+        placement='bottom'
         className='bg-white dark:bg-dark-card'
         classNames={{
-          base: 'sm:max-w-[90%] md:max-w-[400px] ',
-
+          base: 'h-[90vh] rounded-t-xl',
           header: 'border-b border-gray-200 dark:border-dark-border',
-
           body: 'p-0',
-
           footer: 'border-t border-gray-200 dark:border-dark-border px-4 py-4',
         }}
       >
         <DrawerContent>
+          <DrawerHeader className='font-bold'>Filtros</DrawerHeader>
           <DrawerBody>
-            <ScrollShadow className='h-[calc(100vh-8rem)]'>
-              <div className='p-4'>
+            <ScrollShadow className='h-[calc(100vh-12rem)]'>
+              <div className='px-4'>
                 <NewVehicleFilters
                   filters={filters}
                   priceRange={priceRange}
@@ -527,10 +545,16 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   onFilterChange={handleFilterChange}
                   onPriceRangeChange={setPriceRange}
                   onClearFilters={clearFilters}
+                  initialOpenAccordion={filters.color ? 'color' : undefined}
                 />
               </div>
             </ScrollShadow>
           </DrawerBody>
+          <DrawerFooter>
+            <Button color='primary' onPress={onClose} className='w-full'>
+              Aplicar filtros
+            </Button>
+          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     </div>
