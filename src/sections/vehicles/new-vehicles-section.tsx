@@ -379,7 +379,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
           {/* Filtro en desktop */}
           {isMd && (
             <div className='w-72 md:sticky md:top-[calc(var(--navbar-height)+2rem)] self-start'>
-              <div className='bg-white dark:bg-dark-bg p-3 rounded-xl shadow-sm overflow-y-auto border border-gray-100 dark:border-dark-border'>
+              <div className='bg-white dark:bg-dark-bg p-3 rounded-xl shadow-sm border border-gray-100 dark:border-dark-border max-h-[calc(100vh-130px)] overflow-y-auto'>
                 <NewVehicleFilters
                   filters={filters}
                   priceRange={priceRange}
