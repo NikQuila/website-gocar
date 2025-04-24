@@ -556,7 +556,7 @@ export default function VehicleDetailSection({
             </div> */}
 
             <div className='flex flex-wrap gap-2'>
-              {vehicle.features?.map((feature, index) => (
+              {vehicle?.features?.map((feature, index) => (
                 <Chip
                   key={index}
                   variant='flat'
