@@ -17,7 +17,10 @@ import Link from 'next/link';
 import ThemeToggle from '../ThemeToggle';
 import useThemeStore from '@/store/useThemeStore';
 
-const navigation = [{ name: 'Inicio', href: '/' }];
+const navigation = [
+  { name: 'Inicio', href: '/' },
+  { name: 'Compra/Consignación', href: '/purchase-consignment' },
+];
 
 const Navbar = () => {
   const { client } = useClientStore();

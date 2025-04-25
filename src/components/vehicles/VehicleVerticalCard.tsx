@@ -50,7 +50,7 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
     <Card
       isPressable={!isSold && !isReserved}
       onPress={handleViewDetails}
-      className={`overflow-hidden bg-white dark:bg-dark-card  ${
+      className={`overflow-hidden bg-white dark:bg-dark-card w-full ${
         isSold || isReserved ? 'opacity-75' : ''
       }`}
     >
@@ -72,7 +72,7 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
           )}
           <Image
             alt={`${vehicle.brand?.name} ${vehicle.model?.name}`}
-            className='object-cover w-full h-full'
+            className='object-cover w-full h-full object-top'
             src={vehicle.main_image}
           />
           {!isSold &&
@@ -92,7 +92,7 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
       </div>
 
       <div className='flex flex-col'>
-        <CardBody className='flex flex-col flex-grow p-4 '>
+        <CardBody className='flex flex-col flex-grow p-5'>
           <div className='space-y-1.5'>
             <div className='flex items-center justify-between'>
               <p className='text-sm text-gray-600 dark:text-gray-400'>
@@ -100,7 +100,7 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
               </p>
             </div>
 
-            <h3 className='text-xl font-bold dark:text-dark-text'>
+            <h3 className='text-2xl font-bold dark:text-dark-text'>
               {vehicle.model?.name}
             </h3>
 
