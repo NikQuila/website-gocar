@@ -49,6 +49,7 @@ const useCustomerStore = create(
                 first_name: customerData.first_name,
                 last_name: customerData.last_name,
                 phone: customerData.phone,
+                updated_at: customerData.updated_at || new Date().toISOString(),
               })
               .eq('id', existingCustomerWithSameClientId.id);
 

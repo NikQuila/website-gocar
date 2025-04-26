@@ -147,6 +147,7 @@ export interface Model {
 export interface Customer {
   id: string;
   created_at: string;
+  updated_at: string;
   email: string;
   phone: string;
   first_name: string;

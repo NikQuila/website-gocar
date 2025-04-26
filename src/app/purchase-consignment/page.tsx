@@ -12,8 +12,10 @@ import {
 } from '@heroui/react';
 import useClientStore from '@/store/useClientStore';
 import useThemeStore from '@/store/useThemeStore';
+import useCustomerStore from '@/store/useCustomerStore';
 import { supabase } from '@/lib/supabase';
 import { Icon } from '@iconify/react';
+import { updateLeadById } from '@/lib/leads';
 
 // Estilos uniformes para todos los inputs
 const inputStyles = {
@@ -39,6 +41,7 @@ interface Model {
 const PurchaseConsignmentPage = () => {
   const { client } = useClientStore();
   const { theme } = useThemeStore();
+  const { initializeCustomer } = useCustomerStore();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -233,6 +236,20 @@ const PurchaseConsignmentPage = () => {
     setLoading(true);
 
     try {
+      // Dividir el nombre completo en nombre y apellido
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const customer = await initializeCustomer({
+        first_name: firstName,
+        last_name: lastName,
+        email: formData.email,
+        phone: formData.phone,
+        client_id: client?.id || '',
+        updated_at: new Date().toISOString(),
+      });
+
       // Obtener nombres de marca y modelo para el correo
       const brandName =
         brands.find((b) => String(b.id) === String(formData.brand))?.name ||
@@ -240,6 +257,27 @@ const PurchaseConsignmentPage = () => {
       const modelName =
         models.find((m) => String(m.id) === String(formData.model))?.name ||
         modelInput;
+
+      const leadData = {
+        client_id: client?.id || '',
+        customer_id: customer.id,
+        search_params: null, // Establecer como NULL según lo solicitado
+        status: 'pending',
+
+        created_at: new Date().toISOString(),
+      };
+
+      const { data: createdLead, error: leadError } = await supabase
+        .from('leads')
+        .insert([leadData])
+        .select()
+        .single();
+
+      if (leadError) {
+        console.error('Error al crear lead:', leadError);
+        // Continuar con el flujo normal aunque haya error en el lead
+      } else {
+      }
 
       // Email directo
       const emailBody = `
@@ -328,12 +366,12 @@ ${formData.message}
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               <div>
                 <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium'>
-                  Nombre
+                  Nombre Completo
                 </label>
                 <Input
                   value={formData.name}
                   onValueChange={(value) => handleChange(value, 'name')}
-                  placeholder='Tu nombre completo'
+                  placeholder='Nombre y apellido'
                   isRequired
                   classNames={inputStyles}
                   variant='flat'
