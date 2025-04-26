@@ -54,6 +54,7 @@ export interface Client {
     lng: number | string;
   };
   dealerships: Dealership[];
+  has_dark_mode: boolean;
 }
 
 export interface Vehicle {

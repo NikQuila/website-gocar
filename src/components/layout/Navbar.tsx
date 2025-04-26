@@ -90,9 +90,11 @@ const Navbar = () => {
 
       {/* Botón de contacto, theme toggle y hamburger a la derecha */}
       <NavbarContent justify='end' className='gap-2'>
-        <NavbarItem>
-          <ThemeToggle />
-        </NavbarItem>
+        {client?.has_dark_mode && (
+          <NavbarItem>
+            <ThemeToggle />
+          </NavbarItem>
+        )}
         <NavbarItem className='hidden sm:flex'>
           <Button
             as='a'
