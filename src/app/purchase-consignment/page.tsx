@@ -54,6 +54,9 @@ const PurchaseConsignmentPage = () => {
     message: '',
   });
 
+  const [phoneIsValid, setPhoneIsValid] = useState(true);
+  const [phoneError, setPhoneError] = useState(false);
+
   // Estados para el autocompletado
   const [brandInput, setBrandInput] = useState('');
   const [modelInput, setModelInput] = useState('');
@@ -193,10 +196,24 @@ const PurchaseConsignmentPage = () => {
     : client?.theme?.light?.secondary || '#ffffff';
 
   const handleChange = (value: string, id: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+    // Para el teléfono, solo permitir dígitos y limitar a 8
+    if (id === 'phone') {
+      const digitsOnly = value.replace(/\D/g, '').slice(0, 8);
+      setFormData((prev) => ({
+        ...prev,
+        [id]: digitsOnly,
+      }));
+
+      // Si el usuario está corrigiendo un error previo, quitar el estado de error
+      if (phoneError && digitsOnly.length === 8) {
+        setPhoneError(false);
+      }
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [id]: value,
+      }));
+    }
   };
 
   const handleBrandChange = (value: string) => {
@@ -233,6 +250,17 @@ const PurchaseConsignmentPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validación simple: verificar que el teléfono tenga 8 dígitos
+    if (formData.phone.length !== 8) {
+      setPhoneError(true);
+      // Hacer scroll al campo de teléfono
+      document
+        .querySelector('input[name="phone"]')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -241,11 +269,14 @@ const PurchaseConsignmentPage = () => {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
 
+      // Agregar el prefijo de Chile al teléfono
+      const formattedPhone = `+569${formData.phone}`;
+
       const customer = await initializeCustomer({
         first_name: firstName,
         last_name: lastName,
         email: formData.email,
-        phone: formData.phone,
+        phone: formattedPhone,
         client_id: client?.id || '',
         updated_at: new Date().toISOString(),
       });
@@ -261,10 +292,11 @@ const PurchaseConsignmentPage = () => {
       const leadData = {
         client_id: client?.id || '',
         customer_id: customer.id,
-        search_params: null, // Establecer como NULL según lo solicitado
+        search_params: null,
         status: 'pending',
-
+        notes: formData.message,
         created_at: new Date().toISOString(),
+        type: 'consignment',
       };
 
       const { data: createdLead, error: leadError } = await supabase
@@ -285,7 +317,7 @@ Nuevo formulario de Compra/Consignación:
 
 Nombre: ${formData.name}
 Email: ${formData.email}
-Teléfono: ${formData.phone}
+Teléfono: +569${formData.phone}
 Marca: ${brandName}
 Modelo: ${modelName}
 Año: ${formData.year}
@@ -325,17 +357,18 @@ ${formData.message}
   };
 
   return (
-    <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16  dark:bg-dark-bg transition-colors duration-300 mt-10 text-center mb-10'>
-      <h1 className='text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl uppercase tracking-wide'>
+    <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 dark:bg-dark-bg transition-colors duration-300 mt-10 text-center mb-8'>
+      <h1 className='text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl uppercase tracking-wide mb-2'>
         FORMULARIO
         <br />
         COMPRA / CONSIGNACIÓN
       </h1>
-      <p className='mt-4 text-xl text-gray-600 dark:text-gray-400 mb-8'>
+
+      <p className='max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-400 mb-8'>
         Completa los datos para vender o consignar tu vehículo con nosotros
       </p>
 
-      <div className='max-w-6xl mx-auto bg-white dark:bg-dark-card rounded-xl shadow-sm p-8 border border-gray-100 dark:border-dark-border'>
+      <div className='max-w-5xl mx-auto bg-white dark:bg-dark-card rounded-xl shadow-sm p-6 sm:p-8 border border-gray-100 dark:border-dark-border'>
         {success ? (
           <div className='text-center py-12'>
             <div
@@ -362,10 +395,10 @@ ${formData.message}
             </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className='space-y-6'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+          <form onSubmit={handleSubmit} className='space-y-5'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
               <div>
-                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium'>
+                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium text-left'>
                   Nombre Completo
                 </label>
                 <Input
@@ -377,9 +410,57 @@ ${formData.message}
                   variant='flat'
                 />
               </div>
+              <div>
+                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium text-left'>
+                  Email
+                </label>
+                <Input
+                  type='email'
+                  value={formData.email}
+                  onValueChange={(value) => handleChange(value, 'email')}
+                  placeholder='tu@email.com'
+                  isRequired
+                  classNames={inputStyles}
+                  variant='flat'
+                />
+              </div>
+              <div>
+                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium text-left'>
+                  Teléfono
+                </label>
+                <Input
+                  name='phone'
+                  value={formData.phone}
+                  onValueChange={(value) => handleChange(value, 'phone')}
+                  placeholder='Tu número de teléfono (8 dígitos)'
+                  isRequired
+                  classNames={{
+                    ...inputStyles,
+                    inputWrapper: `${inputStyles.inputWrapper} ${
+                      phoneError
+                        ? 'border-danger dark:border-danger bg-danger-50 dark:bg-danger-900/20'
+                        : ''
+                    }`,
+                    description: phoneError ? 'text-danger font-medium' : '',
+                  }}
+                  variant='flat'
+                  maxLength={8}
+                  startContent={
+                    <div className='pointer-events-none flex items-center'>
+                      <span className='text-gray-500 dark:text-gray-400 text-sm'>
+                        +569
+                      </span>
+                    </div>
+                  }
+                  description={
+                    phoneError ? 'Debes ingresar exactamente 8 dígitos' : ''
+                  }
+                  color={phoneError ? 'danger' : 'default'}
+                />
+              </div>
 
               <div>
-                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium'>
+                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium text-left'>
                   Marca
                 </label>
                 <Autocomplete
@@ -394,21 +475,26 @@ ${formData.message}
                   onSelectionChange={(key) => handleBrandChange(key as string)}
                   isRequired
                   allowsCustomValue={false}
-                  className='max-w-full rounded-xl'
+                  className='max-w-full bg-white dark:bg-gray-900'
                   classNames={{
                     base: 'w-full',
                     listboxWrapper: 'max-h-[320px]',
-                    listbox: 'dark:bg-dark-card dark:text-white',
-                    popoverContent: 'dark:bg-dark-card dark:border-dark-border',
+                    listbox:
+                      'bg-white dark:bg-gray-900 text-gray-800 dark:text-white',
+                    popoverContent:
+                      'bg-white dark:bg-gray-900 dark:border-gray-700',
+                    clearButton: 'text-gray-500 dark:text-gray-400',
+                    endContentWrapper: 'text-gray-500 dark:text-gray-400',
                   }}
-                  variant='flat'
+                  variant='bordered'
                   size='md'
+                  color='default'
                 >
                   {(item) => (
                     <AutocompleteItem
                       key={item.id}
                       textValue={item.name}
-                      className='dark:data-[hover=true]:bg-dark-border/30'
+                      className='text-gray-800 dark:text-white data-[hover=true]:bg-gray-100 dark:data-[hover=true]:bg-gray-800'
                     >
                       {item.name}
                     </AutocompleteItem>
@@ -417,22 +503,7 @@ ${formData.message}
               </div>
 
               <div>
-                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium'>
-                  Email
-                </label>
-                <Input
-                  type='email'
-                  value={formData.email}
-                  onValueChange={(value) => handleChange(value, 'email')}
-                  placeholder='tu@email.com'
-                  isRequired
-                  classNames={inputStyles}
-                  variant='flat'
-                />
-              </div>
-
-              <div>
-                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium'>
+                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium text-left'>
                   Modelo
                 </label>
                 <Autocomplete
@@ -456,21 +527,26 @@ ${formData.message}
                   isDisabled={!formData.brand}
                   isRequired
                   allowsCustomValue={false}
-                  className='max-w-full rounded-xl'
+                  className='max-w-full bg-white dark:bg-gray-900'
                   classNames={{
                     base: 'w-full',
                     listboxWrapper: 'max-h-[320px]',
-                    listbox: 'dark:bg-dark-card dark:text-white',
-                    popoverContent: 'dark:bg-dark-card dark:border-dark-border',
+                    listbox:
+                      'bg-white dark:bg-gray-900 text-gray-800 dark:text-white',
+                    popoverContent:
+                      'bg-white dark:bg-gray-900 dark:border-gray-700',
+                    clearButton: 'text-gray-500 dark:text-gray-400',
+                    endContentWrapper: 'text-gray-500 dark:text-gray-400',
                   }}
-                  variant='flat'
+                  variant='bordered'
                   size='md'
+                  color='default'
                 >
                   {(item) => (
                     <AutocompleteItem
                       key={item.id}
                       textValue={item.name}
-                      className='dark:data-[hover=true]:bg-dark-border/30'
+                      className='text-gray-800 dark:text-white data-[hover=true]:bg-gray-100 dark:data-[hover=true]:bg-gray-800'
                     >
                       {item.name}
                     </AutocompleteItem>
@@ -479,21 +555,7 @@ ${formData.message}
               </div>
 
               <div>
-                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium'>
-                  Teléfono
-                </label>
-                <Input
-                  value={formData.phone}
-                  onValueChange={(value) => handleChange(value, 'phone')}
-                  placeholder='Tu número de teléfono'
-                  isRequired
-                  classNames={inputStyles}
-                  variant='flat'
-                />
-              </div>
-
-              <div>
-                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium'>
+                <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium text-left'>
                   Año
                 </label>
                 <Autocomplete
@@ -508,21 +570,27 @@ ${formData.message}
                   }
                   isRequired
                   allowsCustomValue={false}
+                  className='max-w-full bg-white dark:bg-gray-900'
                   classNames={{
                     base: 'w-full',
                     listboxWrapper: 'max-h-[320px]',
-                    listbox: 'dark:bg-dark-card dark:text-white',
-                    popoverContent: 'dark:bg-dark-card dark:border-dark-border',
-                    endContentWrapper: 'h-[49px]',
+                    listbox:
+                      'bg-white dark:bg-gray-900 text-gray-800 dark:text-white',
+                    popoverContent:
+                      'bg-white dark:bg-gray-900 dark:border-gray-700',
+                    clearButton: 'text-gray-500 dark:text-gray-400',
+                    endContentWrapper:
+                      'text-gray-500 dark:text-gray-400 h-[49px]',
                   }}
-                  variant='flat'
+                  variant='bordered'
                   size='md'
+                  color='default'
                 >
                   {(item) => (
                     <AutocompleteItem
                       key={item.id}
                       textValue={item.name}
-                      className='dark:data-[hover=true]:bg-dark-border/30'
+                      className='text-gray-800 dark:text-white data-[hover=true]:bg-gray-100 dark:data-[hover=true]:bg-gray-800'
                     >
                       {item.name}
                     </AutocompleteItem>
@@ -532,7 +600,7 @@ ${formData.message}
             </div>
 
             <div>
-              <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium'>
+              <label className='block text-gray-700 dark:text-gray-300 mb-2 font-medium text-left'>
                 Mensaje
               </label>
               <Textarea
@@ -562,7 +630,7 @@ ${formData.message}
                 isLoading={loading}
                 fullWidth
               >
-                AGENDAR HORA
+                Enviar formulario
               </Button>
             </div>
           </form>
