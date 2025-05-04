@@ -1,6 +1,6 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { useNode, useEditor } from '@craftjs/core';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/ui/button';
 
 interface HeroWithBackgroundProps {
   title?: string;
@@ -16,105 +16,143 @@ interface HeroWithBackgroundProps {
   children?: React.ReactNode;
 }
 
-interface CraftComponent {
-  craft: {
-    displayName: string;
-    props: Record<string, any>;
-    related?: {
-      toolbar?: React.ComponentType<any>;
-    };
-    rules?: {
-      canDrag: () => boolean;
-      canDrop: () => boolean;
-      canMoveIn: () => boolean;
-    };
-    isCanvas?: boolean;
+export const HeroWithBackground = ({
+  title = 'Encuentra tu próximo auto',
+  subtitle = 'Amplio inventario de autos seminuevos verificados y con garantía',
+  buttonText = 'Ver inventario',
+  buttonLink = '/inventario',
+  backgroundImage = 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1470',
+  overlayColor = '#000000',
+  overlayOpacity = 0.5,
+  textColor = '#ffffff',
+  textAlignment = 'center',
+  height = '500px',
+  children,
+}: HeroWithBackgroundProps) => {
+  const { connectors, selected } = useNode((state) => ({
+    selected: state.events.selected,
+  }));
+
+  const overlayStyle = {
+    backgroundColor: overlayColor,
+    opacity: overlayOpacity,
   };
-}
 
-const HeroWithBackgroundComponent = forwardRef<
-  HTMLDivElement,
-  HeroWithBackgroundProps
->(
-  (
-    {
-      title = 'Encuentra tu próximo auto',
-      subtitle = 'Amplio inventario de autos seminuevos verificados y con garantía',
-      buttonText = 'Ver inventario',
-      buttonLink = '/inventario',
-      backgroundImage = 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1470',
-      overlayColor = '#000000',
-      overlayOpacity = 0.5,
-      textColor = '#ffffff',
-      textAlignment = 'center',
-      height = '500px',
-      children,
-    }: HeroWithBackgroundProps,
-    ref
-  ) => {
-    const { connectors, selected } = useNode((state) => ({
-      selected: state.events.selected,
-    }));
+  // Function to scroll to vehicles section
+  const scrollToVehicles = (e: React.MouseEvent) => {
+    e.preventDefault();
+    console.log(
+      'Attempting to scroll to vehicles section from HeroWithBackground'
+    );
 
-    const overlayStyle = {
-      backgroundColor: overlayColor,
-      opacity: overlayOpacity,
-    };
+    // Try multiple selector approaches
+    const vehicleSection =
+      document.querySelector('[data-section="vehicles"]') ||
+      document.getElementById('vehicles-section') ||
+      document.querySelector('.VehicleGrid') ||
+      document.querySelector('.vehicles-section') ||
+      document.querySelector('[class*="vehicle"]');
 
-    return (
-      <div
-        ref={(node) => {
-          if (node) {
-            connectors.connect(node);
-            if (typeof ref === 'function') {
-              ref(node);
-            } else if (ref) {
-              ref.current = node;
-            }
-          }
-        }}
-        style={{
-          backgroundImage: `url(${backgroundImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          height,
-          position: 'relative',
-          color: textColor,
-          border: selected ? '1px dashed #1e88e5' : '1px solid transparent',
-        }}
-        className='w-full flex items-center'
-      >
-        {/* Overlay */}
-        <div style={overlayStyle} className='absolute inset-0 z-0' />
+    if (vehicleSection) {
+      console.log('Found vehicle section, scrolling now');
 
-        {/* Content */}
-        <div className='container mx-auto px-4 z-10 relative'>
-          <div
-            className={`max-w-3xl mx-auto text-${textAlignment}`}
-            style={{ margin: textAlignment === 'center' ? '0 auto' : '0' }}
+      // Try multiple scroll methods
+      try {
+        // Method 1: scrollIntoView
+        vehicleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Method 2: If the above doesn't work consistently in the builder
+        setTimeout(() => {
+          const yOffset =
+            vehicleSection.getBoundingClientRect().top +
+            window.pageYOffset -
+            50;
+          window.scrollTo({
+            top: yOffset,
+            behavior: 'smooth',
+          });
+        }, 100);
+      } catch (error) {
+        console.error('Error scrolling:', error);
+
+        // Fallback method 3: direct position scroll
+        const yOffset =
+          vehicleSection.getBoundingClientRect().top + window.pageYOffset - 50;
+        window.scrollTo(0, yOffset);
+      }
+    } else {
+      console.log('Vehicle section not found, trying alternative methods');
+
+      // Fallback: try to find any vehicle-related sections by text content
+      const headings = Array.from(
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+      );
+      const vehicleHeading = headings.find(
+        (h) =>
+          h.textContent?.toLowerCase().includes('vehículo') ||
+          h.textContent?.toLowerCase().includes('vehiculo') ||
+          h.textContent?.toLowerCase().includes('auto') ||
+          h.textContent?.toLowerCase().includes('inventario')
+      );
+
+      if (vehicleHeading) {
+        console.log('Found vehicle heading, scrolling to it');
+        vehicleHeading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        console.log('No vehicle section found at all');
+        // If all else fails and we have a buttonLink, navigate to it
+        if (buttonLink) {
+          window.location.href = buttonLink;
+        }
+      }
+    }
+  };
+
+  return (
+    <div
+      ref={connectors.connect}
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        height,
+        position: 'relative',
+        color: textColor,
+        border: selected ? '1px dashed #1e88e5' : '1px solid transparent',
+      }}
+      className='w-full flex items-center'
+    >
+      {/* Overlay */}
+      <div style={overlayStyle} className='absolute inset-0 z-0' />
+
+      {/* Content */}
+      <div className='container mx-auto px-4 z-10 relative'>
+        <div
+          className={`max-w-3xl mx-auto text-${textAlignment}`}
+          style={{ margin: textAlignment === 'center' ? '0 auto' : '0' }}
+        >
+          <h1
+            style={{ color: textColor }}
+            className='text-4xl md:text-5xl font-bold mb-4'
           >
-            <h1
-              style={{ color: textColor }}
-              className='text-4xl md:text-5xl font-bold mb-4'
-            >
-              {title}
-            </h1>
-            <p style={{ color: textColor }} className='text-lg md:text-xl mb-8'>
-              {subtitle}
-            </p>
-            <Button className='px-8 py-3 text-white rounded-md bg-blue-600 hover:bg-blue-700 transition-colors'>
-              <a href={buttonLink}>{buttonText}</a>
-            </Button>
+            {title}
+          </h1>
+          <p style={{ color: textColor }} className='text-lg md:text-xl mb-8'>
+            {subtitle}
+          </p>
+          <Button
+            className='px-8 py-3 text-white rounded-md bg-blue-600 hover:bg-blue-700 transition-colors'
+            onClick={scrollToVehicles}
+          >
+            {buttonText}
+          </Button>
 
-            {children}
-          </div>
+          {children}
         </div>
       </div>
-    );
-  }
-);
-
-HeroWithBackgroundComponent.displayName = 'HeroWithBackground';
+    </div>
+  );
+};
 
 const HeroWithBackgroundSettings = () => {
   const { actions, selected } = useEditor((state) => {
@@ -324,7 +362,7 @@ const HeroWithBackgroundSettings = () => {
   );
 };
 
-(HeroWithBackgroundComponent as unknown as CraftComponent).craft = {
+HeroWithBackground.craft = {
   displayName: 'HeroWithBackground',
   props: {
     title: 'Encuentra tu próximo auto',
@@ -351,7 +389,4 @@ const HeroWithBackgroundSettings = () => {
   isCanvas: true,
 };
 
-export const HeroWithBackground =
-  HeroWithBackgroundComponent as typeof HeroWithBackgroundComponent &
-    CraftComponent;
 export { HeroWithBackgroundSettings };

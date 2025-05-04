@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { useNode, useEditor } from '@craftjs/core';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/ui/button';
 
 interface HeroBasicProps {
   title?: string;

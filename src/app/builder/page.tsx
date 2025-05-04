@@ -14,6 +14,10 @@ import {
   HeroBasic,
   HeroWithBackground,
 } from '@/components/builder2/sections/initialfold';
+import { VehicleGrid } from '@/components/builder2/sections/vehicles';
+import { HeroMinimalistic } from '@/components/builder2/sections/initialfold/HeroMinimalistic';
+import { Testimonials } from '@/components/builder2/sections/testimonials';
+import { FAQ, WhyChooseUs } from '@/components/builder2/sections/features';
 
 export default function WebsitePage() {
   const { client, isLoading: isClientLoading } = useClientStore();
@@ -70,7 +74,7 @@ export default function WebsitePage() {
   }
 
   return (
-    <div className='min-h-screen mt-20 bg-gray-50'>
+    <div className='min-h-screen mt-[6vh]'>
       {json && (
         <Editor
           resolver={{
@@ -78,11 +82,19 @@ export default function WebsitePage() {
             Text,
             Image,
             HeroBasic,
-            HeroWithBackground /*, …otros*/,
+            HeroWithBackground,
+            VehicleGrid,
+            HeroMinimalistic,
+            Testimonials,
+            FAQ,
+            WhyChooseUs,
+            /*, …otros*/
           }}
           enabled={false}
         >
-          <Frame json={json} />
+          <div className=''>
+            <Frame data={json} />
+          </div>
         </Editor>
       )}
     </div>
