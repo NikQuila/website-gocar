@@ -100,9 +100,16 @@ export const FAQ = ({
     }
   };
 
+  // Create a ref callback that handles null safely for TypeScript
+  const connectRef = (element: HTMLDivElement | null) => {
+    if (element) {
+      connectors.connect(element);
+    }
+  };
+
   return (
     <div
-      ref={connectors.connect}
+      ref={connectRef}
       style={{
         background: bgColor,
         padding: '80px 20px',
