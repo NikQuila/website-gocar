@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 import { Editor, Frame } from '@craftjs/core';
 import lz from 'lzutf8';
