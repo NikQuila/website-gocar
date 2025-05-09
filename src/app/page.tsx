@@ -16,6 +16,7 @@ import { Editor, Frame } from '@craftjs/core';
 import lz from 'lzutf8';
 import { supabase } from '@/lib/supabase';
 import useClientStore from '@/store/useClientStore';
+export const runtime = 'nodejs';
 
 // Importa todos los componentes del builder
 import { Container } from '@/components/builder2/userComponents/Container';
