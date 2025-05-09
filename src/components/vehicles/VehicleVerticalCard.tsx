@@ -113,17 +113,16 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
             </div>
 
             <div className='flex flex-wrap gap-2'>
-              {vehicle.features &&
-                vehicle.features.slice(0, 3).map((feature, index) => (
-                  <Chip
-                    key={index}
-                    size='sm'
-                    variant='flat'
-                    className='bg-gray-100 dark:bg-dark-border dark:text-dark-text'
-                  >
-                    {feature}
-                  </Chip>
-                ))}
+              {vehicle?.features?.slice(0, 3).map((feature, index) => (
+                <Chip
+                  key={index}
+                  size='sm'
+                  variant='flat'
+                  className='bg-gray-100 dark:bg-dark-border dark:text-dark-text'
+                >
+                  {feature}
+                </Chip>
+              ))}
             </div>
           </div>
         </CardBody>

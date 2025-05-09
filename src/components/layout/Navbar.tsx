@@ -78,7 +78,7 @@ const Navbar = () => {
               prefetch={true}
               className={`px-3 py-2 transition-colors ${
                 isActive(item.href)
-                  ? 'text-primary dark:text-secondary font-semibold'
+                  ? 'text-primary dark:text-white font-semibold'
                   : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -90,9 +90,11 @@ const Navbar = () => {
 
       {/* Botón de contacto, theme toggle y hamburger a la derecha */}
       <NavbarContent justify='end' className='gap-2'>
-        <NavbarItem>
-          <ThemeToggle />
-        </NavbarItem>
+        {client?.has_dark_mode && (
+          <NavbarItem>
+            <ThemeToggle />
+          </NavbarItem>
+        )}
         <NavbarItem className='hidden sm:flex'>
           <Button
             as='a'

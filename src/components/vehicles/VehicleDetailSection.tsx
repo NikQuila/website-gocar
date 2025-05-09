@@ -569,13 +569,11 @@ export default function VehicleDetailSection({
           </div>
         </div>
 
-        <Divider className='dark:border-dark-border' />
-
         <div>
           <h2 className='mb-3 text-xl font-semibold text-gray-900 dark:text-white'>
             Descripción
           </h2>
-          <p className='text-gray-600 dark:text-gray-400'>
+          <p className='text-gray-600 dark:text-gray-400 whitespace-pre-wrap'>
             {vehicle.description}
           </p>
         </div>
