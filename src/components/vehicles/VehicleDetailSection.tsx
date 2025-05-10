@@ -213,13 +213,7 @@ export default function VehicleDetailSection({
               </div>
             )}
             <CardBody className='p-0 w-full'>
-              <div
-                className={`${
-                  isVerticalImage
-                    ? 'h-[415px] md:h-[500px]'
-                    : 'h-[170px] sm:h-[300px] md:h-[340px]'
-                } w-full overflow-hidden`}
-              >
+              <div>
                 <Image
                   alt={`${vehicle?.brand?.name} ${vehicle?.model?.name}`}
                   className={`w-full h-full object-cover cursor-pointer ${
