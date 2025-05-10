@@ -10,6 +10,7 @@ import { Client, Vehicle } from '@/utils/types';
 import { useRouter } from 'next/navigation';
 import { CustomerDataModal } from '@/components/customers/CustomerDataModal';
 import { getVehicleById, incrementVehicleViews } from '@/lib/vehicles';
+import Head from 'next/head';
 
 export default function VehicleDetailsPage() {
   const params = useParams();
@@ -64,38 +65,51 @@ export default function VehicleDetailsPage() {
   };
 
   return (
-    <div className='container mx-auto px-4 py-20 bg-white dark:bg-dark-bg min-h-screen'>
-      <div className='mb-8'>
-        <button
-          onClick={() => router.back()}
-          className='flex items-center gap-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors'
-        >
-          <Icon icon='mdi:arrow-left' className='text-xl' />
-          <span>Volver</span>
-        </button>
-      </div>
-      <VehicleDetailSection
-        vehicle={vehicle}
-        loading={loading}
-        client={client as Client}
-        onLike={handleLike}
-        isLiked={likes.includes(vehicle?.id || '')}
-        showLikeButton={true}
-      />
+    <>
+      <Head>
+        {vehicle && (
+          <>
+            <meta property='og:image' content={vehicle.main_image} />
+            <meta property='og:title' content={vehicle.title} />
+            <meta property='og:description' content={vehicle.description} />
+            <meta name='twitter:card' content='summary_large_image' />
+            <meta name='twitter:image' content={vehicle.main_image} />
+          </>
+        )}
+      </Head>
+      <div className='container mx-auto px-4 py-20 bg-white dark:bg-dark-bg min-h-screen'>
+        <div className='mb-8'>
+          <button
+            onClick={() => router.back()}
+            className='flex items-center gap-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors'
+          >
+            <Icon icon='mdi:arrow-left' className='text-xl' />
+            <span>Volver</span>
+          </button>
+        </div>
+        <VehicleDetailSection
+          vehicle={vehicle}
+          loading={loading}
+          client={client as Client}
+          onLike={handleLike}
+          isLiked={likes.includes(vehicle?.id || '')}
+          showLikeButton={true}
+        />
 
-      <CustomerDataModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={async (customerData) => {
-          await initializeCustomer({
-            ...customerData,
-            client_id: client?.id || '',
-          });
-          if (vehicle) {
-            await toggleLike(vehicle.id);
-          }
-        }}
-      />
-    </div>
+        <CustomerDataModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={async (customerData) => {
+            await initializeCustomer({
+              ...customerData,
+              client_id: client?.id || '',
+            });
+            if (vehicle) {
+              await toggleLike(vehicle.id);
+            }
+          }}
+        />
+      </div>
+    </>
   );
 }
