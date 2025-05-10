@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { CustomerDataModal } from '@/components/customers/CustomerDataModal';
 import { getVehicleById, incrementVehicleViews } from '@/lib/vehicles';
 import Head from 'next/head';
+import { Metadata, ResolvingMetadata } from 'next';
 
 export default function VehicleDetailsPage() {
   const params = useParams();
@@ -66,17 +67,6 @@ export default function VehicleDetailsPage() {
 
   return (
     <>
-      <Head>
-        {vehicle && (
-          <>
-            <meta property='og:image' content={vehicle.main_image} />
-            <meta property='og:title' content={vehicle.title} />
-            <meta property='og:description' content={vehicle.description} />
-            <meta name='twitter:card' content='summary_large_image' />
-            <meta name='twitter:image' content={vehicle.main_image} />
-          </>
-        )}
-      </Head>
       <div className='container mx-auto px-4 py-20 bg-white dark:bg-dark-bg min-h-screen'>
         <div className='mb-8'>
           <button
@@ -112,4 +102,35 @@ export default function VehicleDetailsPage() {
       </div>
     </>
   );
+}
+
+export async function generateMetadata(
+  { params }: { params: { id: string } },
+  parent?: ResolvingMetadata
+): Promise<Metadata> {
+  const vehicle = await getVehicleById(params.id);
+
+  if (!vehicle) {
+    return {
+      title: 'Vehículo no encontrado',
+      description: 'Este vehículo no existe.',
+    };
+  }
+
+  return {
+    title: vehicle.title,
+    description: vehicle.description,
+    openGraph: {
+      title: vehicle.title,
+      description: vehicle.description,
+      images: [vehicle.main_image],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: vehicle.title,
+      description: vehicle.description,
+      images: [vehicle.main_image],
+    },
+  };
 }
