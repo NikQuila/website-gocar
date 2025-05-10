@@ -21,7 +21,16 @@ export async function generateMetadata(
     openGraph: {
       title: vehicle.title,
       description: vehicle.description,
-      images: [vehicle.main_image],
+      images: [
+        {
+          url: vehicle.main_image,
+          width: 1200,
+          height: 630,
+          alt: vehicle.title,
+          type: 'image/jpeg',
+        },
+      ],
+
       type: 'article',
     },
     twitter: {
