@@ -30,6 +30,8 @@ import { VehicleGrid } from '@/components/builder2/sections/vehicles';
 import { HeroMinimalistic } from '@/components/builder2/sections/initialfold/HeroMinimalistic';
 import { Testimonials } from '@/components/builder2/sections/testimonials';
 import { FAQ, WhyChooseUs } from '@/components/builder2/sections/features';
+import { VehicleCarousel } from '@/components/builder2/sections/vehicles/VehicleCarousel';
+import { VideoEmbed } from '@/components/builder2/sections/videos/VideoEmbed';
 
 // Generic Skeleton loader component
 function GenericSkeleton() {
@@ -130,6 +132,8 @@ function CraftJSContent() {
               Testimonials,
               FAQ,
               WhyChooseUs,
+              VehicleCarousel,
+              VideoEmbed,
             }}
             enabled={false}
           >

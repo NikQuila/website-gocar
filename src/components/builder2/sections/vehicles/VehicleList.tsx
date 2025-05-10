@@ -1,16 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  ArrowUpDown,
-  ExternalLink,
-  Tag,
-  MapPin,
-  Calendar,
-  Gauge,
-  Car,
-} from 'lucide-react';
+import { ArrowUpDown } from 'lucide-react';
 import { ExtendedVehicle } from './VehicleGrid';
-import { Badge } from '@/components/ui/badge';
+import { VehicleCard } from './VehicleCard';
 
 interface VehicleListProps {
   vehicles: ExtendedVehicle[];
@@ -18,6 +10,16 @@ interface VehicleListProps {
   getStatusColor: (status: string) => string;
   sortOrder: 'asc' | 'desc';
   setSortOrder: React.Dispatch<React.SetStateAction<'asc' | 'desc'>>;
+  cardSettings?: {
+    cardBgColor: string;
+    cardBorderColor: string;
+    cardTextColor: string;
+    cardPriceColor: string;
+    cardButtonColor: string;
+    cardButtonTextColor: string;
+    detailsButtonText: string;
+    bannerPosition: 'left' | 'right';
+  }[];
 }
 
 export const VehicleList: React.FC<VehicleListProps> = ({
@@ -26,6 +28,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   getStatusColor,
   sortOrder,
   setSortOrder,
+  cardSettings,
 }) => {
   // Determine grid columns based on the columns prop
   const gridCols = {
@@ -60,99 +63,29 @@ export const VehicleList: React.FC<VehicleListProps> = ({
       ) : (
         <div className={`grid ${gridCols} gap-6`}>
           {vehicles.map((vehicle) => (
-            <div
+            <VehicleCard
               key={vehicle.id}
-              className='group relative overflow-hidden rounded-xl bg-white border border-gray-200 shadow-sm transition-all hover:shadow-md'
-            >
-              {/* Image section */}
-              <div className='relative h-64 overflow-hidden bg-gray-100'>
-                {vehicle.main_image ? (
-                  <img
-                    src={vehicle.main_image}
-                    alt={`${vehicle.brand?.name} ${vehicle.model?.name}`}
-                    className='w-full h-full object-cover transition-transform duration-300 group-hover:scale-105'
-                  />
-                ) : (
-                  <div className='w-full h-full flex items-center justify-center bg-gray-100'>
-                    <Car size={48} className='text-gray-300' />
-                  </div>
-                )}
-
-                {/* Status badge */}
-                {vehicle.status?.name && (
-                  <Badge
-                    className={`absolute top-3 right-3 ${getStatusColor(
-                      vehicle.status.name
-                    )}`}
-                  >
-                    {vehicle.status.name}
-                  </Badge>
-                )}
-
-                {/* Price tag */}
-                <div className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 transition-opacity'>
-                  <div className='flex justify-between items-center'>
-                    <span className='text-white font-bold text-xl'>
-                      ${vehicle.price?.toLocaleString() || 'Consultar'}
-                    </span>
-                    <div className='text-xs text-white opacity-80'>
-                      {vehicle.year}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Content section */}
-              <div className='p-4'>
-                <h3 className='text-lg font-semibold text-gray-800 mb-1'>
-                  {vehicle.brand?.name} {vehicle.model?.name}
-                </h3>
-
-                <div className='mt-3 grid grid-cols-2 gap-2'>
-                  {vehicle.category?.name && (
-                    <div className='flex items-center text-xs text-gray-500'>
-                      <Car size={14} className='mr-1 text-gray-400' />
-                      <span>{vehicle.category.name}</span>
-                    </div>
-                  )}
-
-                  {vehicle.fuel_type?.name && (
-                    <div className='flex items-center text-xs text-gray-500'>
-                      <Tag size={14} className='mr-1 text-gray-400' />
-                      <span>{vehicle.fuel_type.name}</span>
-                    </div>
-                  )}
-
-                  {vehicle.year && (
-                    <div className='flex items-center text-xs text-gray-500'>
-                      <Calendar size={14} className='mr-1 text-gray-400' />
-                      <span>{vehicle.year}</span>
-                    </div>
-                  )}
-
-                  {vehicle.mileage && (
-                    <div className='flex items-center text-xs text-gray-500'>
-                      <Gauge size={14} className='mr-1 text-gray-400' />
-                      <span>{vehicle.mileage.toLocaleString()} km</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className='mt-4 flex '>
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='text-xs group-hover:bg-blue-50 group-hover:text-blue-700 group-hover:border-blue-200 transition-colors w-full'
-                    asChild
-                  >
-                    <a href={`/vehicles/${vehicle.id}`}>
-                      <span>Ver detalles</span>
-                      <ExternalLink size={12} className='ml-1' />
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            </div>
+              id={vehicle.id}
+              brand={vehicle.brand}
+              model={vehicle.model}
+              price={vehicle.price}
+              year={vehicle.year}
+              mileage={vehicle.mileage}
+              main_image={vehicle.main_image}
+              status={vehicle.status}
+              category={vehicle.category}
+              fuel_type={vehicle.fuel_type}
+              condition={vehicle.condition}
+              compact={false}
+              cardBgColor={cardSettings?.[0]?.cardBgColor}
+              cardBorderColor={cardSettings?.[0]?.cardBorderColor}
+              cardTextColor={cardSettings?.[0]?.cardTextColor}
+              cardPriceColor={cardSettings?.[0]?.cardPriceColor}
+              cardButtonColor={cardSettings?.[0]?.cardButtonColor}
+              cardButtonTextColor={cardSettings?.[0]?.cardButtonTextColor}
+              detailsButtonText={cardSettings?.[0]?.detailsButtonText}
+              bannerPosition={cardSettings?.[0]?.bannerPosition}
+            />
           ))}
         </div>
       )}
