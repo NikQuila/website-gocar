@@ -27,7 +27,6 @@ export async function generateMetadata(
           width: 1200,
           height: 630,
           alt: vehicle.title,
-          type: 'image/jpeg',
         },
       ],
 
