@@ -55,6 +55,7 @@ export interface Client {
   };
   dealerships: Dealership[];
   has_dark_mode: boolean;
+  client_website_config: ClientWebsiteConfig;
 }
 
 export interface Vehicle {

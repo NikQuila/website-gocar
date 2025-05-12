@@ -17,7 +17,7 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
 
       const { data: clientData, error: clientError } = await supabase
         .from('clients')
-        .select('*, dealerships(*)')
+        .select('*, dealerships(*), client_website_config(*)')
         .eq('domain', domain)
         .single();
 

@@ -16,12 +16,13 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import ThemeToggle from '../ThemeToggle';
 import useThemeStore from '@/store/useThemeStore';
+import { Client } from '@/utils/types';
 
 const navigation = [{ name: 'Inicio', href: '/' }];
 
 const Navbar = () => {
   const { client } = useClientStore();
-  const { theme } = useThemeStore();
+  const { theme, setTheme } = useThemeStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
@@ -35,12 +36,23 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Force light mode if client-website_config.isenabled is true
+  useEffect(() => {
+    if (client?.client_website_config?.is_enabled) {
+      setTheme('light');
+    }
+  }, [client]);
+
   const isActive = (href: string) => {
     if (href === '/') {
       return pathname === href;
     }
     return pathname.startsWith(href);
   };
+
+  // Should show theme toggle only if has_dark_mode is true AND client-website_config.isenabled is false
+  const shouldShowThemeToggle =
+    client?.has_dark_mode && !client?.client_website_config?.is_enabled;
 
   return (
     <NextUINavbar
@@ -90,7 +102,7 @@ const Navbar = () => {
 
       {/* Botón de contacto, theme toggle y hamburger a la derecha */}
       <NavbarContent justify='end' className='gap-2'>
-        {client?.has_dark_mode && (
+        {shouldShowThemeToggle && (
           <NavbarItem>
             <ThemeToggle />
           </NavbarItem>
