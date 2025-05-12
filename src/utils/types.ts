@@ -186,6 +186,20 @@ export interface Mail {
   reason: 'buy' | 'sell' | 'other';
 }
 
+export enum LeadTypes {
+  // Oportunidades donde la automotora COMPRA
+  BUY_DIRECT = 'buy-direct',
+  BUY_CONSIGNMENT = 'buy-consignment',
+
+  // Oportunidades donde la automotora VENDE
+  SELL_VEHICLE = 'sell-vehicle',
+  SELL_FINANCING = 'sell-financing',
+  SELL_TRANSFER = 'sell-transfer',
+
+  // Otros
+  CONTACT_GENERAL = 'contact-general',
+}
+
 // Tipos auxiliares para los filtros
 export type VehicleCategory = Category['name'];
 export type VehicleFuelType = FuelType['name'];
@@ -214,6 +228,7 @@ export interface Lead {
   client_id: string;
   customer_id?: string;
   customer?: Customer;
+  type: LeadTypes;
   search_params: {
     brand?: string;
     model?: string;

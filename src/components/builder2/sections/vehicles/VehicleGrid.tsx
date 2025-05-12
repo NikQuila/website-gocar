@@ -132,11 +132,12 @@ export const VehicleGrid = ({
             model:model_id(id, name),
             category:category_id(id, name),
             fuel_type:fuel_type_id(id, name),
-            condition:condition_id(id, name),
+            condition:condition_id(id, name), 
             color:color_id(id, name)
           `
           )
           .eq('client_id', client?.id as number)
+          .eq('show_in_stock', true)
           .order('created_at', { ascending: false })
           .limit(50); // Limitamos a 50 vehículos para evitar sobrecarga
 

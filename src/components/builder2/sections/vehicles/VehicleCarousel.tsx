@@ -142,6 +142,7 @@ export const VehicleCarousel = ({
           `
           )
           .eq('client_id', client?.id as number)
+          .eq('show_in_stock', true)
           .order('created_at', { ascending: false });
 
         if (error) {
