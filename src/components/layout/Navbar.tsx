@@ -118,7 +118,7 @@ const Navbar = () => {
             as={Link}
             href='/contact'
             size='sm'
-            className='bg-primary text-white hover:bg-primary/90 transition-colors rounded-md px-4'
+            className='bg-primary text-white dark:text-black hover:bg-primary/90 transition-colors rounded-md px-4'
             variant='solid'
           >
             Contactar
@@ -157,7 +157,7 @@ const Navbar = () => {
             <Button
               as={Link}
               href='/contact'
-              className='w-full bg-primary text-white hover:bg-primary/90 transition-colors'
+              className='w-full bg-primary text-white dark:text-black hover:bg-primary/90 transition-colors'
               onClick={() => setIsMenuOpen(false)}
             >
               Contactar
