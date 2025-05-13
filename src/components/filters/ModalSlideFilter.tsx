@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, ModalBody, ModalContent } from '@heroui/react';
+import { Button } from '@heroui/react';
 
 // Custom hook for media query with optimized dependencies
 const useMediaQuery = (query: string) => {
@@ -78,7 +79,10 @@ const ModalSlideFilter = React.memo(
       <Modal
         isOpen={isOpen}
         onOpenChange={onClose}
-        classNames={modalClassNames}
+        classNames={{
+          ...modalClassNames,
+          body: 'p-0 flex flex-col h-full',
+        }}
         motionProps={{
           variants: motionVariants,
         }}
@@ -87,7 +91,21 @@ const ModalSlideFilter = React.memo(
         placement='left'
       >
         <ModalContent>
-          <ModalBody>{children}</ModalBody>
+          <ModalBody>
+            <div className='flex flex-col h-full'>
+              <div className='flex-1 overflow-y-auto'>{children}</div>
+              <div className='sticky bottom-0 w-full p-4 bg-white dark:bg-dark-card border-t border-gray-200 dark:border-dark-border'>
+                <Button
+                  color='primary'
+                  className='w-full'
+                  size='lg'
+                  onClick={onClose}
+                >
+                  Aplicar Filtros
+                </Button>
+              </div>
+            </div>
+          </ModalBody>
         </ModalContent>
       </Modal>
     );
