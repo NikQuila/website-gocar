@@ -5,7 +5,7 @@ import { Icon } from '@iconify/react';
 import useMediaQuery from '../../hooks/useMediaQuery';
 import useVehiclesStore from '../../store/useVehiclesStore';
 import { Vehicle, VehicleFilters as VehicleFiltersType } from '@/utils/types';
-import { Button, Skeleton } from '@heroui/react';
+import { Button, Skeleton, Select, SelectItem } from '@heroui/react';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
 import ModalSlideFilter from '@/components/filters/ModalSlideFilter';
 import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
@@ -25,6 +25,31 @@ const VehiclesPage = () => {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<VehicleFiltersType>({});
   const [priceRange, setPriceRange] = useState([0, 1000000000]);
+  const [sortOrder, setSortOrder] = useState('price_asc');
+
+  const sortOptions = [
+    {
+      key: 'price_asc',
+      label: 'Precio: Menor a Mayor',
+      icon: 'mdi:sort-ascending',
+    },
+    {
+      key: 'price_desc',
+      label: 'Precio: Mayor a Menor',
+      icon: 'mdi:sort-descending',
+    },
+    { key: 'year_desc', label: 'Año: Más Reciente', icon: 'mdi:calendar' },
+    {
+      key: 'year_asc',
+      label: 'Año: Más Antiguo',
+      icon: 'mdi:calendar-outline',
+    },
+    {
+      key: 'mileage_asc',
+      label: 'Kilometraje: Menor a Mayor',
+      icon: 'mdi:speedometer-slow',
+    },
+  ];
 
   // Inicializar el store para cargar categorías, tipos de combustible, etc.
   useEffect(() => {
@@ -120,21 +145,33 @@ const VehiclesPage = () => {
 
   const sortVehicles = (vehicles: Vehicle[]) => {
     return [...vehicles].sort((a, b) => {
+      // Primero ordenar por estado (disponible primero)
       if (a.status?.name === 'Vendido' && b.status?.name !== 'Vendido')
         return 1;
       if (a.status?.name !== 'Vendido' && b.status?.name === 'Vendido')
         return -1;
-
       if (a.status?.name === 'Reservado' && b.status?.name !== 'Reservado')
         return 1;
       if (a.status?.name !== 'Reservado' && b.status?.name === 'Reservado')
         return -1;
 
-      return 0;
+      // Luego aplicar el ordenamiento seleccionado
+      switch (sortOrder) {
+        case 'price_asc':
+          return (a.price || 0) - (b.price || 0);
+        case 'price_desc':
+          return (b.price || 0) - (a.price || 0);
+        case 'year_desc':
+          return (b.year || 0) - (a.year || 0);
+        case 'year_asc':
+          return (a.year || 0) - (b.year || 0);
+        case 'mileage_asc':
+          return (a.mileage || 0) - (b.mileage || 0);
+        default:
+          return 0;
+      }
     });
   };
-
-  const sortedVehicles = sortVehicles(filteredVehicles);
 
   const LoadingState = () => (
     <div className='w-full'>
@@ -171,7 +208,7 @@ const VehiclesPage = () => {
         {/* Sidebar de filtros para desktop */}
         {isMd && (
           <aside
-            className={`w-80 bg-white dark:bg-dark-bg border-r border-gray-200 dark:border-dark-border fixed top-[3.5rem] bottom-0 transition-transform duration-300 z-40 ${
+            className={`w-64 bg-white dark:bg-dark-bg border-r border-gray-200 dark:border-dark-border fixed top-[3.5rem] bottom-0 transition-transform duration-300 z-40 ${
               isFilterOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
@@ -210,20 +247,52 @@ const VehiclesPage = () => {
             isMd && isFilterOpen ? 'md:ml-80' : ''
           }`}
         >
-          <div className='px-2 sm:px-6 pt-20'>
+          <div className='px-5 sm:px-6 pt-20'>
             {isPageLoading ? (
               <LoadingState />
             ) : (
               <>
                 <div className='mb-6'>
                   <div className='flex justify-between items-center'>
-                    <div>
-                      <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
-                        Vehículos
-                      </h2>
-                      <p className='text-sm text-gray-600 dark:text-gray-400'>
-                        {filteredVehicles.length} vehículos encontrados
-                      </p>
+                    <div className='flex-1 flex items-center justify-between max-w-3xl'>
+                      <div>
+                        <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
+                          Vehículos
+                        </h2>
+                        <p className='text-sm text-gray-600 dark:text-gray-400'>
+                          {filteredVehicles.length} vehículos encontrados
+                        </p>
+                        <Select
+                          size='sm'
+                          className='w-[250px] sm:hidden mt-2'
+                          selectedKeys={[sortOrder]}
+                          onChange={(e) => setSortOrder(e.target.value)}
+                          startContent={
+                            <Icon
+                              icon={
+                                sortOptions.find((opt) => opt.key === sortOrder)
+                                  ?.icon || 'mdi:sort-ascending'
+                              }
+                              className='text-xl text-primary'
+                            />
+                          }
+                        >
+                          {sortOptions.map((option) => (
+                            <SelectItem
+                              key={option.key}
+                              value={option.key}
+                              startContent={
+                                <Icon
+                                  icon={option.icon}
+                                  className='text-xl text-primary'
+                                />
+                              }
+                            >
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </Select>
+                      </div>
                     </div>
                     <Button
                       onClick={() => setIsFilterModalOpen(true)}
@@ -244,8 +313,8 @@ const VehiclesPage = () => {
                 </div>
 
                 {/* Grid de vehículos */}
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 pb-4 mt-2 sm:mt-8 sm:max-w-none'>
-                  {sortedVehicles.map((vehicle) => (
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 pb-4 mt-2 sm:mt-8'>
+                  {sortVehicles(filteredVehicles).map((vehicle) => (
                     <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
                   ))}
                 </div>

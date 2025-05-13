@@ -45,8 +45,8 @@ const motionVariants = {
 
 // Memoize modal class names
 const modalClassNames = {
-  base: 'justify-start m-0 p-0 h-dvh max-h-full w-[300px] z-[9999]',
-  wrapper: 'items-start justify-start !w-[300px]',
+  base: 'justify-start m-0 p-0 h-dvh max-h-full w-[280px] z-[9999]',
+  wrapper: 'items-start justify-start !w-[280px]',
   body: 'p-0',
   closeButton:
     'z-50 top-4 right-4 left-auto m-0 text-xl dark:bg-dark-card/80 w-8 h-8 shadow-sm flex items-center justify-center dark:border-dark-border',

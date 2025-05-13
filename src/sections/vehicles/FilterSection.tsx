@@ -109,7 +109,7 @@ const VehicleFilters = ({
   };
 
   return (
-    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-full transition-opacity duration-300 mt-6 sticky top-0'>
+    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-full transition-opacity duration-300 mt-6 sticky top-0 max-h-[calc(100vh-2rem)] overflow-y-auto'>
       <div className='p-4 border-b border-gray-200 dark:border-dark-border'>
         <div className='flex justify-between items-center'>
           <div>
@@ -532,7 +532,7 @@ const VehicleFilters = ({
             indicator: 'mr-4',
           }}
         >
-          <div className='grid grid-cols-2 gap-1.5 sm:gap-2 pb-2 mb-4'>
+          <div className='grid grid-cols-2 gap-1.5 sm:gap-2 pb-2 mb-4 max-h-[300px] overflow-y-auto'>
             {colors.map((color) => (
               <button
                 key={color.id}
