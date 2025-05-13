@@ -34,6 +34,7 @@ const FinancingPage = () => {
     down_payment: '',
     monthly_income: '',
     employment_type: '',
+    rut: '',
   });
 
   // Fetch all available vehicles on component mount
@@ -80,6 +81,7 @@ const FinancingPage = () => {
         email: formData.email,
         phone: formData.phone,
         client_id: client?.id || '',
+        rut: formData.rut,
       });
 
       // 2. Create lead with vehicle_id if selected
@@ -187,6 +189,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
         down_payment: '',
         monthly_income: '',
         employment_type: '',
+        rut: '',
       });
 
       // Show success modal
@@ -310,6 +313,15 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
               label='Teléfono'
               value={formData.phone}
               onValueChange={(value) => handleChange(value, 'phone')}
+              isRequired
+              variant='bordered'
+            />
+
+            <Input
+              type='text'
+              label='RUT'
+              value={formData.rut}
+              onValueChange={(value) => handleChange(value, 'rut')}
               isRequired
               variant='bordered'
             />
