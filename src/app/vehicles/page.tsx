@@ -208,7 +208,7 @@ const VehiclesPage = () => {
         {/* Sidebar de filtros para desktop */}
         {isMd && (
           <aside
-            className={`w-64 bg-white dark:bg-dark-bg border-r border-gray-200 dark:border-dark-border fixed top-[3.5rem] bottom-0 transition-transform duration-300 z-40 ${
+            className={`w-64 dark:bg-dark-bg fixed top-[3.5rem] bottom-0 transition-transform duration-300 z-40 ${
               isFilterOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
@@ -247,13 +247,13 @@ const VehiclesPage = () => {
             isMd && isFilterOpen ? 'md:ml-80' : ''
           }`}
         >
-          <div className='px-5 sm:px-6 pt-20'>
+          <div className='px-6 sm:px-6 pt-20 lg:mr-16'>
             {isPageLoading ? (
               <LoadingState />
             ) : (
               <>
                 <div className='mb-6'>
-                  <div className='flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between max-w-3xl'>
+                  <div className='flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between max-w-full'>
                     <div className='flex items-center justify-between'>
                       <div>
                         <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
@@ -279,10 +279,10 @@ const VehiclesPage = () => {
                         Filtros
                       </Button>
                     </div>
-                    <div className='mt-4 sm:mt-0'>
+                    <div className='mt-4 sm:mt-0 sm:ml-auto'>
                       <Select
                         size='sm'
-                        className='w-[275px] sm:w-[275px]'
+                        className='w-[275px]'
                         selectedKeys={[sortOrder]}
                         onChange={(e) => setSortOrder(e.target.value)}
                         startContent={
@@ -315,7 +315,7 @@ const VehiclesPage = () => {
                 </div>
 
                 {/* Grid de vehículos */}
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 pb-4 mt-2 sm:mt-8'>
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 pb-4 mt-2 sm:mt-8'>
                   {sortVehicles(filteredVehicles).map((vehicle) => (
                     <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
                   ))}
