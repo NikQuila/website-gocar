@@ -155,6 +155,7 @@ export interface Customer {
   last_name: string;
   client_id: string;
   rut?: string;
+  birth_date?: string;
 }
 
 export interface VehicleLike {

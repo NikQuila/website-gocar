@@ -35,6 +35,7 @@ const FinancingPage = () => {
     monthly_income: '',
     employment_type: '',
     rut: '',
+    birth_date: '',
   });
 
   // Fetch all available vehicles on component mount
@@ -82,6 +83,7 @@ const FinancingPage = () => {
         phone: formData.phone,
         client_id: client?.id || '',
         rut: formData.rut,
+        birth_date: formData.birth_date,
       });
 
       // 2. Create lead with vehicle_id if selected
@@ -104,26 +106,13 @@ const FinancingPage = () => {
       if (leadError) throw leadError;
 
       // 3. Send email notification
-      // Find the selected vehicle details
-      console.log('Vehicle ID selected:', formData.vehicle_id);
-      console.log(
-        'Available vehicles:',
-        availableVehicles.map((v) => ({
-          id: v.id,
-          name: `${v.brand?.name} ${v.model?.name}`,
-        }))
-      );
 
       const selectedVehicle: Vehicle = availableVehicles.find(
         (v) => v.id.toString() === formData.vehicle_id.toString()
       );
+      console.log('Available vehicles:', availableVehicles);
 
-      console.log(
-        'Selected vehicle found:',
-        selectedVehicle
-          ? `${selectedVehicle.brand?.name} ${selectedVehicle.model?.name}`
-          : 'None'
-      );
+      console.log('Selected vehicle found:', selectedVehicle);
 
       let vehicleInfo = {
         brand: 'No especificado',
@@ -161,6 +150,7 @@ Información Financiera:
 - Actividad Laboral: ${formData.employment_type || 'No especificado'}
 - Renta Líquida Mensual: $${formData.monthly_income || '0'}
 - Monto Pie: $${formData.down_payment || '0'}
+- Fecha de Nacimiento: ${formData.birth_date || 'No especificada'}
 
 ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
       });
@@ -178,7 +168,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
         // Continue with flow even if email fails
       }
 
-      // Clear form after successful submission
+      /*    // Clear form after successful submission
       setFormData({
         first_name: '',
         last_name: '',
@@ -190,8 +180,9 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
         monthly_income: '',
         employment_type: '',
         rut: '',
+        birth_date: '',
       });
-
+ */
       // Show success modal
       setShowSuccessModal(true);
     } catch (error: any) {
@@ -324,6 +315,16 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
               onValueChange={(value) => handleChange(value, 'rut')}
               isRequired
               variant='bordered'
+            />
+
+            <Input
+              type='date'
+              label='Fecha de Nacimiento'
+              value={formData.birth_date}
+              onValueChange={(value) => handleChange(value, 'birth_date')}
+              isRequired
+              variant='bordered'
+              placeholder=' '
             />
 
             {/* Actividad Laboral */}

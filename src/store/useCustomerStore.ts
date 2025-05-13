@@ -43,14 +43,22 @@ const useCustomerStore = create(
 
           if (existingCustomerWithSameClientId) {
             // Actualizar cliente existente
+            const updatePayload: Partial<Customer> = {
+              first_name: customerData.first_name,
+              last_name: customerData.last_name,
+              phone: customerData.phone,
+            };
+
+            if (customerData.rut) {
+              updatePayload.rut = customerData.rut;
+            }
+            if (customerData.birth_date) {
+              updatePayload.birth_date = customerData.birth_date;
+            }
+
             const { error: updateError } = await supabase
               .from('customers')
-              .update({
-                first_name: customerData.first_name,
-                last_name: customerData.last_name,
-                phone: customerData.phone,
-                rut: customerData.rut,
-              })
+              .update(updatePayload)
               .eq('id', existingCustomerWithSameClientId.id);
 
             if (updateError) throw updateError;
