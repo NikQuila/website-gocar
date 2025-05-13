@@ -44,7 +44,7 @@ const motionVariants = {
 
 // Memoize modal class names
 const modalClassNames = {
-  base: 'justify-start m-0 p-0 h-dvh max-h-full w-[300px] z-[50]',
+  base: 'justify-start m-0 p-0 h-dvh max-h-full w-[300px] z-[9999]',
   wrapper: 'items-start justify-start !w-[300px]',
   body: 'p-0',
   closeButton:
@@ -84,6 +84,7 @@ const ModalSlideFilter = React.memo(
         }}
         radius='none'
         scrollBehavior='inside'
+        placement='left'
       >
         <ModalContent>
           <ModalBody>{children}</ModalBody>

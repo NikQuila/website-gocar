@@ -22,6 +22,7 @@ const VehiclesPage = () => {
   } = useGeneralStore();
   const isMd = useMediaQuery('(min-width: 768px)');
   const [isFilterOpen, setIsFilterOpen] = useState(true);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<VehicleFiltersType>({});
   const [priceRange, setPriceRange] = useState([0, 1000000000]);
 
@@ -41,6 +42,7 @@ const VehiclesPage = () => {
 
   // Extraer valores únicos para los filtros
   const brands = [...new Set(vehicles.map((v) => v.brand))];
+  const models = [...new Set(vehicles.map((v) => v.model))].filter(Boolean);
 
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
     setFilters((prev) => {
@@ -70,6 +72,17 @@ const VehiclesPage = () => {
 
     // Filtros desde la barra lateral
     if (filters.brand && vehicle?.brand?.id.toString() !== filters.brand) {
+      matches = false;
+    }
+
+    if (filters.model && vehicle?.model?.id.toString() !== filters.model) {
+      matches = false;
+    }
+
+    if (
+      filters.category &&
+      vehicle?.category?.id.toString() !== filters.category
+    ) {
       matches = false;
     }
 
@@ -166,6 +179,7 @@ const VehiclesPage = () => {
               filters={filters}
               priceRange={priceRange}
               brands={brands}
+              models={models}
               onFilterChange={handleFilterChange}
               onPriceRangeChange={handlePriceRangeChange}
               onClearFilters={clearFilters}
@@ -176,13 +190,18 @@ const VehiclesPage = () => {
         {/* Modal de filtros para mobile */}
         {!isMd && (
           <ModalSlideFilter
-            filters={filters}
-            priceRange={priceRange}
-            brands={brands}
-            onFilterChange={handleFilterChange}
-            onPriceRangeChange={handlePriceRangeChange}
-            onClearFilters={clearFilters}
-          />
+            isOpen={isFilterModalOpen}
+            onClose={() => setIsFilterModalOpen(false)}
+          >
+            <VehicleFilters
+              filters={filters}
+              priceRange={priceRange}
+              brands={brands}
+              onFilterChange={handleFilterChange}
+              onPriceRangeChange={handlePriceRangeChange}
+              onClearFilters={clearFilters}
+            />
+          </ModalSlideFilter>
         )}
 
         {/* Contenido principal */}
@@ -207,7 +226,7 @@ const VehiclesPage = () => {
                       </p>
                     </div>
                     <Button
-                      onClick={() => setIsFilterOpen(true)}
+                      onClick={() => setIsFilterModalOpen(true)}
                       className='md:hidden'
                       color='primary'
                       variant='light'

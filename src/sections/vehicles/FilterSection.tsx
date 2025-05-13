@@ -368,28 +368,27 @@ const VehicleFilters = ({
             indicator: 'mr-4',
           }}
         >
-          <div className='grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2'>
+          <Select
+            placeholder='Selecciona un tipo'
+            selectedKeys={filters.category ? [filters.category] : []}
+            onChange={(e) => onFilterChange('category', e.target.value)}
+            size='sm'
+            classNames={{
+              base: 'dark:bg-dark-card',
+              trigger:
+                'dark:bg-dark-card dark:text-white dark:border-dark-border h-9 sm:h-10 text-xs sm:text-sm',
+              listbox: 'dark:bg-dark-card dark:text-white text-xs sm:text-sm',
+              popoverContent: 'dark:bg-dark-card dark:border-dark-border',
+              value: 'dark:text-white text-xs sm:text-sm',
+              label: 'dark:text-gray-400',
+            }}
+          >
             {categories.map((category) => (
-              <Chip
-                key={category.id}
-                onClick={() =>
-                  onFilterChange('category', category.id.toString())
-                }
-                className='capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center text-xs'
-                color={
-                  filters.category === category.id.toString()
-                    ? 'primary'
-                    : 'default'
-                }
-                variant={
-                  filters.category === category.id.toString() ? 'solid' : 'flat'
-                }
-                size='sm'
-              >
+              <SelectItem key={category.id} value={category.id}>
                 {category.name}
-              </Chip>
+              </SelectItem>
             ))}
-          </div>
+          </Select>
         </AccordionItem>
 
         <AccordionItem
