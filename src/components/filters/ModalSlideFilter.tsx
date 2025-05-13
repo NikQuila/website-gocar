@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, ModalBody, ModalContent } from '@heroui/react';
+import { Button } from '@heroui/react';
 
 // Custom hook for media query with optimized dependencies
 const useMediaQuery = (query: string) => {
@@ -44,10 +45,11 @@ const motionVariants = {
 
 // Memoize modal class names
 const modalClassNames = {
-  base: 'justify-start m-0 p-0 h-dvh max-h-full w-[300px] z-[50]',
-  wrapper: 'items-start justify-start !w-[300px]',
+  base: 'justify-start m-0 p-0 h-dvh max-h-full w-[280px] z-[9999]',
+  wrapper: 'items-start justify-start !w-[280px]',
   body: 'p-0',
-  closeButton: 'z-50',
+  closeButton:
+    'z-50 top-4 right-4 left-auto m-0 text-xl dark:bg-dark-card/80 w-8 h-8 shadow-sm flex items-center justify-center dark:border-dark-border',
 } as const;
 
 const ModalSlideFilter = React.memo(
@@ -77,15 +79,33 @@ const ModalSlideFilter = React.memo(
       <Modal
         isOpen={isOpen}
         onOpenChange={onClose}
-        classNames={modalClassNames}
+        classNames={{
+          ...modalClassNames,
+          body: 'p-0 flex flex-col h-full',
+        }}
         motionProps={{
           variants: motionVariants,
         }}
         radius='none'
         scrollBehavior='inside'
+        placement='left'
       >
         <ModalContent>
-          <ModalBody>{children}</ModalBody>
+          <ModalBody>
+            <div className='flex flex-col h-full'>
+              <div className='flex-1 overflow-y-auto'>{children}</div>
+              <div className='sticky bottom-0 w-full p-4 bg-white dark:bg-dark-card border-t border-gray-200 dark:border-dark-border'>
+                <Button
+                  color='primary'
+                  className='w-full'
+                  size='lg'
+                  onClick={onClose}
+                >
+                  Aplicar Filtros
+                </Button>
+              </div>
+            </div>
+          </ModalBody>
         </ModalContent>
       </Modal>
     );
