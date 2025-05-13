@@ -109,7 +109,7 @@ const VehicleFilters = ({
   };
 
   return (
-    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-full transition-opacity duration-300 mt-20'>
+    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-full transition-opacity duration-300 mt-6 sticky top-0'>
       <div className='p-4 border-b border-gray-200 dark:border-dark-border'>
         <div className='flex justify-between items-center'>
           <div>
