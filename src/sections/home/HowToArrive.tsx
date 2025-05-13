@@ -95,7 +95,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: 'AIzaSyB-e1NtGgeroS5Qt3sz3EZREdfY59qqmxw',
+    googleMapsApiKey: 'AIzaSyCTH9xZ0XhNsX5sJwp-2wPGcbtiBB1NOKU',
   });
 
   useEffect(() => {
