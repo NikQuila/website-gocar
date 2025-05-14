@@ -61,6 +61,7 @@ export interface Client {
 export interface Vehicle {
   id: string;
   client_id: string;
+  seller_id?: string; // ID del vendedor asociado al vehículo
 
   // Información básica del vehículo
   brand: Brand;
@@ -72,11 +73,8 @@ export interface Vehicle {
   discount_percentage?: number; // opcional
 
   // Características principales
-
   mileage: number;
-
   transmission: 'Manual' | 'Automatic';
-
   status_id: string;
   status?: ClientVehicleStatus;
 
