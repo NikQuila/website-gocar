@@ -20,6 +20,7 @@ import {
 } from '@/utils/functions';
 import useThemeStore from '@/store/useThemeStore';
 import useCustomerStore from '@/store/useCustomerStore';
+import { supabase } from '@/lib/supabase';
 
 interface VehicleDetailSectionProps {
   vehicle: Vehicle | null;
@@ -71,6 +72,35 @@ export default function VehicleDetailSection({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { theme } = useThemeStore();
   const { setIsModalOpen } = useCustomerStore();
+  const [sellerPhone, setSellerPhone] = useState<string | null>(null);
+  const [dealershipPhone, setDealershipPhone] = useState<string | null>(null);
+
+  // Función para formatear números de teléfono
+  const formatPhoneNumber = (phone: string | null | undefined) => {
+    // Si el teléfono es null o undefined, retornar null
+    if (!phone) return null;
+
+    // Limpiar el número de cualquier caracter no numérico
+    const cleanNumber = phone.replace(/\D/g, '');
+
+    // Si ya tiene el formato internacional completo (+569)
+    if (phone.startsWith('+569')) {
+      return phone;
+    }
+
+    // Si empieza con 9 y tiene 9 dígitos (número chileno sin código)
+    if (cleanNumber.startsWith('9') && cleanNumber.length === 9) {
+      return `+56${cleanNumber}`;
+    }
+
+    // Si tiene 8 dígitos (número local sin el 9)
+    if (cleanNumber.length === 8) {
+      return `+569${cleanNumber}`;
+    }
+
+    // Si no cumple ningún formato esperado o está vacío, retornar null
+    return null;
+  };
 
   useEffect(() => {
     if (!vehicle?.main_image) return;
@@ -134,6 +164,47 @@ export default function VehicleDetailSection({
     });
   }, [vehicle?.main_image, vehicle?.gallery]);
 
+  useEffect(() => {
+    // Función para obtener el teléfono del vendedor
+    const fetchSellerPhone = async () => {
+      if (vehicle?.seller_id) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('phone')
+          .eq('id', vehicle.seller_id)
+          .single();
+
+        if (!error && data) {
+          const formattedPhone = formatPhoneNumber(data.phone);
+          setSellerPhone(formattedPhone);
+        } else {
+          setSellerPhone(null);
+        }
+      }
+    };
+
+    // Función para obtener el teléfono del dealership
+    const fetchDealershipPhone = async () => {
+      if (vehicle?.dealership_id) {
+        const { data, error } = await supabase
+          .from('dealerships')
+          .select('phone')
+          .eq('id', vehicle.dealership_id)
+          .single();
+
+        if (!error && data) {
+          const formattedPhone = formatPhoneNumber(data.phone);
+          setDealershipPhone(formattedPhone);
+        } else {
+          setDealershipPhone(null);
+        }
+      }
+    };
+
+    fetchSellerPhone();
+    fetchDealershipPhone();
+  }, [vehicle?.seller_id, vehicle?.dealership_id]);
+
   if (loading || !vehicle) {
     return <VehicleDetailSkeleton />;
   }
@@ -187,6 +258,21 @@ export default function VehicleDetailSection({
     } else {
       onLike && onLike(vehicleId);
     }
+  };
+
+  // Modificar la función para usar el teléfono del vendedor, dealership o cliente
+  const getContactPhone = () => {
+    // Si hay un teléfono de vendedor válido, usarlo
+    if (sellerPhone) {
+      return sellerPhone;
+    }
+    // Si no hay teléfono de vendedor válido o no hay vendedor, usar teléfono del dealership
+    if (dealershipPhone) {
+      return dealershipPhone;
+    }
+    // Como última opción, usar el teléfono del cliente
+    const clientPhone = formatPhoneNumber(client?.contact?.phone);
+    return clientPhone || '';
   };
 
   return (
@@ -499,7 +585,7 @@ export default function VehicleDetailSection({
                 as='a'
                 startContent={<Icon icon='mdi:whatsapp' className='text-xl' />}
                 href={contactByWhatsApp(
-                  client?.contact?.phone || '',
+                  getContactPhone(),
                   `Hola, me interesa el ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year}`
                 )}
                 target='_blank'
@@ -531,7 +617,7 @@ export default function VehicleDetailSection({
               className='flex-1 bg-primary text-white dark:bg-primary dark:text-black hover:bg-primary/90 dark:hover:bg-primary/90'
               startContent={<Icon icon='mdi:whatsapp' className='text-xl' />}
               href={contactByWhatsApp(
-                client?.contact?.phone || '',
+                getContactPhone(),
                 `Hola, me interesa el ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year}`
               )}
               target='_blank'
