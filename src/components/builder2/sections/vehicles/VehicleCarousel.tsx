@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { useNode } from '@craftjs/core';
-import { supabase } from '@/lib/supabase';
-import { Vehicle } from '@/utils/types';
 import { Button } from '@/components/ui/button';
-import Marquee from 'react-fast-marquee';
-import useClientStore from '@/store/useClientStore';
 import { VehicleCard } from './VehicleCard';
+import Marquee from 'react-fast-marquee';
+import { Vehicle } from '@/utils/types';
+import useClientStore from '@/store/useClientStore';
+import { supabase } from '@/lib/supabase';
 
-// Versión simplificada del vehículo
+// Versión simplificada del vehículo - EXPORT this interface
 export interface SimpleVehicle extends Vehicle {
-  brand?: { id: number; name: string };
-  model?: { id: number; name: string };
-  status?: { id: number; name: string };
-  category?: { id: number; name: string };
-  fuel_type?: { id: number; name: string };
-  condition?: { id: number; name: string };
+  vehicles_sales?:
+    | Array<{ created_at: string; [key: string]: any }>
+    | { created_at: string; [key: string]: any }
+    | null;
+  vehicles_reservations?:
+    | Array<{ created_at: string; [key: string]: any }>
+    | { created_at: string; [key: string]: any }
+    | null;
+  event_date?: string; // To store the created_at of the sale/reservation event
 }
 
 interface VehicleCarouselProps {
@@ -134,34 +137,105 @@ export const VehicleCarousel = ({
             mileage,
             main_image,
             status_id,
+            discount_percentage,
+            created_at,
             status:status_id(id, name),
             brand:brand_id(id, name),
             model:model_id(id, name),
             category:category_id(id, name),
-            fuel_type:fuel_type_id(id, name)
+            fuel_type:fuel_type_id(id, name),
+            vehicles_sales!vehicle_id(*),
+            vehicles_reservations!vehicle_id(*)
           `
           )
-          .eq('client_id', client?.id as number)
-          .eq('show_in_stock', true)
+          .eq('client_id', +client?.id)
           .order('created_at', { ascending: false });
 
         if (error) {
           console.error('Error fetching vehicles:', error);
         } else {
-          // Convertir al tipo SimpleVehicle
-          const vehiclesData = data as unknown as SimpleVehicle[];
+          const processedData = data.map((vehicle: any) => {
+            let event_date: string | undefined;
 
-          // Filtrar vehículos por estado
-          console.log('vehicles data', vehiclesData);
+            if (vehicle.status?.name === 'Vendido' && vehicle.vehicles_sales) {
+              if (
+                Array.isArray(vehicle.vehicles_sales) &&
+                vehicle.vehicles_sales.length > 0
+              ) {
+                const sortedSales = [...vehicle.vehicles_sales].sort(
+                  (a, b) =>
+                    new Date(b.created_at).getTime() -
+                    new Date(a.created_at).getTime()
+                );
+                event_date = sortedSales[0].created_at;
+              } else if (
+                !Array.isArray(vehicle.vehicles_sales) &&
+                vehicle.vehicles_sales.created_at
+              ) {
+                // It's a single object
+                event_date = vehicle.vehicles_sales.created_at;
+              }
+            } else if (
+              vehicle.status?.name === 'Reservado' &&
+              vehicle.vehicles_reservations
+            ) {
+              if (
+                Array.isArray(vehicle.vehicles_reservations) &&
+                vehicle.vehicles_reservations.length > 0
+              ) {
+                const sortedReservations = [
+                  ...vehicle.vehicles_reservations,
+                ].sort(
+                  (a, b) =>
+                    new Date(b.created_at).getTime() -
+                    new Date(a.created_at).getTime()
+                );
+                event_date = sortedReservations[0].created_at;
+              } else if (
+                !Array.isArray(vehicle.vehicles_reservations) &&
+                vehicle.vehicles_reservations.created_at
+              ) {
+                // It's a single object
+                event_date = vehicle.vehicles_reservations.created_at;
+              }
+            }
+            return { ...vehicle, event_date };
+          });
+
+          const vehiclesData = processedData as unknown as SimpleVehicle[];
+
+          // Filtrar vehículos por estado y luego por fecha de evento para Vendido/Reservado
+          console.log('vehicles data with event_date', vehiclesData);
           console.log('status values', statusValues);
-          const filteredByStatus = vehiclesData.filter(
-            (vehicle) =>
-              vehicle.status &&
-              statusValues.includes(vehicle.status.name as any)
-          );
 
-          // Ordenar para que los vehículos con estado "Publicado" aparezcan primero
-          const sortedVehicles = [...filteredByStatus].sort((a, b) => {
+          const threeDaysAgo = new Date(); // Define threeDaysAgo once
+          threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+          threeDaysAgo.setHours(0, 0, 0, 0); // Optional: Compare against the start of the day
+
+          const activelyFilteredVehicles = vehiclesData.filter((vehicle) => {
+            if (
+              !vehicle.status ||
+              !statusValues.includes(vehicle.status.name as any)
+            ) {
+              return false; // Filtered out by showStatuses prop
+            }
+
+            if (
+              vehicle.status.name === 'Vendido' ||
+              vehicle.status.name === 'Reservado'
+            ) {
+              if (vehicle.event_date) {
+                const eventDate = new Date(vehicle.event_date);
+                return eventDate >= threeDaysAgo;
+              }
+              return false; // If no event_date for sold/reserved, exclude it
+            }
+            return true; // Keep 'Publicado' and other statuses not explicitly filtered by date
+          });
+
+          // Ordenar para que los vehículos con estado "Publicado" aparezcan primero y luego por precio
+          const sortedVehicles = [...activelyFilteredVehicles].sort((a, b) => {
+            // Prioritize "Publicado" status
             if (
               a.status?.name === 'Publicado' &&
               b.status?.name !== 'Publicado'
@@ -174,10 +248,39 @@ export const VehicleCarousel = ({
             ) {
               return 1;
             }
+
+            // If statuses are the same (or both not 'Publicado'), sort by created_at (newest first)
+            if (a.created_at && b.created_at) {
+              const dateA = new Date(a.created_at).getTime();
+              const dateB = new Date(b.created_at).getTime();
+              if (dateA > dateB) return -1; // dateA is newer, comes first
+              if (dateA < dateB) return 1; // dateB is newer, comes first
+            }
+
+            // If created_at is also the same (or one is missing), then sort by price
+            const tempPriceA =
+              a.price && a.discount_percentage && a.discount_percentage > 0
+                ? a.price * (1 - a.discount_percentage / 100)
+                : a.price;
+            const tempPriceB =
+              b.price && b.discount_percentage && b.discount_percentage > 0
+                ? b.price * (1 - b.discount_percentage / 100)
+                : b.price;
+
+            const priceA = tempPriceA ?? Infinity;
+            const priceB = tempPriceB ?? Infinity;
+
+            if (priceA < priceB) {
+              return -1;
+            }
+            if (priceA > priceB) {
+              return 1;
+            }
+
             return 0;
           });
 
-          console.log('filtered by status', sortedVehicles);
+          console.log('filtered by status, date, and price', sortedVehicles);
 
           setVehicles(sortedVehicles);
         }
@@ -200,11 +303,12 @@ export const VehicleCarousel = ({
         padding: '40px 0',
         position: 'relative',
         border: selected ? '1px dashed #1e88e5' : '1px solid transparent',
+        minWidth: 0,
       }}
       className='w-full VehicleCarousel'
       data-section='vehicle-carousel'
     >
-      <div className='max-w-7xl mx-auto px-4 sm:px-6'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 overflow-hidden'>
         {/* Encabezado */}
         <div className='flex justify-between items-center mb-8'>
           <div>
@@ -247,7 +351,7 @@ export const VehicleCarousel = ({
             </p>
           </div>
         ) : (
-          <div>
+          <div className='w-full overflow-hidden'>
             <Marquee
               gradient={false}
               speed={autoplayValue ? 50 : 0}
@@ -262,16 +366,7 @@ export const VehicleCarousel = ({
                   }}
                 >
                   <VehicleCard
-                    id={vehicle.id}
-                    brand={vehicle.brand}
-                    model={vehicle.model}
-                    price={vehicle.price}
-                    year={vehicle.year}
-                    mileage={vehicle.mileage}
-                    main_image={vehicle.main_image}
-                    status={vehicle.status}
-                    category={vehicle.category}
-                    fuel_type={vehicle.fuel_type}
+                    vehicle={vehicle}
                     compact={false}
                     cardBgColor={cardSettings[0]?.cardBgColor}
                     cardBorderColor={cardSettings[0]?.cardBorderColor}

@@ -31,10 +31,15 @@ interface VehicleStatus {
 
 // Extended Vehicle interface to include the nested properties
 export interface ExtendedVehicle extends Vehicle {
-  category?: { id: number; name: string };
-  fuel_type?: { id: number; name: string };
-  condition?: { id: number; name: string };
-  color?: { id: number; name: string };
+  vehicles_sales?:
+    | Array<{ created_at: string; [key: string]: any }>
+    | { created_at: string; [key: string]: any }
+    | null;
+  vehicles_reservations?:
+    | Array<{ created_at: string; [key: string]: any }>
+    | { created_at: string; [key: string]: any }
+    | null;
+  event_date?: string;
 }
 
 interface VehicleGridProps {
@@ -46,6 +51,16 @@ interface VehicleGridProps {
   showStatuses?: ('Publicado' | 'Vendido' | 'Reservado')[];
   children?: React.ReactNode;
   showFilters?: boolean;
+  cardSettings?: {
+    cardBgColor: string;
+    cardBorderColor: string;
+    cardTextColor: string;
+    cardPriceColor: string;
+    cardButtonColor: string;
+    cardButtonTextColor: string;
+    detailsButtonText: string;
+    bannerPosition: 'left' | 'right';
+  }[];
 }
 
 export const VehicleGrid = ({
@@ -56,6 +71,18 @@ export const VehicleGrid = ({
   columns = 3,
   showStatuses = ['Publicado', 'Reservado', 'Vendido'],
   showFilters = true,
+  cardSettings = [
+    {
+      cardBgColor: '#ffffff',
+      cardBorderColor: '#e5e7eb',
+      cardTextColor: '#1f2937',
+      cardPriceColor: '#ffffff',
+      cardButtonColor: '#3b82f6',
+      cardButtonTextColor: '#ffffff',
+      detailsButtonText: 'Ver detalles',
+      bannerPosition: 'right',
+    },
+  ],
   children,
 }: VehicleGridProps) => {
   const { connectors, selected } = useNode((state) => ({
@@ -83,7 +110,9 @@ export const VehicleGrid = ({
   const [selectedFuels, setSelectedFuels] = useState<string[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortOrder, setSortOrder] = useState<
+    'price_asc' | 'price_desc' | 'date_asc' | 'date_desc'
+  >('date_desc'); // Default to newest first
 
   // Available options derived from vehicles
   const [availableBrands, setAvailableBrands] = useState<string[]>([]);
@@ -127,17 +156,20 @@ export const VehicleGrid = ({
             mileage, 
             main_image,
             status_id,
+            discount_percentage,
+            created_at,
             status:status_id(id, name),
             brand:brand_id(id, name),
             model:model_id(id, name),
             category:category_id(id, name),
             fuel_type:fuel_type_id(id, name),
-            condition:condition_id(id, name), 
-            color:color_id(id, name)
+            condition:condition_id(id, name),
+            color:color_id(id, name),
+            vehicles_sales!vehicle_id(*),
+            vehicles_reservations!vehicle_id(*)
           `
           )
-          .eq('client_id', client?.id as number)
-          .eq('show_in_stock', true)
+          .eq('client_id', +client?.id)
           .order('created_at', { ascending: false })
           .limit(50); // Limitamos a 50 vehículos para evitar sobrecarga
 
@@ -154,6 +186,8 @@ export const VehicleGrid = ({
             mileage: any;
             main_image: any;
             status_id: any;
+            discount_percentage: any;
+            created_at: any;
             status: VehicleStatus;
             brand: { id: any; name: any };
             model: { id: any; name: any };
@@ -161,16 +195,75 @@ export const VehicleGrid = ({
             fuel_type: { id: any; name: any };
             condition: { id: any; name: any };
             color: { id: any; name: any };
+            vehicles_sales?:
+              | Array<{ created_at: string; [key: string]: any }>
+              | { created_at: string; [key: string]: any }
+              | null;
+            vehicles_reservations?:
+              | Array<{ created_at: string; [key: string]: any }>
+              | { created_at: string; [key: string]: any }
+              | null;
+            event_date?: string;
           }>;
 
-          // Filter vehicles by status names
-          const filteredByStatus = typedData.filter(
+          // Process event_date for Vendido/Reservado
+          const processedData = typedData.map((vehicle) => {
+            let event_date: string | undefined;
+            if (vehicle.status?.name === 'Vendido' && vehicle.vehicles_sales) {
+              if (
+                Array.isArray(vehicle.vehicles_sales) &&
+                vehicle.vehicles_sales.length > 0
+              ) {
+                const sortedSales = [...vehicle.vehicles_sales].sort(
+                  (a, b) =>
+                    new Date(b.created_at).getTime() -
+                    new Date(a.created_at).getTime()
+                );
+                event_date = sortedSales[0].created_at;
+              } else if (
+                !Array.isArray(vehicle.vehicles_sales) &&
+                (vehicle.vehicles_sales as { created_at: string }).created_at
+              ) {
+                event_date = (vehicle.vehicles_sales as { created_at: string })
+                  .created_at;
+              }
+            } else if (
+              vehicle.status?.name === 'Reservado' &&
+              vehicle.vehicles_reservations
+            ) {
+              if (
+                Array.isArray(vehicle.vehicles_reservations) &&
+                vehicle.vehicles_reservations.length > 0
+              ) {
+                const sortedReservations = [
+                  ...vehicle.vehicles_reservations,
+                ].sort(
+                  (a, b) =>
+                    new Date(b.created_at).getTime() -
+                    new Date(a.created_at).getTime()
+                );
+                event_date = sortedReservations[0].created_at;
+              } else if (
+                !Array.isArray(vehicle.vehicles_reservations) &&
+                (vehicle.vehicles_reservations as { created_at: string })
+                  .created_at
+              ) {
+                event_date = (
+                  vehicle.vehicles_reservations as { created_at: string }
+                ).created_at;
+              }
+            }
+            return { ...vehicle, event_date }; // Add event_date to the vehicle object
+          });
+
+          // Filter vehicles by status names (applied to data that now includes event_date)
+          const filteredByStatus = processedData.filter(
             (vehicle) =>
               vehicle.status &&
               showStatuses.includes(vehicle.status.name as any)
           );
 
-          // Sort vehicles to show "Publicado" status first
+          // Sort vehicles to show "Publicado" status first, then by newest
           const sortedVehicles = [...filteredByStatus].sort((a, b) => {
             if (
               a.status.name === 'Publicado' &&
@@ -183,6 +276,13 @@ export const VehicleGrid = ({
               b.status.name === 'Publicado'
             ) {
               return 1;
+            }
+            // If statuses are the same, sort by created_at (newest first)
+            if (a.created_at && b.created_at) {
+              const dateA = new Date(a.created_at).getTime();
+              const dateB = new Date(b.created_at).getTime();
+              if (dateA > dateB) return -1;
+              if (dateA < dateB) return 1;
             }
             return 0;
           });
@@ -318,10 +418,57 @@ export const VehicleGrid = ({
       );
     }
 
+    // Apply 3-day recency filter for "Vendido" / "Reservado" statuses
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    threeDaysAgo.setHours(0, 0, 0, 0);
+
+    filtered = filtered.filter((vehicle) => {
+      if (
+        vehicle.status?.name === 'Vendido' ||
+        vehicle.status?.name === 'Reservado'
+      ) {
+        if (vehicle.event_date) {
+          const eventDate = new Date(vehicle.event_date);
+          return eventDate >= threeDaysAgo;
+        }
+        return false; // Exclude if sold/reserved but no event_date
+      }
+      return true; // Keep 'Publicado' and other statuses not subject to this specific date filter
+    });
+
     // Apply sorting
     filtered.sort((a, b) => {
-      if (a.price === undefined || b.price === undefined) return 0;
-      return sortOrder === 'asc' ? a.price - b.price : b.price - a.price;
+      if (sortOrder === 'price_asc') {
+        const priceA =
+          a.price && a.discount_percentage && a.discount_percentage > 0
+            ? a.price * (1 - a.discount_percentage / 100)
+            : a.price;
+        const priceB =
+          b.price && b.discount_percentage && b.discount_percentage > 0
+            ? b.price * (1 - b.discount_percentage / 100)
+            : b.price;
+        return (priceA ?? Infinity) - (priceB ?? Infinity);
+      } else if (sortOrder === 'price_desc') {
+        const priceA =
+          a.price && a.discount_percentage && a.discount_percentage > 0
+            ? a.price * (1 - a.discount_percentage / 100)
+            : a.price;
+        const priceB =
+          b.price && b.discount_percentage && b.discount_percentage > 0
+            ? b.price * (1 - b.discount_percentage / 100)
+            : b.price;
+        return (priceB ?? Infinity) - (priceA ?? Infinity);
+      } else if (sortOrder === 'date_desc') {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return dateB - dateA;
+      } else if (sortOrder === 'date_asc') {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return dateA - dateB;
+      }
+      return 0;
     });
 
     setFilteredVehicles(filtered);
@@ -649,6 +796,7 @@ export const VehicleGrid = ({
                       getStatusColor={getStatusColor}
                       sortOrder={sortOrder}
                       setSortOrder={setSortOrder}
+                      cardSettings={cardSettings}
                     />
                   </>
                 )}
@@ -673,6 +821,18 @@ VehicleGrid.craft = {
     columns: 3,
     showStatuses: ['Publicado', 'Reservado', 'Vendido'],
     showFilters: true,
+    cardSettings: [
+      {
+        cardBgColor: '#ffffff',
+        cardBorderColor: '#e5e7eb',
+        cardTextColor: '#1f2937',
+        cardPriceColor: '#ffffff',
+        cardButtonColor: '#3b82f6',
+        cardButtonTextColor: '#ffffff',
+        detailsButtonText: 'Ver detalles',
+        bannerPosition: 'right',
+      },
+    ],
   },
   related: {
     // Settings component will be external

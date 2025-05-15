@@ -1,15 +1,33 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown } from 'lucide-react';
+import {
+  ArrowUpDown,
+  ExternalLink,
+  Tag,
+  MapPin,
+  Calendar,
+  Gauge,
+  Car,
+} from 'lucide-react';
 import { ExtendedVehicle } from './VehicleGrid';
+import { Badge } from '@/components/ui/badge';
 import { VehicleCard } from './VehicleCard';
+import { SimpleVehicle } from './VehicleCarousel';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 
 interface VehicleListProps {
   vehicles: ExtendedVehicle[];
   columns: 2 | 3 | 4;
   getStatusColor: (status: string) => string;
-  sortOrder: 'asc' | 'desc';
-  setSortOrder: React.Dispatch<React.SetStateAction<'asc' | 'desc'>>;
+  sortOrder: 'price_asc' | 'price_desc' | 'date_asc' | 'date_desc';
+  setSortOrder: React.Dispatch<
+    React.SetStateAction<'price_asc' | 'price_desc' | 'date_asc' | 'date_desc'>
+  >;
   cardSettings?: {
     cardBgColor: string;
     cardBorderColor: string;
@@ -37,21 +55,51 @@ export const VehicleList: React.FC<VehicleListProps> = ({
     4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
   }[columns];
 
+  const getSortButtonText = () => {
+    switch (sortOrder) {
+      case 'date_desc':
+        return 'Recientes primero';
+      case 'date_asc':
+        return 'Antiguos primero';
+      case 'price_asc':
+        return 'Precio: Menor a mayor';
+      case 'price_desc':
+        return 'Precio: Mayor a menor';
+      default:
+        return 'Ordenar';
+    }
+  };
+
   return (
     <div className='w-full'>
       {/* Sort Controls */}
       <div className='flex justify-end mb-4'>
-        <Button
-          variant='outline'
-          size='sm'
-          className='flex items-center gap-1 text-xs'
-          onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-        >
-          <span>
-            Precio: {sortOrder === 'asc' ? 'Menor a mayor' : 'Mayor a menor'}
-          </span>
-          <ArrowUpDown size={14} />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant='outline'
+              size='sm'
+              className='flex items-center gap-1 text-xs'
+            >
+              <span>{getSortButtonText()}</span>
+              <ArrowUpDown size={14} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='end'>
+            <DropdownMenuItem onSelect={() => setSortOrder('date_desc')}>
+              Recientes primero
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setSortOrder('date_asc')}>
+              Antiguos primero
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setSortOrder('price_asc')}>
+              Precio: Menor a mayor
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setSortOrder('price_desc')}>
+              Precio: Mayor a menor
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {vehicles.length === 0 ? (
@@ -65,17 +113,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
           {vehicles.map((vehicle) => (
             <VehicleCard
               key={vehicle.id}
-              id={vehicle.id}
-              brand={vehicle.brand}
-              model={vehicle.model}
-              price={vehicle.price}
-              year={vehicle.year}
-              mileage={vehicle.mileage}
-              main_image={vehicle.main_image}
-              status={vehicle.status}
-              category={vehicle.category}
-              fuel_type={vehicle.fuel_type}
-              condition={vehicle.condition}
+              vehicle={vehicle as unknown as SimpleVehicle}
               compact={false}
               cardBgColor={cardSettings?.[0]?.cardBgColor}
               cardBorderColor={cardSettings?.[0]?.cardBorderColor}

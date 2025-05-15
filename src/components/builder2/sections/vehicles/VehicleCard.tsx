@@ -2,19 +2,10 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Car, Tag, Calendar, Gauge } from 'lucide-react';
+import { SimpleVehicle } from './VehicleCarousel';
 
 export interface VehicleCardProps {
-  id: number;
-  brand?: { id: number; name: string };
-  model?: { id: number; name: string };
-  price?: number;
-  year?: number;
-  mileage?: number;
-  main_image?: string;
-  status?: { id: number; name: string };
-  category?: { id: number; name: string };
-  fuel_type?: { id: number; name: string };
-  condition?: { id: number; name: string };
+  vehicle: SimpleVehicle; // Expect the whole vehicle object
   compact?: boolean;
   cardBgColor?: string;
   cardBorderColor?: string;
@@ -27,17 +18,7 @@ export interface VehicleCardProps {
 }
 
 export const VehicleCard: React.FC<VehicleCardProps> = ({
-  id,
-  brand,
-  model,
-  price,
-  year,
-  mileage,
-  main_image,
-  status,
-  category,
-  fuel_type,
-  condition,
+  vehicle, // Destructure vehicle
   compact = false,
   cardBgColor = '#ffffff',
   cardBorderColor = '#e5e7eb',
@@ -48,13 +29,43 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   detailsButtonText = 'Ver detalles',
   bannerPosition = 'right',
 }) => {
+  const {
+    id,
+    brand,
+    model,
+    price,
+    year,
+    mileage,
+    main_image,
+    status,
+    category,
+    fuel_type,
+    condition,
+    created_at,
+    discount_percentage,
+  } = vehicle;
+
+  // Calculate discounted_price for display
+  let displayDiscountedPrice;
+  if (price && discount_percentage && discount_percentage > 0) {
+    displayDiscountedPrice = price * (1 - discount_percentage / 100);
+  }
+
   const isNotAvailable = status?.name && status.name !== 'Publicado';
+
+  const isNew = () => {
+    if (!created_at) return false;
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    const createdAtDate = new Date(created_at);
+    return createdAtDate > fiveDaysAgo;
+  };
 
   // Obtener color del badge de estado
   const getStatusColor = (statusName: string) => {
     switch (statusName) {
       case 'Vendido':
-        return 'bg-red-700 text-white'; // Rojo más intenso
+        return 'bg-red-700 text-white';
       case 'Reservado':
         return 'bg-blue-600 text-white';
       default:
@@ -62,7 +73,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     }
   };
 
-  // Formatear precio
   const formatPrice = (priceValue: number) => {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
@@ -81,7 +91,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   return (
     <div
       className={`group relative overflow-hidden rounded-xl shadow-sm transition-all hover:shadow-md h-full ${
-        isNotAvailable ? 'opacity-90' : '' // Opacidad más sutil
+        isNotAvailable ? 'opacity-90' : ''
       }`}
       style={{
         backgroundColor: cardBgColor,
@@ -95,7 +105,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
         className={`relative ${
           compact ? 'h-48' : 'h-64'
         } overflow-hidden bg-gray-100`}
-        // No aplicar grayscale, solo opacidad general de la tarjeta
       >
         {main_image ? (
           <img
@@ -109,7 +118,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
           </div>
         )}
 
-        {/* Banner diagonal - Solo para Vendido o Reservado */}
         {isNotAvailable && status?.name && (
           <div
             className={`absolute top-0 ${
@@ -126,15 +134,48 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
           </div>
         )}
 
-        {/* Etiqueta de precio */}
+        {isNew() && !isNotAvailable && (
+          <div className='absolute top-2 right-2 z-10'>
+            <Badge className='bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full'>
+              Recién publicado
+            </Badge>
+          </div>
+        )}
+
         <div className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 transition-opacity'>
           <div className='flex justify-between items-center'>
-            <span
-              className='font-bold text-xl'
-              style={{ color: cardPriceColor }}
-            >
-              {price ? formatPrice(price) : 'Consultar'}
-            </span>
+            <div>
+              {price &&
+              displayDiscountedPrice &&
+              displayDiscountedPrice < price ? (
+                <>
+                  <span
+                    className='font-bold text-xl'
+                    style={{
+                      background: 'linear-gradient(to right, #FDBA74, #EA580C)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      display: 'inline-block',
+                    }}
+                  >
+                    {formatPrice(displayDiscountedPrice)}
+                  </span>
+                  <span
+                    className='ml-2 text-sm line-through'
+                    style={{ color: cardPriceColor, opacity: '0.7' }}
+                  >
+                    {formatPrice(price)}
+                  </span>
+                </>
+              ) : (
+                <span
+                  className='font-bold text-xl'
+                  style={{ color: cardPriceColor }}
+                >
+                  {price ? formatPrice(price) : 'Consultar'}
+                </span>
+              )}
+            </div>
             <div
               className='text-xs'
               style={{ color: cardPriceColor, opacity: '0.8' }}
@@ -145,7 +186,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
         </div>
       </div>
 
-      {/* Contenido */}
       <div className={`p-4 ${isNotAvailable ? 'pointer-events-none' : ''}`}>
         <h3
           className='text-lg font-semibold mb-1'
@@ -190,7 +230,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
               </div>
             )}
 
-            {mileage && (
+            {mileage != null && (
               <div
                 className='flex items-center text-xs'
                 style={{ color: cardTextColor, opacity: '0.7' }}
@@ -207,7 +247,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
             variant='outline'
             size='sm'
             className={`text-xs transition-colors w-full hover:opacity-90 ${
-              isNotAvailable ? 'opacity-60 cursor-not-allowed' : '' // Opacidad del botón ajustada
+              isNotAvailable ? 'opacity-60 cursor-not-allowed' : ''
             }`}
             style={{
               borderColor: cardButtonColor,
