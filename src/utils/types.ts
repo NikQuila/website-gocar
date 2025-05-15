@@ -343,6 +343,7 @@ export interface ClientWebsiteConfig {
   };
 
   is_enabled: boolean;
+  color_scheme: 'LIGHT' | 'DARK';
   created_at: string;
   updated_at: string;
 }

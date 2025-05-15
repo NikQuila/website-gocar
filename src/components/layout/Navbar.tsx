@@ -44,7 +44,11 @@ const Navbar = () => {
   // Force light mode if client-website_config.isenabled is true
   useEffect(() => {
     if (client?.client_website_config?.is_enabled) {
-      setTheme('light');
+      if (client?.client_website_config?.color_scheme === 'LIGHT') {
+        setTheme('light');
+      } else {
+        setTheme('dark');
+      }
     }
   }, [client]);
 
