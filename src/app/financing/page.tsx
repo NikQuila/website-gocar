@@ -49,7 +49,8 @@ const FinancingPage = () => {
             *,
             brand:brand_id (*),
             model:model_id (*),
-            condition:condition_id (*)
+            condition:condition_id (*),
+            seller_id
           `
           )
           .eq('client_id', client?.id)
@@ -155,6 +156,7 @@ Información Financiera:
 ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
       });
 
+      // Enviar email al cliente/automotora
       const emailResult = await sendEmail({
         to: [client?.contact?.email || ''],
         subject: `Solicitud de Financiamiento${
@@ -164,8 +166,47 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
       });
 
       if (!emailResult.success) {
-        console.error('Error al enviar el email:', emailResult.error);
+        console.error(
+          'Error al enviar el email a la automotora:',
+          emailResult.error
+        );
         // Continue with flow even if email fails
+      }
+
+      // Enviar email al vendedor si el vehículo tiene un seller_id asociado
+      if (selectedVehicle?.seller_id) {
+        try {
+          // Obtener email del vendedor
+          const { data: sellerData, error: sellerError } = await supabase
+            .from('users')
+            .select('email, first_name, last_name')
+            .eq('id', selectedVehicle.seller_id)
+            .single();
+
+          if (!sellerError && sellerData?.email) {
+            const sellerEmailResult = await sendEmail({
+              to: [sellerData.email],
+              subject: `Solicitud de Financiamiento para tu vehículo: ${vehicleInfo.brand} ${vehicleInfo.model}`,
+              content: emailContent,
+            });
+
+            if (!sellerEmailResult.success) {
+              console.error(
+                'Error al enviar el email al vendedor:',
+                sellerEmailResult.error
+              );
+            } else {
+              console.log(
+                `Email enviado al vendedor: ${sellerData.first_name} ${sellerData.last_name} (${sellerData.email})`
+              );
+            }
+          }
+        } catch (sellerEmailError) {
+          console.error(
+            'Error al procesar el envío de email al vendedor:',
+            sellerEmailError
+          );
+        }
       }
 
       /*    // Clear form after successful submission
