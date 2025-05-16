@@ -15,18 +15,20 @@ export async function generateMetadata(
     };
   }
 
+  const newTitle = `${vehicle.brand.name} ${vehicle.model.name} ${vehicle.year}`;
+
   return {
-    title: vehicle.title,
+    title: newTitle,
     description: vehicle.description,
     openGraph: {
-      title: vehicle.title,
+      title: newTitle,
       description: vehicle.description,
       images: [vehicle.main_image],
       type: 'article',
     },
     twitter: {
       card: 'summary_large_image',
-      title: vehicle.title,
+      title: newTitle,
       description: vehicle.description,
       images: [vehicle.main_image],
     },
