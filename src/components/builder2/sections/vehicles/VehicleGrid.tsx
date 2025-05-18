@@ -296,6 +296,7 @@ export const VehicleGrid = ({
           const brands = [
             ...new Set(vehiclesData.map((v) => v.brand?.name).filter(Boolean)),
           ];
+          console.log('brands', brands);
           const types = [
             ...new Set(
               vehiclesData.map((v) => v.category?.name).filter(Boolean)
