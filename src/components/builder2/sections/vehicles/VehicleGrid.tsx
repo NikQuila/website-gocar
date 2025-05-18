@@ -170,8 +170,7 @@ export const VehicleGrid = ({
           `
           )
           .eq('client_id', +client?.id)
-          .order('created_at', { ascending: false })
-          .limit(50); // Limitamos a 50 vehículos para evitar sobrecarga
+          .order('created_at', { ascending: false });
 
         if (error) {
           console.error('Error fetching vehicles:', error);
