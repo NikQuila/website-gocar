@@ -61,6 +61,7 @@ interface VehicleGridProps {
     detailsButtonText: string;
     bannerPosition: 'left' | 'right';
   }[];
+  newBadgeText?: string;
 }
 
 export const VehicleGrid = ({
@@ -83,6 +84,7 @@ export const VehicleGrid = ({
       bannerPosition: 'right',
     },
   ],
+  newBadgeText = 'Recién publicado',
   children,
 }: VehicleGridProps) => {
   const { connectors, selected } = useNode((state) => ({
@@ -797,6 +799,7 @@ export const VehicleGrid = ({
                       sortOrder={sortOrder}
                       setSortOrder={setSortOrder}
                       cardSettings={cardSettings}
+                      newBadgeText={newBadgeText}
                     />
                   </>
                 )}
@@ -833,6 +836,7 @@ VehicleGrid.craft = {
         bannerPosition: 'right',
       },
     ],
+    newBadgeText: 'Recién publicado',
   },
   related: {
     // Settings component will be external

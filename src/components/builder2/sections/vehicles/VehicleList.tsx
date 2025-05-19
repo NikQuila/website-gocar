@@ -38,6 +38,7 @@ interface VehicleListProps {
     detailsButtonText: string;
     bannerPosition: 'left' | 'right';
   }[];
+  newBadgeText?: string;
 }
 
 export const VehicleList: React.FC<VehicleListProps> = ({
@@ -47,6 +48,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
   sortOrder,
   setSortOrder,
   cardSettings,
+  newBadgeText,
 }) => {
   // Determine grid columns based on the columns prop
   const gridCols = {
@@ -123,6 +125,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
               cardButtonTextColor={cardSettings?.[0]?.cardButtonTextColor}
               detailsButtonText={cardSettings?.[0]?.detailsButtonText}
               bannerPosition={cardSettings?.[0]?.bannerPosition}
+              newBadgeText={newBadgeText}
             />
           ))}
         </div>

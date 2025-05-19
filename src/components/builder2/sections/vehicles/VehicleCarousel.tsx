@@ -43,6 +43,7 @@ interface VehicleCarouselProps {
     detailsButtonText: string;
     bannerPosition: 'left' | 'right';
   }[];
+  newBadgeText?: string; // New prop for the "Recién publicado" badge text
   children?: React.ReactNode;
 }
 
@@ -71,6 +72,7 @@ export const VehicleCarousel = ({
       bannerPosition: 'right',
     },
   ],
+  newBadgeText = 'Recién publicado',
   children,
 }: VehicleCarouselProps) => {
   const { connectors, selected } = useNode((state) => ({
@@ -376,6 +378,7 @@ export const VehicleCarousel = ({
                     cardButtonTextColor={cardSettings[0]?.cardButtonTextColor}
                     detailsButtonText={cardSettings[0]?.detailsButtonText}
                     bannerPosition={cardSettings[0]?.bannerPosition}
+                    newBadgeText={newBadgeText}
                   />
                 </div>
               ))}
@@ -416,6 +419,7 @@ VehicleCarousel.craft = {
         bannerPosition: 'right',
       },
     ],
+    newBadgeText: 'Recién publicado',
   },
   related: {
     // Settings component will be external

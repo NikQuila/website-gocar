@@ -15,6 +15,7 @@ export interface VehicleCardProps {
   cardButtonTextColor?: string;
   detailsButtonText?: string;
   bannerPosition?: 'left' | 'right';
+  newBadgeText?: string; // New prop for the "Recién publicado" badge text
 }
 
 export const VehicleCard: React.FC<VehicleCardProps> = ({
@@ -28,6 +29,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   cardButtonTextColor = '#ffffff',
   detailsButtonText = 'Ver detalles',
   bannerPosition = 'right',
+  newBadgeText = 'Recién publicado', // Default text
 }) => {
   const {
     id,
@@ -137,7 +139,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
         {isNew() && !isNotAvailable && (
           <div className='absolute top-2 right-2 z-10'>
             <Badge className='bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full'>
-              Recién publicado
+              {newBadgeText}
             </Badge>
           </div>
         )}
