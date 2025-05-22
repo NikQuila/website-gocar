@@ -72,7 +72,7 @@ export const VehicleCarousel = ({
       bannerPosition: 'right',
     },
   ],
-  newBadgeText = 'Recién publicado',
+  newBadgeText = 'Nuevo',
   children,
 }: VehicleCarouselProps) => {
   const { connectors, selected } = useNode((state) => ({
@@ -419,7 +419,7 @@ VehicleCarousel.craft = {
         bannerPosition: 'right',
       },
     ],
-    newBadgeText: 'Recién publicado',
+    newBadgeText: 'Nuevo',
   },
   related: {
     // Settings component will be external

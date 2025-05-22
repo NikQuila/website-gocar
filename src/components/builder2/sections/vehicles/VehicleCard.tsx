@@ -29,7 +29,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   cardButtonTextColor = '#ffffff',
   detailsButtonText = 'Ver detalles',
   bannerPosition = 'right',
-  newBadgeText = 'Recién publicado', // Default text
+  newBadgeText = 'Nuevo', // Default text
 }) => {
   const {
     id,

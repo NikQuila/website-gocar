@@ -84,7 +84,7 @@ export const VehicleGrid = ({
       bannerPosition: 'right',
     },
   ],
-  newBadgeText = 'Recién publicado',
+  newBadgeText = 'Nuevo',
   children,
 }: VehicleGridProps) => {
   const { connectors, selected } = useNode((state) => ({
@@ -836,7 +836,7 @@ VehicleGrid.craft = {
         bannerPosition: 'right',
       },
     ],
-    newBadgeText: 'Recién publicado',
+    newBadgeText: 'Nuevo',
   },
   related: {
     // Settings component will be external
