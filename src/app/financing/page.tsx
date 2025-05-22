@@ -446,7 +446,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
               className='font-semibold bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90'
               isLoading={loading}
             >
-              Solicitar Información
+              Enviar Información
             </Button>
           </form>
         </div>
