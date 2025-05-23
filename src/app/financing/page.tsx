@@ -16,8 +16,10 @@ import { supabase } from '@/lib/supabase';
 import { LeadTypes, Vehicle } from '@/utils/types';
 import { sendEmail, createVehicleLeadEmailTemplate } from '@/lib/send-email';
 import SuccessModal from '@/components/ui/SuccessModal';
+import useVehiclesStore from '@/store/useVehiclesStore';
 
 const FinancingPage = () => {
+  const { vehicles } = useVehiclesStore();
   const { client } = useClientStore();
   const { initializeCustomer } = useCustomerStore();
   const [loading, setLoading] = useState(false);
@@ -37,38 +39,6 @@ const FinancingPage = () => {
     rut: '',
     birth_date: '',
   });
-
-  // Fetch all available vehicles on component mount
-  useEffect(() => {
-    const fetchVehicles = async () => {
-      try {
-        const { data } = await supabase
-          .from('vehicles')
-          .select(
-            `
-            *,
-            brand:brand_id (*),
-            model:model_id (*),
-            condition:condition_id (*),
-            seller_id
-          `
-          )
-          .eq('client_id', client?.id)
-          .eq('show_in_stock', true)
-          .order('created_at', { ascending: false });
-
-        if (data) {
-          setAvailableVehicles(data);
-        }
-      } catch (error) {
-        console.error('Error fetching vehicles:', error);
-      }
-    };
-
-    if (client?.id) {
-      fetchVehicles();
-    }
-  }, [client?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -397,7 +367,8 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
             />
 
             {/* Vehicle Selection */}
-            {availableVehicles.length > 0 ? (
+            {vehicles.filter((v) => v?.status?.name === 'Publicado').length >
+            0 ? (
               <Autocomplete
                 label='Vehículo de interés'
                 placeholder='Buscar vehículo'
@@ -408,11 +379,13 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
                 isRequired
                 variant='bordered'
               >
-                {availableVehicles.map((vehicle) => (
-                  <AutocompleteItem key={vehicle.id} value={vehicle.id}>
-                    {formatVehicleOption(vehicle)}
-                  </AutocompleteItem>
-                ))}
+                {vehicles
+                  .filter((v) => v?.status?.name === 'Publicado')
+                  .map((vehicle) => (
+                    <AutocompleteItem key={vehicle.id} value={vehicle.id}>
+                      {formatVehicleOption(vehicle)}
+                    </AutocompleteItem>
+                  ))}
               </Autocomplete>
             ) : (
               <div className='p-4 text-center text-gray-500 border border-gray-200 rounded-md'>
