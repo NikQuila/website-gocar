@@ -586,7 +586,7 @@ export default function VehicleDetailSection({
                 startContent={<Icon icon='mdi:whatsapp' className='text-xl' />}
                 href={contactByWhatsApp(
                   getContactPhone(),
-                  `Hola, me interesa el ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year}`
+                  `Hola, me interesa el ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year} que vi en ${window.location.href}`
                 )}
                 target='_blank'
                 className='bg-primary text-white dark:bg-primary dark:text-black hover:bg-primary/90 dark:hover:bg-primary/90'
@@ -618,7 +618,7 @@ export default function VehicleDetailSection({
               startContent={<Icon icon='mdi:whatsapp' className='text-xl' />}
               href={contactByWhatsApp(
                 getContactPhone(),
-                `Hola, me interesa el ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year}`
+                `Hola, me interesa el ${vehicle.brand?.name} ${vehicle.model?.name} ${vehicle.year} que vi en ${window.location.href}`
               )}
               target='_blank'
             >
