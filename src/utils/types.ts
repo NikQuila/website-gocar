@@ -71,7 +71,7 @@ export interface Vehicle {
   year: number;
   price: number;
   discount_percentage?: number; // opcional
-
+  license_plate?: string;
   // Características principales
   mileage: number;
   transmission: 'Manual' | 'Automatic';

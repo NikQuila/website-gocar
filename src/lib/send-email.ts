@@ -98,6 +98,7 @@ export function createVehicleLeadEmailTemplate({
     mileage: string;
     condition: string;
     price?: string;
+    license_plate?: string;
   };
   additionalMessage?: string;
 }): string {
@@ -122,6 +123,7 @@ export function createVehicleLeadEmailTemplate({
     price: vehicleDetails.price
       ? `$${vehicleDetails.price}`
       : 'No especificado',
+    license_plate: vehicleDetails.license_plate || 'No especificado',
   };
 
   return `
@@ -194,6 +196,12 @@ export function createVehicleLeadEmailTemplate({
                 <td style="padding: 8px 0;"><strong>Condición:</strong></td>
                 <td style="padding: 8px 0;">${
                   formattedVehicleDetails.condition
+                }</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;"><strong>Placa:</strong></td>
+                <td style="padding: 8px 0;">${
+                  formattedVehicleDetails.license_plate
                 }</td>
               </tr>
               ${

@@ -92,12 +92,14 @@ const FinancingPage = () => {
         mileage: '',
         condition: 'N/A',
         price: '',
+        license_plate: '',
       };
 
       if (selectedVehicle) {
         vehicleInfo = {
           brand: selectedVehicle.brand?.name || 'No especificado',
           model: selectedVehicle.model?.name || 'No especificado',
+          license_plate: selectedVehicle.license_plate || '',
           year: selectedVehicle.year?.toString() || '',
           mileage: selectedVehicle.mileage?.toString() || '',
           condition: selectedVehicle.condition?.name || 'N/A',
