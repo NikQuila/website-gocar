@@ -24,7 +24,6 @@ const FinancingPage = () => {
   const { initializeCustomer } = useCustomerStore();
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [availableVehicles, setAvailableVehicles] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -78,10 +77,9 @@ const FinancingPage = () => {
 
       // 3. Send email notification
 
-      const selectedVehicle: Vehicle = availableVehicles.find(
+      const selectedVehicle: Vehicle | undefined = vehicles.find(
         (v) => v.id.toString() === formData.vehicle_id.toString()
       );
-      console.log('Available vehicles:', availableVehicles);
 
       console.log('Selected vehicle found:', selectedVehicle);
 
