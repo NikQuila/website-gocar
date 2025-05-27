@@ -95,8 +95,8 @@ export function createVehicleLeadEmailTemplate({
     brand: string;
     model: string;
     year: string;
-    mileage: string;
-    condition: string;
+    mileage?: string;
+    condition?: string;
     price?: string;
     plate?: string;
   };
@@ -105,7 +105,7 @@ export function createVehicleLeadEmailTemplate({
   const leadTypeMap: Record<string, string> = {
     'buy-direct': 'Venta de Vehículo',
     'buy-consignment': 'Consignación',
-    'sell-financing': 'Financiamiento',
+
     'sell-vehicle': 'Compra de Vehículo',
   };
 
@@ -116,34 +116,15 @@ export function createVehicleLeadEmailTemplate({
     brand: vehicleDetails.brand || 'No especificado',
     model: vehicleDetails.model || 'No especificado',
     year: vehicleDetails.year || 'No especificado',
-    plate: vehicleDetails.plate || 'No especificado',
+    mileage: vehicleDetails.mileage
+      ? `${vehicleDetails.mileage} km`
+      : 'No especificado',
+    condition: vehicleDetails.condition || 'No especificado',
     price: vehicleDetails.price
       ? `$${vehicleDetails.price}`
       : 'No especificado',
+    plate: vehicleDetails.plate || 'No especificado',
   };
-
-  // Extraer información financiera del mensaje adicional
-  let actividadLaboral = 'No especificado';
-  let rentaMensual = 'No especificado';
-  let pie = 'No especificado';
-  let fechaNacimiento = 'No especificada';
-  let mensajeCliente = '';
-  if (additionalMessage) {
-    const matchActividad = additionalMessage.match(/- Actividad Laboral: (.*)/);
-    const matchRenta = additionalMessage.match(
-      /- Renta Líquida Mensual: \$(.*)/
-    );
-    const matchPie = additionalMessage.match(/- Monto Pie: \$(.*)/);
-    const matchFecha = additionalMessage.match(/- Fecha de Nacimiento: (.*)/);
-    const matchMensaje = additionalMessage.match(
-      /Mensaje del cliente:\n([\s\S]*)/
-    );
-    if (matchActividad) actividadLaboral = matchActividad[1].trim();
-    if (matchRenta) rentaMensual = `$${matchRenta[1].trim()}`;
-    if (matchPie) pie = `$${matchPie[1].trim()}`;
-    if (matchFecha) fechaNacimiento = matchFecha[1].trim();
-    if (matchMensaje) mensajeCliente = matchMensaje[1].trim();
-  }
 
   return `
     <!DOCTYPE html>
@@ -154,7 +135,7 @@ export function createVehicleLeadEmailTemplate({
       <title>Nuevo Lead de ${leadTypeName}</title>
     </head>
     <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 20px; color: #333; background: #f8f9fa;">
-      <div style="background: #f1f8fe; border-left: 6px solid #51bde5; border-radius: 10px; padding: 0 0 24px 0;">
+      <div style="background: #fff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); padding: 0 0 24px 0;">
         <!-- Header -->
         <div style="background-color: #51bde5; padding: 24px 24px 20px 24px; text-align: center; border-radius: 10px 10px 0 0;">
           <h1 style="color: white; margin: 0; font-size: 26px;">Nuevo Lead: ${leadTypeName}</h1>
@@ -166,10 +147,6 @@ export function createVehicleLeadEmailTemplate({
             <tr><td style="padding: 7px 0; width: 180px;"><strong>Nombre:</strong></td><td style="padding: 7px 0;">${customerName}</td></tr>
             <tr><td style="padding: 7px 0;"><strong>Email:</strong></td><td style="padding: 7px 0;"><a href="mailto:${customerEmail}" style="color: #51bde5; text-decoration: none;">${customerEmail}</a></td></tr>
             <tr><td style="padding: 7px 0;"><strong>Teléfono:</strong></td><td style="padding: 7px 0;"><a href="tel:${customerPhone}" style="color: #51bde5; text-decoration: none;">${customerPhone}</a></td></tr>
-            <tr><td style="padding: 7px 0;"><strong>Fecha de nacimiento:</strong></td><td style="padding: 7px 0;">${fechaNacimiento}</td></tr>
-            <tr><td style="padding: 7px 0;"><strong>Actividad laboral:</strong></td><td style="padding: 7px 0;">${actividadLaboral}</td></tr>
-            <tr><td style="padding: 7px 0;"><strong>Renta líquida mensual:</strong></td><td style="padding: 7px 0;">${rentaMensual}</td></tr>
-            <tr><td style="padding: 7px 0;"><strong>Pie:</strong></td><td style="padding: 7px 0;">${pie}</td></tr>
           </table>
         </div>
         <!-- Bloque Vehículo -->
@@ -185,18 +162,23 @@ export function createVehicleLeadEmailTemplate({
             <tr><td style="padding: 7px 0;"><strong>Año:</strong></td><td style="padding: 7px 0;">${
               formattedVehicleDetails.year
             }</td></tr>
-            <tr><td style="padding: 7px 0;"><strong>Placa:</strong></td><td style="padding: 7px 0;">${
-              formattedVehicleDetails.plate
+            <tr><td style="padding: 7px 0;"><strong>Kilometraje:</strong></td><td style="padding: 7px 0;">${
+              formattedVehicleDetails.mileage
             }</td></tr>
-            <tr><td style="padding: 7px 0;"><strong>Precio:</strong></td><td style="padding: 7px 0;">${
-              formattedVehicleDetails.price
+            <tr><td style="padding: 7px 0;"><strong>Condición:</strong></td><td style="padding: 7px 0;">${
+              formattedVehicleDetails.condition
             }</td></tr>
+            ${
+              leadType === 'buy-consignment'
+                ? ''
+                : `<tr><td style="padding: 7px 0;"><strong>Precio:</strong></td><td style="padding: 7px 0;">${formattedVehicleDetails.price}</td></tr>`
+            }
           </table>
         </div>
         <!-- Mensaje del cliente -->
         ${
-          mensajeCliente
-            ? `<div style=\"padding: 24px 24px 0 24px;\"><h2 style=\"color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;\">Mensaje del cliente</h2><div style=\"padding: 10px 0; white-space: pre-wrap; font-size: 15px;\">${mensajeCliente}</div></div>`
+          additionalMessage
+            ? `<div style=\"padding: 24px 24px 0 24px;\"><h2 style=\"color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;\">Mensaje del cliente</h2><div style=\"padding: 10px 0; white-space: pre-wrap; font-size: 15px;\">${additionalMessage}</div></div>`
             : ''
         }
         <!-- CTA Button -->

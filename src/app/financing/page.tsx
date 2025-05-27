@@ -14,7 +14,7 @@ import useClientStore from '@/store/useClientStore';
 import useCustomerStore from '@/store/useCustomerStore';
 import { supabase } from '@/lib/supabase';
 import { LeadTypes, Vehicle } from '@/utils/types';
-import { sendEmail, createVehicleLeadEmailTemplate } from '@/lib/send-email';
+import { sendEmail, createFinancingLeadEmailTemplate } from '@/lib/send-email2';
 import SuccessModal from '@/components/ui/SuccessModal';
 import useVehiclesStore from '@/store/useVehiclesStore';
 
@@ -90,14 +90,14 @@ const FinancingPage = () => {
         mileage: '',
         condition: 'N/A',
         price: '',
-        license_plate: '',
+        plate: '',
       };
 
       if (selectedVehicle) {
         vehicleInfo = {
           brand: selectedVehicle.brand?.name || 'No especificado',
           model: selectedVehicle.model?.name || 'No especificado',
-          license_plate: selectedVehicle.license_plate || '',
+          plate: selectedVehicle.license_plate || selectedVehicle.plate || '',
           year: selectedVehicle.year?.toString() || '',
           mileage: selectedVehicle.mileage?.toString() || '',
           condition: selectedVehicle.condition?.name || 'N/A',
@@ -110,8 +110,7 @@ const FinancingPage = () => {
       console.log('Vehicle info being sent:', vehicleInfo);
 
       // Use the email function
-      const emailContent = createVehicleLeadEmailTemplate({
-        leadType: LeadTypes.SELL_FINANCING,
+      const emailContent = createFinancingLeadEmailTemplate({
         customerName: `${formData.first_name} ${formData.last_name}`,
         customerEmail: formData.email,
         customerPhone: formData.phone,
