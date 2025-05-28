@@ -95,8 +95,8 @@ export function createVehicleLeadEmailTemplate({
     brand: string;
     model: string;
     year: string;
-    mileage: string;
-    condition: string;
+    mileage?: string;
+    condition?: string;
     price?: string;
     license_plate?: string;
   };
@@ -105,7 +105,7 @@ export function createVehicleLeadEmailTemplate({
   const leadTypeMap: Record<string, string> = {
     'buy-direct': 'Venta de Vehículo',
     'buy-consignment': 'Consignación',
-    'sell-financing': 'Financiamiento',
+
     'sell-vehicle': 'Compra de Vehículo',
   };
 
@@ -134,114 +134,62 @@ export function createVehicleLeadEmailTemplate({
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Nuevo Lead de ${leadTypeName}</title>
     </head>
-    <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 20px; color: #333;">
-      <div style="background-color: #f8f9fa; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 20px; color: #333; background: #f8f9fa;">
+      <div style="background: #fff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); padding: 0 0 24px 0;">
         <!-- Header -->
-        <div style="background-color: #51bde5; padding: 20px; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 24px;">Nuevo Lead: ${leadTypeName}</h1>
+        <div style="background-color: #51bde5; padding: 24px 24px 20px 24px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 26px;">Nuevo Lead: ${leadTypeName}</h1>
         </div>
-        
-        <!-- Content -->
-        <div style="padding: 25px;">
-          <!-- Customer Info -->
-          <div style="margin-bottom: 25px;">
-            <h2 style="color: #333; font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-top: 0;">
-              Información del Cliente
-            </h2>
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr>
-                <td style="padding: 8px 0; width: 120px;"><strong>Nombre:</strong></td>
-                <td style="padding: 8px 0;">${customerName}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0;"><strong>Email:</strong></td>
-                <td style="padding: 8px 0;"><a href="mailto:${customerEmail}" style="color: #51bde5; text-decoration: none;">${customerEmail}</a></td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0;"><strong>Teléfono:</strong></td>
-                <td style="padding: 8px 0;"><a href="tel:${customerPhone}" style="color: #51bde5; text-decoration: none;">${customerPhone}</a></td>
-              </tr>
-            </table>
-          </div>
-          
-          <!-- Vehicle Details -->
-          <div style="margin-bottom: 25px; background: #f1f8fe; padding: 20px; border-radius: 6px; border-left: 4px solid #51bde5;">
-            <h2 style="color: #333; font-size: 18px; margin-top: 0; margin-bottom: 15px;">
-              Detalles del Vehículo
-            </h2>
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr>
-                <td style="padding: 8px 0; width: 120px;"><strong>Marca:</strong></td>
-                <td style="padding: 8px 0;">${
-                  formattedVehicleDetails.brand
-                }</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0;"><strong>Modelo:</strong></td>
-                <td style="padding: 8px 0;">${
-                  formattedVehicleDetails.model
-                }</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0;"><strong>Año:</strong></td>
-                <td style="padding: 8px 0;">${formattedVehicleDetails.year}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0;"><strong>Kilometraje:</strong></td>
-                <td style="padding: 8px 0;">${
-                  formattedVehicleDetails.mileage
-                }</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0;"><strong>Condición:</strong></td>
-                <td style="padding: 8px 0;">${
-                  formattedVehicleDetails.condition
-                }</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0;"><strong>Placa:</strong></td>
-                <td style="padding: 8px 0;">${
-                  formattedVehicleDetails.license_plate
-                }</td>
-              </tr>
-              ${
-                vehicleDetails.price
-                  ? `
-              <tr>
-                <td style="padding: 8px 0;"><strong>Precio:</strong></td>
-                <td style="padding: 8px 0;">${formattedVehicleDetails.price}</td>
-              </tr>
-                  `
-                  : ''
-              }
-            </table>
-          </div>
-          
-          <!-- Additional Message -->
-          ${
-            additionalMessage
-              ? `
-          <div style="margin-bottom: 25px;">
-            <h2 style="color: #333; font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-top: 0;">
-              Información Adicional
-            </h2>
-            <div style="padding: 10px 0; white-space: pre-wrap;">${additionalMessage}</div>
-          </div>
-              `
-              : ''
-          }
-          
-          <!-- CTA Button -->
-          <div style="margin: 30px 0; text-align: center;">
-            <a href="https://portal.goauto.cl/leads" 
-               style="background-color: #51bde5; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">
-              Ver detalles en el Portal
-            </a>
-          </div>
+        <!-- Bloque Cliente -->
+        <div style="padding: 24px 24px 0 24px;">
+          <h2 style="color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;">Información del Cliente</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <tr><td style="padding: 7px 0; width: 180px;"><strong>Nombre:</strong></td><td style="padding: 7px 0;">${customerName}</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Email:</strong></td><td style="padding: 7px 0;"><a href="mailto:${customerEmail}" style="color: #51bde5; text-decoration: none;">${customerEmail}</a></td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Teléfono:</strong></td><td style="padding: 7px 0;"><a href="tel:${customerPhone}" style="color: #51bde5; text-decoration: none;">${customerPhone}</a></td></tr>
+          </table>
         </div>
-        
+        <!-- Bloque Vehículo -->
+        <div style="padding: 24px 24px 0 24px;">
+          <h2 style="color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;">Detalles del Vehículo</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <tr><td style="padding: 7px 0; width: 180px;"><strong>Marca:</strong></td><td style="padding: 7px 0;">${
+              formattedVehicleDetails.brand
+            }</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Modelo:</strong></td><td style="padding: 7px 0;">${
+              formattedVehicleDetails.model
+            }</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Año:</strong></td><td style="padding: 7px 0;">${
+              formattedVehicleDetails.year
+            }</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Kilometraje:</strong></td><td style="padding: 7px 0;">${
+              formattedVehicleDetails.mileage
+            }</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Condición:</strong></td><td style="padding: 7px 0;">${
+              formattedVehicleDetails.condition
+            }</td></tr>
+            ${
+              leadType === 'buy-consignment'
+                ? ''
+                : `<tr><td style="padding: 7px 0;"><strong>Precio:</strong></td><td style="padding: 7px 0;">${formattedVehicleDetails.price}</td></tr>`
+            }
+          </table>
+        </div>
+        <!-- Mensaje del cliente -->
+        ${
+          additionalMessage
+            ? `<div style=\"padding: 24px 24px 0 24px;\"><h2 style=\"color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;\">Mensaje del cliente</h2><div style=\"padding: 10px 0; white-space: pre-wrap; font-size: 15px;\">${additionalMessage}</div></div>`
+            : ''
+        }
+        <!-- CTA Button -->
+        <div style="margin: 30px 0 0 0; text-align: center;">
+          <a href="https://portal.goauto.cl/leads" 
+             style="background-color: #51bde5; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">
+            Ver detalles en el Portal
+          </a>
+        </div>
         <!-- Footer -->
-        <div style="background-color: #f1f1f1; padding: 15px; text-align: center; font-size: 13px; color: #666; border-top: 1px solid #ddd;">
+        <div style="background-color: #f1f1f1; padding: 15px; text-align: center; font-size: 13px; color: #666; border-top: 1px solid #ddd; margin-top: 32px; border-radius: 0 0 10px 10px;">
           <p style="margin: 0;">
             Este es un email automático generado por <a href="https://goauto.cl" style="color: #51bde5; text-decoration: none;">GoAuto</a>. 
             <br>Por favor no responda a este mensaje.
