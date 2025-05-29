@@ -4,12 +4,14 @@ export function createFinancingLeadEmailTemplate({
   customerName,
   customerEmail,
   customerPhone,
+  customerRut,
   vehicleDetails,
   additionalMessage,
 }: {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  customerRut: string;
   vehicleDetails: {
     brand: string;
     model: string;
@@ -74,6 +76,9 @@ export function createFinancingLeadEmailTemplate({
             <tr><td style="padding: 7px 0; width: 180px;"><strong>Nombre:</strong></td><td style="padding: 7px 0;">${customerName}</td></tr>
             <tr><td style="padding: 7px 0;"><strong>Email:</strong></td><td style="padding: 7px 0;"><a href="mailto:${customerEmail}" style="color: #51bde5; text-decoration: none;">${customerEmail}</a></td></tr>
             <tr><td style="padding: 7px 0;"><strong>Teléfono:</strong></td><td style="padding: 7px 0;"><a href="tel:${customerPhone}" style="color: #51bde5; text-decoration: none;">${customerPhone}</a></td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Rut:</strong></td><td style="padding: 7px 0;">${
+              customerRut || 'No especificado'
+            }</td></tr>
             <tr><td style="padding: 7px 0;"><strong>Fecha de nacimiento:</strong></td><td style="padding: 7px 0;">${fechaNacimiento}</td></tr>
             <tr><td style="padding: 7px 0;"><strong>Actividad laboral:</strong></td><td style="padding: 7px 0;">${actividadLaboral}</td></tr>
             <tr><td style="padding: 7px 0;"><strong>Renta líquida mensual:</strong></td><td style="padding: 7px 0;">${rentaMensual}</td></tr>

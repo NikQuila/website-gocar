@@ -114,6 +114,7 @@ const FinancingPage = () => {
         customerName: `${formData.first_name} ${formData.last_name}`,
         customerEmail: formData.email,
         customerPhone: formData.phone,
+        customerRut: formData.rut,
         vehicleDetails: vehicleInfo,
         additionalMessage: `
 Información Financiera:
