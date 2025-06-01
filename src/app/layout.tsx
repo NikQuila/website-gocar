@@ -1,5 +1,6 @@
 import { Poppins } from 'next/font/google';
 import './globals.css';
+import 'react-toastify/dist/ReactToastify.css';
 import { getClient } from '../hooks/useClient';
 import { HeroUIProvider } from '@/providers/HeroUIProvider';
 import { ClientProvider } from '@/providers/ClientProvider';
@@ -8,6 +9,7 @@ import { Footer } from '@/components/layout/Footer';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
 import RoutePrefetcher from '@/components/routing/RoutePrefetcher';
+import { ToastContainer } from 'react-toastify';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
@@ -69,6 +71,13 @@ export default function RootLayout({
           <ClientProvider>
             <ThemeProvider>
               <div className='min-h-screen bg-white dark:bg-dark-bg transition-colors'>
+                <ToastContainer
+                  position='top-right'
+                  autoClose={2000}
+                  hideProgressBar={false}
+                  closeOnClick
+                  pauseOnHover
+                />
                 <VisitTracker />
                 <RoutePrefetcher routes={['/', '/contact', '/vehicles']} />
                 <Navbar />

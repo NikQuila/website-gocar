@@ -8,6 +8,7 @@ import {
   useDisclosure,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import { toast } from 'react-toastify';
 
 import VehicleDetailSkeleton from './VehicleDetailSkeleton';
 import { useState, useEffect } from 'react';
@@ -225,8 +226,20 @@ export default function VehicleDetailSection({
     } else {
       try {
         await navigator.clipboard.writeText(window.location.href);
+        toast.success('¡Enlace copiado al portapapeles!', {
+          position: 'top-right',
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       } catch (err) {
         console.error('Error copying to clipboard:', err);
+        toast.error('Error al copiar el enlace', {
+          position: 'bottom-center',
+          autoClose: 2000,
+        });
       }
     }
   };
