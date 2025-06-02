@@ -16,9 +16,13 @@ import {
 
 interface VehicleVerticalCardProps {
   vehicle: Vehicle;
+  newBadgeText?: string;
 }
 
-const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
+const VehicleVerticalCard = ({
+  vehicle,
+  newBadgeText = 'Nuevo',
+}: VehicleVerticalCardProps) => {
   const router = useRouter();
 
   const formattedPrice = new Intl.NumberFormat('es-CL', {
@@ -41,6 +45,31 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
 
   const isSold = vehicle.status?.name === 'Vendido';
   const isReserved = vehicle.status?.name === 'Reservado';
+
+  const isNew = () => {
+    if (!vehicle.created_at) return false;
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    const createdAtDate = new Date(vehicle.created_at);
+    return createdAtDate > fiveDaysAgo;
+  };
+
+  const getRandomBadgeText = () => {
+    const badgeOptions = [
+      'Nuevo',
+      'Recién Llegado',
+      'Oportunidad',
+      'Destacado',
+    ];
+    const hash = vehicle.id
+      ? vehicle.id
+          .toString()
+          .split('')
+          .reduce((a, b) => a + b.charCodeAt(0), 0)
+      : Math.random() * 1000;
+    const index = Math.floor(hash) % badgeOptions.length;
+    return newBadgeText === 'Nuevo' ? badgeOptions[index] : newBadgeText;
+  };
 
   const handleViewDetails = () => {
     router.push(`/vehicles/${vehicle.id}`);
@@ -68,6 +97,16 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
               <div className='absolute top-[30px] right-[-50px] bg-yellow-500 text-white font-bold py-2 w-[250px] text-center transform rotate-45'>
                 RESERVADO
               </div>
+            </div>
+          )}
+          {isNew() && !isSold && !isReserved && (
+            <div className='absolute top-2 right-2 z-20'>
+              <Chip
+                size='sm'
+                className='shadow-lg text-white bg-primary border-none font-semibold'
+              >
+                {getRandomBadgeText()}
+              </Chip>
             </div>
           )}
           <Image
@@ -105,7 +144,7 @@ const VehicleVerticalCard = ({ vehicle }: VehicleVerticalCardProps) => {
             </h3>
 
             <div className='flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400'>
-              <span>{vehicle.mileage.toLocaleString()} km</span>
+              <span>{vehicle.mileage?.toLocaleString()} km</span>
               <span>•</span>
               <span className='capitalize'>{vehicle.fuel_type?.name}</span>
               <span>•</span>
