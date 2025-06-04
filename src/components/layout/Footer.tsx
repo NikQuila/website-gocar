@@ -54,7 +54,6 @@ export function Footer() {
               Contacto
             </h3>
             <div className='space-y-2 text-gray-600 dark:text-gray-400'>
-              <p>{client?.contact?.address}</p>
               <p>{client?.contact?.phone}</p>
               <p>{client?.contact?.email}</p>
             </div>
