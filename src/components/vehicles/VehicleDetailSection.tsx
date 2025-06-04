@@ -488,7 +488,7 @@ export default function VehicleDetailSection({
       <div className='space-y-6 px-4 md:px-0'>
         <div className='flex flex-col sm:flex-row sm:justify-between sm:items-start'>
           <div className='space-y-2'>
-            <h1 className='text-4xl font-bold text-gray-900 dark:text-white'>
+            <h1 className='text-2xl md:text-4xl font-bold text-gray-900 dark:text-white'>
               {vehicle.brand?.name} {vehicle.model?.name}
             </h1>
             <div className='flex justify-between items-center'>
@@ -540,7 +540,12 @@ export default function VehicleDetailSection({
           <DetailCard
             icon='mdi:gas-station'
             label='Combustible'
-            value={vehicle.fuel_type?.name}
+            value={
+              vehicle.fuel_type?.name
+                ? vehicle.fuel_type.name.charAt(0).toUpperCase() +
+                  vehicle.fuel_type.name.slice(1)
+                : ''
+            }
             className='w-full max-w-[170px]'
           />
           <DetailCard
@@ -552,7 +557,12 @@ export default function VehicleDetailSection({
           <DetailCard
             icon='mdi:palette'
             label='Color'
-            value={vehicle.color?.name}
+            value={
+              vehicle.color?.name
+                ? vehicle.color.name.charAt(0).toUpperCase() +
+                  vehicle.color.name.slice(1)
+                : ''
+            }
             className='w-full max-w-[170px]'
           />
         </div>
