@@ -11,37 +11,37 @@ const vehicleCategories = [
   },
   {
     id: 'SUV',
-    name: 'SUVs',
+    name: 'SUV',
     icon: 'mdi:car-suv',
   },
   {
     id: 'Sedan',
-    name: 'Sedanes',
+    name: 'Sedán',
     icon: 'mdi:car',
   },
   {
     id: 'Hatchback',
-    name: 'Hatchbacks',
+    name: 'Hatchback',
     icon: 'mdi:car-hatchback',
   },
   {
     id: 'Pickup',
-    name: 'Pickups',
+    name: 'Pickup',
     icon: 'mdi:truck-pickup',
   },
   {
     id: 'Van',
-    name: 'Vans',
+    name: 'Van',
     icon: 'mdi:van-passenger',
   },
   {
     id: 'Coupe',
-    name: 'Coupés',
+    name: 'Coupé',
     icon: 'mdi:car-sports',
   },
   {
     id: 'Wagon',
-    name: 'Wagons',
+    name: 'Wagon',
     icon: 'mdi:car-estate',
   },
 ];

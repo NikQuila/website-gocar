@@ -20,37 +20,37 @@ export const commonVehicleTypes = [
   },
   {
     id: 'suv',
-    label: 'SUVs',
+    label: 'SUV',
     icon: <Car size={16} className='text-current' />,
   },
   {
     id: 'sedan',
-    label: 'Sedanes',
+    label: 'Sedán',
     icon: <Car size={16} className='text-current' />,
   },
   {
     id: 'hatchback',
-    label: 'Hatchbacks',
+    label: 'Hatchback',
     icon: <CarFront size={16} className='text-current' />,
   },
   {
     id: 'pickup',
-    label: 'Pickups',
+    label: 'Pickup',
     icon: <Truck size={16} className='text-current' />,
   },
   {
     id: 'van',
-    label: 'Vans',
+    label: 'Van',
     icon: <Truck size={16} className='text-current' />,
   },
   {
     id: 'coupe',
-    label: 'Coupés',
+    label: 'Coupé',
     icon: <Car size={16} className='text-current' />,
   },
   {
     id: 'wagon',
-    label: 'Wagons',
+    label: 'Wagon',
     icon: <CarFront size={16} className='text-current' />,
   },
 ];

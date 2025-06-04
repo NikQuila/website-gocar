@@ -90,6 +90,19 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
     priceRange.min !== minMaxPrice.min ||
     priceRange.max !== minMaxPrice.max;
 
+  // Asegurar valores por defecto para el rango de precio
+  const DEFAULT_MIN_PRICE = 0;
+  const DEFAULT_MAX_PRICE = 1000000000;
+
+  // Función local para formatear precios en CLP
+  function formatPrice(price: number) {
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      maximumFractionDigits: 0,
+    }).format(price);
+  }
+
   // Generic filter section component
   const FilterSection = ({
     title,
@@ -307,21 +320,100 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
 
           {priceRangeOpen && (
             <div className='mt-3 px-4'>
-              <div className='flex justify-between mb-2 text-sm text-gray-600'>
-                <span>${priceRange.min?.toLocaleString()}</span>
-                <span>${priceRange.max?.toLocaleString()}</span>
+              {/* Inputs de precio manuales */}
+              <div className='flex justify-between items-center gap-2 mb-3'>
+                <div className='flex items-center bg-gray-100 rounded-lg px-3 py-2 w-32'>
+                  <span className='text-gray-500 text-sm mr-1'>$</span>
+                  <input
+                    type='text'
+                    className='bg-transparent border-none outline-none w-full text-sm text-gray-900 text-center'
+                    value={
+                      priceRange.min === 0 &&
+                      document.activeElement !== document.activeElement
+                        ? ''
+                        : priceRange.min
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setPriceRange({
+                        min: value ? Number(value) : 0,
+                        max: priceRange.max,
+                      });
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setPriceRange({
+                        min: value ? Number(value) : 0,
+                        max: priceRange.max,
+                      });
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const value = (
+                          e.target as HTMLInputElement
+                        ).value.replace(/\D/g, '');
+                        setPriceRange({
+                          min: value ? Number(value) : 0,
+                          max: priceRange.max,
+                        });
+                      }
+                    }}
+                  />
+                </div>
+                <span className='text-gray-400 text-lg font-bold'>-</span>
+                <div className='flex items-center bg-gray-100 rounded-lg px-3 py-2 w-32'>
+                  <span className='text-gray-500 text-sm mr-1'>$</span>
+                  <input
+                    type='text'
+                    className='bg-transparent border-none outline-none w-full text-sm text-gray-900 text-center'
+                    value={
+                      priceRange.max === 1000000000 && !document.activeElement
+                        ? ''
+                        : priceRange.max
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setPriceRange({
+                        min: priceRange.min,
+                        max: value === '' ? '' : Number(value),
+                      });
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setPriceRange({
+                        min: priceRange.min,
+                        max: value === '' ? 1000000000 : Number(value),
+                      });
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const value = (
+                          e.target as HTMLInputElement
+                        ).value.replace(/\D/g, '');
+                        setPriceRange({
+                          min: priceRange.min,
+                          max: value === '' ? 1000000000 : Number(value),
+                        });
+                      }
+                    }}
+                  />
+                </div>
               </div>
+              {/* Slider y valores formateados */}
               <Slider
-                defaultValue={[priceRange.min, priceRange.max]}
-                value={[priceRange.min, priceRange.max]}
-                min={minMaxPrice.min}
-                max={minMaxPrice.max}
-                step={1000}
+                value={[priceRange.min ?? 0, priceRange.max ?? 1000000000]}
+                min={0}
+                max={1000000000}
+                step={1000000}
                 onValueChange={(values) => {
                   setPriceRange({ min: values[0], max: values[1] });
                 }}
-                className='my-4'
+                className='my-2'
               />
+              <div className='flex justify-between mt-1 text-sm text-gray-500'>
+                <span>{formatPrice(priceRange.min)}</span>
+                <span>{formatPrice(priceRange.max)}</span>
+              </div>
             </div>
           )}
         </div>

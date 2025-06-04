@@ -105,7 +105,7 @@ export const VehicleGrid = ({
   // Filter values
   const [priceRange, setPriceRange] = useState<PriceRange>({
     min: 0,
-    max: 100000,
+    max: 1000000000,
   });
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -124,7 +124,7 @@ export const VehicleGrid = ({
   const [availableColors, setAvailableColors] = useState<string[]>([]);
   const [minMaxPrice, setMinMaxPrice] = useState<{ min: number; max: number }>({
     min: 0,
-    max: 100000,
+    max: 1000000000,
   });
 
   // Check if any filters are active
@@ -317,12 +317,9 @@ export const VehicleGrid = ({
             ...new Set(vehiclesData.map((v) => v.color?.name).filter(Boolean)),
           ];
 
-          // Find min and max prices
-          const prices = vehiclesData
-            .map((v) => v.price)
-            .filter((p) => p !== undefined && p !== null) as number[];
-          const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-          const maxPrice = prices.length > 0 ? Math.max(...prices) : 100000;
+          // Fuerzo los valores solicitados
+          const minPrice = 0;
+          const maxPrice = 1000000000;
 
           setAvailableBrands(brands as string[]);
           setAvailableTypes(types as string[]);
