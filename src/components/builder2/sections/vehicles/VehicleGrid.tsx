@@ -135,6 +135,7 @@ export const VehicleGrid = ({
     selectedTypes.length > 0 ||
     selectedFuels.length > 0 ||
     selectedConditions.length > 0 ||
+    selectedYears.length > 0 ||
     selectedColors.length > 0 ||
     priceRange.min !== minMaxPrice.min ||
     priceRange.max !== minMaxPrice.max ||
