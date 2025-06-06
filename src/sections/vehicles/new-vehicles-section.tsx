@@ -122,6 +122,11 @@ const NewVehiclesSection = () => {
   // Extract unique values for filters
 
   const brands = [...new Set(vehicles.map((v) => v.brand))];
+  const availableYears = [
+    ...new Set(vehicles.map((v) => v.year).filter(Boolean)),
+  ]
+    .map(String)
+    .sort((a, b) => b.localeCompare(a));
 
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
     setFilters((prev) => {
@@ -190,6 +195,10 @@ const NewVehiclesSection = () => {
       }
 
       if (filters.color && vehicle?.color?.id.toString() !== filters.color) {
+        matches = false;
+      }
+
+      if (filters.year && vehicle?.year?.toString() !== filters.year) {
         matches = false;
       }
 
@@ -388,6 +397,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   onPriceRangeChange={setPriceRange}
                   onClearFilters={clearFilters}
                   initialOpenAccordion={filters.color ? 'color' : undefined}
+                  availableYears={availableYears}
                 />
               </div>
             </div>
@@ -546,6 +556,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   onPriceRangeChange={setPriceRange}
                   onClearFilters={clearFilters}
                   initialOpenAccordion={filters.color ? 'color' : undefined}
+                  availableYears={availableYears}
                 />
               </div>
             </ScrollShadow>

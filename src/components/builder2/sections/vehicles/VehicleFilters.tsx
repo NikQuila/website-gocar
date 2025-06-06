@@ -11,11 +11,13 @@ import {
   Palette,
   X,
   Filter,
+  Calendar,
 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 
 // Filter interfaces
 export interface PriceRange {
@@ -30,6 +32,9 @@ export interface VehicleFiltersProps {
   selectedBrands: string[];
   setSelectedBrands: React.Dispatch<React.SetStateAction<string[]>>;
   availableBrands: string[];
+  selectedYears: string[];
+  setSelectedYears: React.Dispatch<React.SetStateAction<string[]>>;
+  availableYears: string[];
   selectedTypes: string[];
   setSelectedTypes: React.Dispatch<React.SetStateAction<string[]>>;
   availableTypes: string[];
@@ -44,7 +49,7 @@ export interface VehicleFiltersProps {
   availableColors: string[];
   toggleFilter: (
     filter: string,
-    type: 'brand' | 'type' | 'fuel' | 'condition' | 'color'
+    type: 'brand' | 'year' | 'type' | 'fuel' | 'condition' | 'color'
   ) => void;
   activeVehicleType: string;
   resetAllFilters: () => void;
@@ -57,6 +62,9 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
   selectedBrands,
   setSelectedBrands,
   availableBrands,
+  selectedYears,
+  setSelectedYears,
+  availableYears,
   selectedTypes,
   setSelectedTypes,
   availableTypes,
@@ -79,6 +87,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
   const [fuelOpen, setFuelOpen] = useState(false);
   const [conditionOpen, setConditionOpen] = useState(false);
   const [colorOpen, setColorOpen] = useState(false);
+  const [yearOpen, setYearOpen] = useState(false);
 
   // Check if any filters are active
   const hasActiveFilters =
@@ -119,63 +128,94 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
     toggleOpen: () => void;
     selectedItems: string[];
     availableItems: string[];
-    type: 'brand' | 'type' | 'fuel' | 'condition' | 'color';
-  }) => (
-    <div className='mb-4 border-b border-gray-100 pb-4'>
-      <button
-        className='flex w-full items-center justify-between cursor-pointer transition-colors hover:bg-gray-50 p-2 rounded-md'
-        onClick={() => toggleOpen()}
-        type='button'
-      >
-        <div className='flex items-center gap-2'>
-          {icon}
-          <span className='font-medium text-gray-800'>{title}</span>
-          {selectedItems.length > 0 && (
-            <Badge
-              variant='secondary'
-              className='ml-1 bg-blue-50 text-blue-700 text-xs'
-            >
-              {selectedItems.length}
-            </Badge>
-          )}
-        </div>
-        {isOpen ? (
-          <ChevronDown size={18} className='text-gray-600' />
-        ) : (
-          <ChevronRight size={18} className='text-gray-600' />
-        )}
-      </button>
+    type: 'brand' | 'year' | 'type' | 'fuel' | 'condition' | 'color';
+  }) => {
+    // Estado local para el texto del input de búsqueda
+    const [search, setSearch] = useState('');
+    // Filtrar items solo si es filtro de marca, año o tipo y hay texto
+    const filteredItems =
+      (type === 'brand' || type === 'year' || type === 'type') && search
+        ? availableItems.filter((item) =>
+            item.toLowerCase().includes(search.toLowerCase())
+          )
+        : availableItems;
 
-      {isOpen && (
-        <div className='mt-3 pl-6 space-y-2 max-h-[200px] overflow-y-auto pr-2'>
-          {availableItems.map((item) => (
-            <div
-              key={item}
-              className='flex items-center gap-2 hover:bg-gray-50 p-1 rounded-md'
-            >
-              <Checkbox
-                id={`${type}-${item}`}
-                checked={selectedItems.includes(item)}
-                onCheckedChange={() => toggleFilter(item, type)}
-                className='rounded border-gray-300'
-              />
-              <label
-                htmlFor={`${type}-${item}`}
-                className='text-sm text-gray-700 cursor-pointer w-full'
+    return (
+      <div className='mb-4 border-b border-gray-100 pb-4'>
+        <button
+          className='flex w-full items-center justify-between cursor-pointer transition-colors hover:bg-gray-50 p-2 rounded-md'
+          onClick={() => toggleOpen()}
+          type='button'
+        >
+          <div className='flex items-center gap-2'>
+            {icon}
+            <span className='font-medium text-gray-800'>{title}</span>
+            {selectedItems.length > 0 && (
+              <Badge
+                variant='secondary'
+                className='ml-1 bg-blue-50 text-blue-700 text-xs'
               >
-                {item}
-              </label>
-            </div>
-          ))}
-          {availableItems.length === 0 && (
-            <div className='text-sm text-gray-500 italic py-2'>
-              No hay opciones disponibles
-            </div>
+                {selectedItems.length}
+              </Badge>
+            )}
+          </div>
+          {isOpen ? (
+            <ChevronDown size={18} className='text-gray-600' />
+          ) : (
+            <ChevronRight size={18} className='text-gray-600' />
           )}
-        </div>
-      )}
-    </div>
-  );
+        </button>
+
+        {isOpen && (
+          <div className='mt-3 pl-6 space-y-2 max-h-[200px] overflow-y-auto pr-2'>
+            {/* Input de autocompletado solo para marcas, año o tipo */}
+            {(type === 'brand' || type === 'year' || type === 'type') && (
+              <div className='mb-2 sticky top-0 bg-white z-10'>
+                <Input
+                  type='text'
+                  placeholder={
+                    type === 'brand'
+                      ? 'Buscar marca...'
+                      : type === 'year'
+                      ? 'Buscar año...'
+                      : 'Buscar tipo...'
+                  }
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className='border-gray-300 mt-1 focus:ring-2 focus:ring-blue-200 text-xs py-1 px-2 rounded-md shadow-sm'
+                  autoComplete='off'
+                />
+              </div>
+            )}
+            {filteredItems.map((item) => (
+              <div
+                key={item}
+                className='flex items-center gap-2 hover:bg-gray-50 p-1 rounded-md'
+              >
+                <Checkbox
+                  id={`${type}-${item}`}
+                  checked={selectedItems.includes(item)}
+                  onCheckedChange={() => toggleFilter(item, type)}
+                  className='rounded border-gray-300'
+                />
+                <label
+                  htmlFor={`${type}-${item}`}
+                  className='text-sm text-gray-700 cursor-pointer w-full'
+                >
+                  {item}
+                </label>
+              </div>
+            ))}
+            {filteredItems.length === 0 && (
+              <div className='text-sm text-gray-500 italic py-2'>
+                No hay opciones disponibles
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className='w-full md:w-full lg:w-80'>
@@ -427,6 +467,17 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           selectedItems={selectedBrands}
           availableItems={availableBrands}
           type='brand'
+        />
+
+        {/* Year Filter */}
+        <FilterSection
+          title='Año'
+          icon={<Calendar size={18} />}
+          isOpen={yearOpen}
+          toggleOpen={() => setYearOpen(!yearOpen)}
+          selectedItems={selectedYears}
+          availableItems={availableYears}
+          type='year'
         />
 
         {/* Vehicle Type Filter */}

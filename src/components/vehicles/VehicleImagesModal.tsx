@@ -1,5 +1,7 @@
 import { Modal, ModalContent, ModalBody, Button, Image } from '@heroui/react';
 import { Icon } from '@iconify/react';
+import InnerImageZoom from 'react-inner-image-zoom';
+import 'react-inner-image-zoom/lib/styles.min.css';
 
 interface VehicleImagesModalProps {
   isOpen: boolean;
@@ -73,10 +75,12 @@ export default function VehicleImagesModal({
 
             {/* Main Image Container */}
             <div className='flex-1 flex items-center justify-center p-8'>
-              <Image
-                alt='Vehicle'
-                className=' h-[50vh] sm:h-[80vh] w-auto object-contain'
+              <InnerImageZoom
                 src={currentImage}
+                zoomSrc={currentImage}
+                zoomType='hover'
+                alt='Vehicle'
+                className='h-[50vh] sm:h-[80vh] w-auto object-contain'
               />
             </div>
 

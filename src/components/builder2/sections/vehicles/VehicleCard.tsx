@@ -92,14 +92,17 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-xl shadow-sm transition-all hover:shadow-md h-full ${
-        isNotAvailable ? 'opacity-90' : ''
-      }`}
+      className={`group relative overflow-hidden rounded-xl shadow-sm transition-all hover:shadow-md h-full
+         ${isNotAvailable ? 'opacity-90' : ''}`}
       style={{
         backgroundColor: cardBgColor,
         borderColor: cardBorderColor,
         borderWidth: '1px',
         borderStyle: 'solid',
+        cursor: !isNotAvailable ? 'pointer' : 'default',
+      }}
+      onClick={() => {
+        if (!isNotAvailable) window.location.href = `/vehicles/${id}`;
       }}
     >
       {/* Imagen */}
@@ -113,6 +116,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
             src={main_image}
             alt={`${brand?.name} ${model?.name}`}
             className='w-full h-full object-cover transition-transform duration-300 group-hover:scale-105'
+            style={{ cursor: 'pointer' }}
           />
         ) : (
           <div className='w-full h-full flex items-center justify-center bg-gray-100'>

@@ -108,6 +108,7 @@ export const VehicleGrid = ({
     max: 1000000000,
   });
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedFuels, setSelectedFuels] = useState<string[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
@@ -118,6 +119,7 @@ export const VehicleGrid = ({
 
   // Available options derived from vehicles
   const [availableBrands, setAvailableBrands] = useState<string[]>([]);
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
   const [availableFuels, setAvailableFuels] = useState<string[]>([]);
   const [availableConditions, setAvailableConditions] = useState<string[]>([]);
@@ -297,7 +299,11 @@ export const VehicleGrid = ({
           const brands = [
             ...new Set(vehiclesData.map((v) => v.brand?.name).filter(Boolean)),
           ];
-          console.log('brands', brands);
+          const years = [
+            ...new Set(vehiclesData.map((v) => v.year).filter(Boolean)),
+          ]
+            .map(String)
+            .sort((a, b) => b.localeCompare(a));
           const types = [
             ...new Set(
               vehiclesData.map((v) => v.category?.name).filter(Boolean)
@@ -322,6 +328,7 @@ export const VehicleGrid = ({
           const maxPrice = 1000000000;
 
           setAvailableBrands(brands as string[]);
+          setAvailableYears(years as string[]);
           setAvailableTypes(types as string[]);
           setAvailableFuels(fuels as string[]);
           setAvailableConditions(conditions as string[]);
@@ -343,6 +350,7 @@ export const VehicleGrid = ({
   const resetAllFilters = () => {
     setPriceRange({ min: minMaxPrice.min, max: minMaxPrice.max });
     setSelectedBrands([]);
+    setSelectedYears([]);
     setSelectedTypes([]);
     setSelectedFuels([]);
     setSelectedConditions([]);
@@ -436,6 +444,27 @@ export const VehicleGrid = ({
       return true; // Keep 'Publicado' and other statuses not subject to this specific date filter
     });
 
+    // Actualizar los años disponibles basados en los vehículos filtrados
+    const availableYearsFromFiltered = [
+      ...new Set(filtered.map((v) => v.year).filter(Boolean)),
+    ]
+      .map(String)
+      .sort((a, b) => b.localeCompare(a));
+    setAvailableYears(availableYearsFromFiltered);
+
+    // Actualizar los tipos/categorías disponibles basados en los vehículos filtrados
+    const availableTypesFromFiltered = [
+      ...new Set(filtered.map((v) => v.category?.name).filter(Boolean)),
+    ];
+    setAvailableTypes(availableTypesFromFiltered);
+
+    // Volver a filtrar por año si hay años seleccionados
+    if (selectedYears.length > 0) {
+      filtered = filtered.filter(
+        (v) => v.year && selectedYears.includes(String(v.year))
+      );
+    }
+
     // Apply sorting
     filtered.sort((a, b) => {
       if (sortOrder === 'price_asc') {
@@ -481,6 +510,7 @@ export const VehicleGrid = ({
     selectedConditions,
     selectedColors,
     sortOrder,
+    selectedYears,
   ]);
 
   // Generate status badge color
@@ -500,13 +530,20 @@ export const VehicleGrid = ({
   // Toggle filter selection
   const toggleFilter = (
     filter: string,
-    type: 'brand' | 'type' | 'fuel' | 'condition' | 'color'
+    type: 'brand' | 'year' | 'type' | 'fuel' | 'condition' | 'color'
   ) => {
     switch (type) {
       case 'brand':
         setSelectedBrands((prev) =>
           prev.includes(filter)
             ? prev.filter((b) => b !== filter)
+            : [...prev, filter]
+        );
+        break;
+      case 'year':
+        setSelectedYears((prev) =>
+          prev.includes(filter)
+            ? prev.filter((y) => y !== filter)
             : [...prev, filter]
         );
         break;
@@ -661,6 +698,9 @@ export const VehicleGrid = ({
                         selectedBrands={selectedBrands}
                         setSelectedBrands={setSelectedBrands}
                         availableBrands={availableBrands}
+                        selectedYears={selectedYears}
+                        setSelectedYears={setSelectedYears}
+                        availableYears={availableYears}
                         selectedTypes={selectedTypes}
                         setSelectedTypes={setSelectedTypes}
                         availableTypes={availableTypes}
@@ -736,6 +776,9 @@ export const VehicleGrid = ({
                     selectedBrands={selectedBrands}
                     setSelectedBrands={setSelectedBrands}
                     availableBrands={availableBrands}
+                    selectedYears={selectedYears}
+                    setSelectedYears={setSelectedYears}
+                    availableYears={availableYears}
                     selectedTypes={selectedTypes}
                     setSelectedTypes={setSelectedTypes}
                     availableTypes={availableTypes}
