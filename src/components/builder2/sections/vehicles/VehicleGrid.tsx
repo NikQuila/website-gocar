@@ -453,12 +453,6 @@ export const VehicleGrid = ({
       .sort((a, b) => b.localeCompare(a));
     setAvailableYears(availableYearsFromFiltered);
 
-    // Actualizar los tipos/categorías disponibles basados en los vehículos filtrados
-    const availableTypesFromFiltered = [
-      ...new Set(filtered.map((v) => v.category?.name).filter(Boolean)),
-    ];
-    setAvailableTypes(availableTypesFromFiltered);
-
     // Volver a filtrar por año si hay años seleccionados
     if (selectedYears.length > 0) {
       filtered = filtered.filter(
@@ -466,7 +460,7 @@ export const VehicleGrid = ({
       );
     }
 
-    // Apply sorting
+    // Aplicar ordenamiento
     filtered.sort((a, b) => {
       if (sortOrder === 'price_asc') {
         const priceA =
@@ -510,8 +504,8 @@ export const VehicleGrid = ({
     selectedFuels,
     selectedConditions,
     selectedColors,
-    sortOrder,
     selectedYears,
+    sortOrder,
   ]);
 
   // Generate status badge color
