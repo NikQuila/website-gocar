@@ -453,52 +453,12 @@ export const VehicleGrid = ({
       .sort((a, b) => b.localeCompare(a));
     setAvailableYears(availableYearsFromFiltered);
 
-    // Actualizar los tipos/categorías disponibles basados en los vehículos filtrados
-    const availableTypesFromFiltered = [
-      ...new Set(filtered.map((v) => v.category?.name).filter(Boolean)),
-    ];
-    setAvailableTypes(availableTypesFromFiltered);
-
     // Volver a filtrar por año si hay años seleccionados
     if (selectedYears.length > 0) {
       filtered = filtered.filter(
         (v) => v.year && selectedYears.includes(String(v.year))
       );
     }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      if (sortOrder === 'price_asc') {
-        const priceA =
-          a.price && a.discount_percentage && a.discount_percentage > 0
-            ? a.price * (1 - a.discount_percentage / 100)
-            : a.price;
-        const priceB =
-          b.price && b.discount_percentage && b.discount_percentage > 0
-            ? b.price * (1 - b.discount_percentage / 100)
-            : b.price;
-        return (priceA ?? Infinity) - (priceB ?? Infinity);
-      } else if (sortOrder === 'price_desc') {
-        const priceA =
-          a.price && a.discount_percentage && a.discount_percentage > 0
-            ? a.price * (1 - a.discount_percentage / 100)
-            : a.price;
-        const priceB =
-          b.price && b.discount_percentage && b.discount_percentage > 0
-            ? b.price * (1 - b.discount_percentage / 100)
-            : b.price;
-        return (priceB ?? Infinity) - (priceA ?? Infinity);
-      } else if (sortOrder === 'date_desc') {
-        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return dateB - dateA;
-      } else if (sortOrder === 'date_asc') {
-        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return dateA - dateB;
-      }
-      return 0;
-    });
 
     setFilteredVehicles(filtered);
   }, [
@@ -510,7 +470,6 @@ export const VehicleGrid = ({
     selectedFuels,
     selectedConditions,
     selectedColors,
-    sortOrder,
     selectedYears,
   ]);
 
