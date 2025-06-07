@@ -42,43 +42,43 @@ const vehicleCategories = [
   },
   {
     id: 'SUV',
-    name: 'SUVs',
+    name: 'SUV',
     icon: 'mdi:car-suv',
     description: 'Vehículos espaciosos y versátiles',
   },
   {
     id: 'Sedan',
-    name: 'Sedanes',
+    name: 'Sedán',
     icon: 'mdi:car',
     description: 'Autos familiares cómodos',
   },
   {
     id: 'Hatchback',
-    name: 'Hatchbacks',
+    name: 'Hatchback',
     icon: 'mdi:car-hatchback',
     description: 'Compactos y eficientes',
   },
   {
     id: 'Pickup',
-    name: 'Pickups',
+    name: 'Pickup',
     icon: 'mdi:truck-pickup',
     description: 'Vehículos de carga y trabajo',
   },
   {
     id: 'Van',
-    name: 'Vans',
+    name: 'Van',
     icon: 'mdi:van-passenger',
     description: 'Vehículos espaciosos para pasajeros',
   },
   {
     id: 'Coupe',
-    name: 'Coupés',
+    name: 'Coupé',
     icon: 'mdi:car-sports',
     description: 'Elegantes y deportivos',
   },
   {
     id: 'Wagon',
-    name: 'Wagons',
+    name: 'Wagon',
     icon: 'mdi:car-estate',
     description: 'Vehículos familiares versátiles',
   },
@@ -122,6 +122,11 @@ const NewVehiclesSection = () => {
   // Extract unique values for filters
 
   const brands = [...new Set(vehicles.map((v) => v.brand))];
+  const availableYears = [
+    ...new Set(vehicles.map((v) => v.year).filter(Boolean)),
+  ]
+    .map(String)
+    .sort((a, b) => b.localeCompare(a));
 
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
     setFilters((prev) => {
@@ -190,6 +195,10 @@ const NewVehiclesSection = () => {
       }
 
       if (filters.color && vehicle?.color?.id.toString() !== filters.color) {
+        matches = false;
+      }
+
+      if (filters.year && vehicle?.year?.toString() !== filters.year) {
         matches = false;
       }
 
@@ -388,6 +397,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   onPriceRangeChange={setPriceRange}
                   onClearFilters={clearFilters}
                   initialOpenAccordion={filters.color ? 'color' : undefined}
+                  availableYears={availableYears}
                 />
               </div>
             </div>
@@ -546,6 +556,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   onPriceRangeChange={setPriceRange}
                   onClearFilters={clearFilters}
                   initialOpenAccordion={filters.color ? 'color' : undefined}
+                  availableYears={availableYears}
                 />
               </div>
             </ScrollShadow>

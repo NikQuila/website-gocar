@@ -22,6 +22,7 @@ interface NewVehicleFiltersProps {
   onPriceRangeChange: (value: number[]) => void;
   onClearFilters: () => void;
   initialOpenAccordion?: string;
+  availableYears?: string[];
 }
 
 const NewVehicleFilters = ({
@@ -32,6 +33,7 @@ const NewVehicleFilters = ({
   onPriceRangeChange,
   onClearFilters,
   initialOpenAccordion,
+  availableYears,
 }: NewVehicleFiltersProps) => {
   const { colors, categories, fuelTypes, conditions } = useGeneralStore();
   // Estado para controlar qué acordeón está abierto (solo uno a la vez o ninguno)
@@ -395,6 +397,61 @@ const NewVehicleFilters = ({
               </Chip>
             ))}
           </div>
+        </AccordionItem>
+
+        {/* Filtro de Año */}
+        <AccordionItem
+          key='year'
+          aria-label='Año'
+          startContent={
+            <Icon icon='mdi:calendar' className='text-xl text-primary' />
+          }
+          title={
+            <div className='flex items-center gap-2'>
+              Año
+              {filters.year && (
+                <Chip
+                  size='sm'
+                  color='primary'
+                  variant='flat'
+                  className='text-xs py-0 h-5'
+                  onClose={() => handleRemoveFilter('year')}
+                >
+                  {filters.year}
+                </Chip>
+              )}
+            </div>
+          }
+          classNames={{
+            base: 'group-[.is-splitted]:ps-0 py-0',
+            heading:
+              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+            trigger: 'px-0',
+            content: 'px-2 py-2',
+          }}
+        >
+          <Select
+            placeholder='Selecciona un año'
+            selectedKeys={filters.year ? [filters.year] : []}
+            onChange={(e) => onFilterChange('year', e.target.value)}
+            classNames={{
+              base: 'dark:bg-dark-card',
+              trigger:
+                'dark:bg-dark-card dark:text-white dark:border-dark-border',
+              listbox: 'dark:bg-dark-card dark:text-white',
+              popoverContent: 'dark:bg-dark-card dark:border-dark-border',
+              value: 'dark:text-white',
+              label: 'dark:text-gray-400',
+            }}
+          >
+            {availableYears &&
+              availableYears.length > 0 &&
+              availableYears.map((year) => (
+                <SelectItem key={year} value={year}>
+                  {year}
+                </SelectItem>
+              ))}
+          </Select>
         </AccordionItem>
 
         <AccordionItem

@@ -132,6 +132,8 @@ const VehicleFilters = ({
                 // Resetear también los estados locales de los inputs
                 setMinPriceInput('');
                 setMaxPriceInput('');
+                // Asegurarnos de que el filtro de año también se resetee
+                onFilterChange('year', undefined);
               }
             }}
             className='text-[13px] py-0 px-3 font-normal bg-transparent min-w-0 flex items-center mr-4 sm:mr-0'
