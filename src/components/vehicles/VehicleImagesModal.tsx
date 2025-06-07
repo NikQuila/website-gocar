@@ -2,6 +2,7 @@ import { Modal, ModalContent, ModalBody, Button, Image } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import InnerImageZoom from 'react-inner-image-zoom';
 import 'react-inner-image-zoom/lib/styles.min.css';
+import { useState, useEffect } from 'react';
 
 interface VehicleImagesModalProps {
   isOpen: boolean;
@@ -18,6 +19,20 @@ export default function VehicleImagesModal({
   images,
   onImageChange,
 }: VehicleImagesModalProps) {
+  const [isZoomActive, setIsZoomActive] = useState(false);
+
+  // Resetear zoom cuando se cierra el modal
+  useEffect(() => {
+    if (!isOpen) {
+      setIsZoomActive(false);
+    }
+  }, [isOpen]);
+
+  // Resetear zoom cuando cambia la imagen
+  useEffect(() => {
+    setIsZoomActive(false);
+  }, [currentImage]);
+
   const handlePrevImage = () => {
     const currentIndex = images.indexOf(currentImage);
     const prevIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
@@ -28,6 +43,14 @@ export default function VehicleImagesModal({
     const currentIndex = images.indexOf(currentImage);
     const nextIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
     onImageChange(images[nextIndex]);
+  };
+
+  const handleImageClick = () => {
+    if (isZoomActive) {
+      setIsZoomActive(false);
+    } else {
+      setIsZoomActive(true);
+    }
   };
 
   return (
@@ -75,13 +98,22 @@ export default function VehicleImagesModal({
 
             {/* Main Image Container */}
             <div className='flex-1 flex items-center justify-center p-8'>
-              <InnerImageZoom
-                src={currentImage}
-                zoomSrc={currentImage}
-                zoomType='hover'
-                alt='Vehicle'
-                className='h-[50vh] sm:h-[80vh] w-auto object-contain'
-              />
+              <div onClick={handleImageClick}>
+                {isZoomActive ? (
+                  <InnerImageZoom
+                    src={currentImage}
+                    zoomSrc={currentImage}
+                    zoomType='hover'
+                    className='h-[50vh] sm:h-[80vh] w-auto object-contain'
+                  />
+                ) : (
+                  <Image
+                    src={currentImage}
+                    alt='Vehicle'
+                    className='h-[50vh] sm:h-[80vh] w-auto object-contain cursor-zoom-in'
+                  />
+                )}
+              </div>
             </div>
 
             {/* Thumbnails */}
@@ -107,7 +139,7 @@ export default function VehicleImagesModal({
               </div>
             </div>
           </div>
-        </ModalBody>{' '}
+        </ModalBody>
       </ModalContent>
     </Modal>
   );
