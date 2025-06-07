@@ -201,14 +201,14 @@ ${formData.message}
               Información de Contacto
             </h2>
 
-            <div>
+            {/*  <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
                 Ubicación
               </h3>
               <p className='mt-2 text-gray-600 dark:text-gray-400'>
                 {client?.contact?.address}
               </p>
-            </div>
+            </div> */}
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
