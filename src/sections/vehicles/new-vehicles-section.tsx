@@ -32,6 +32,8 @@ import useThemeStore from '@/store/useThemeStore';
 import Link from 'next/link';
 import useClientStore from '@/store/useClientStore';
 import { formatWhatsAppNumber } from '@/utils/contact-utils';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 const vehicleCategories = [
   {
@@ -86,6 +88,16 @@ const vehicleCategories = [
 
 const sortOptions = [
   {
+    key: 'date_desc',
+    label: 'Recientes primero',
+    icon: 'mdi:clock-outline',
+  },
+  {
+    key: 'date_asc',
+    label: 'Antiguos primero',
+    icon: 'mdi:clock',
+  },
+  {
     key: 'price_asc',
     label: 'Precio: Menor a Mayor',
     icon: 'mdi:sort-ascending',
@@ -112,8 +124,9 @@ const NewVehiclesSection = () => {
   const [showFilters, setShowFilters] = useState(true);
   const [filters, setFilters] = useState<VehicleFiltersType>({});
   const [priceRange, setPriceRange] = useState([0, 1000000000]);
-  const [sortBy, setSortBy] = useState('price_asc');
+  const [sortBy, setSortBy] = useState('date_desc');
   const [activeView, setActiveView] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isMd = useMediaQuery('(min-width: 768px)');
   const isMobile = useMediaQuery('(max-width: 639px)'); // xs
@@ -147,19 +160,38 @@ const NewVehiclesSection = () => {
 
   const clearFilters = () => {
     setFilters({});
-
     setPriceRange([0, 1000000000]);
-
     setSelectedCategory('all');
+    setSearchQuery('');
+    setSortBy('date_desc');
   };
 
   const filteredVehicles = vehicles
-
     .filter((vehicle) => {
       let matches = true;
 
-      // Category from tabs
+      // Search filter
+      if (searchQuery.trim() !== '') {
+        const query = searchQuery.toLowerCase().trim();
+        const searchTerms = query.split(' ').filter((term) => term.length > 0);
 
+        const matchesSearch = searchTerms.every((term) => {
+          const brandMatch = vehicle.brand?.name?.toLowerCase().includes(term);
+          const modelMatch = vehicle.model?.name?.toLowerCase().includes(term);
+          const categoryMatch = vehicle.category?.name
+            ?.toLowerCase()
+            .includes(term);
+          const yearMatch = vehicle.year?.toString().includes(term);
+
+          return brandMatch || modelMatch || categoryMatch || yearMatch;
+        });
+
+        if (!matchesSearch) {
+          matches = false;
+        }
+      }
+
+      // Category from tabs
       if (
         selectedCategory !== 'all' &&
         vehicle?.category?.name.toLowerCase() !== selectedCategory.toLowerCase()
@@ -168,7 +200,6 @@ const NewVehiclesSection = () => {
       }
 
       // Filters from sidebar
-
       if (filters.brand && vehicle?.brand?.id.toString() !== filters.brand) {
         matches = false;
       }
@@ -208,26 +239,33 @@ const NewVehiclesSection = () => {
 
       return matches;
     })
-
     .sort((a, b) => {
       switch (sortBy) {
+        case 'date_desc':
+          return (
+            new Date(b.created_at || 0).getTime() -
+            new Date(a.created_at || 0).getTime()
+          );
+        case 'date_asc':
+          return (
+            new Date(a.created_at || 0).getTime() -
+            new Date(b.created_at || 0).getTime()
+          );
         case 'price_asc':
           return a.price - b.price;
-
         case 'price_desc':
           return b.price - a.price;
-
         case 'year_desc':
           return b.year - a.year;
-
         case 'year_asc':
           return a.year - b.year;
-
         case 'mileage_asc':
           return a.mileage - b.mileage;
-
         default:
-          return 0;
+          return (
+            new Date(b.created_at || 0).getTime() -
+            new Date(a.created_at || 0).getTime()
+          );
       }
     });
 
@@ -252,7 +290,9 @@ const NewVehiclesSection = () => {
   const activeFiltersCount =
     Object.keys(filters).length +
     (priceRange[0] > 0 || priceRange[1] < 1000000000 ? 1 : 0) +
-    (selectedCategory !== 'all' ? 1 : 0);
+    (selectedCategory !== 'all' ? 1 : 0) +
+    (sortBy !== 'date_desc' ? 1 : 0) +
+    (searchQuery.trim() !== '' ? 1 : 0);
 
   const selectedCategoryData = vehicleCategories.find(
     (cat) => cat.id === selectedCategory
@@ -381,6 +421,67 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 sm:mb-6 flex flex-col sm:flex-row gap-2 sm:gap-4'>
+        {/* Buscador */}
+        <div className='w-full sm:flex-[3] relative'>
+          <Search
+            className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400'
+            size={16}
+          />
+          <Input
+            type='text'
+            placeholder='Buscar por marca, modelo o año...'
+            className='
+              pl-12 pr-3 py-2 min-h-[36px]
+              rounded-xl
+              border border-gray-400
+              bg-gray-100
+              text-sm text-gray-700
+              shadow-md
+              focus:border-primary focus:ring-2 focus:ring-primary
+              transition-all
+              w-full
+              max-w-xxl
+            '
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        {/* Selector de orden */}
+        <div className='w-full sm:flex-1 min-w-[80px] flex mt-2 sm:mt-0 -mb-4'>
+          <Dropdown>
+            <DropdownTrigger>
+              <Button
+                variant='light'
+                startContent={<Icon icon='mdi:sort' className='text-base' />}
+                className='w-full flex items-center gap-x-1 px-3 py-2 min-h-[36px] text-sm shadow-none bg-transparent border-none hover:bg-gray-100 focus:bg-gray-100 transition-colors'
+              >
+                {sortOptions.find((option) => option.key === sortBy)?.label ||
+                  'Ordenar por'}
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu
+              selectionMode='single'
+              selectedKeys={new Set([sortBy])}
+              onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0];
+                if (selected) setSortBy(selected.toString());
+              }}
+            >
+              {sortOptions.map((option) => (
+                <DropdownItem
+                  key={option.key}
+                  startContent={<Icon icon={option.icon} className='text-xl' />}
+                >
+                  {option.label}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </Dropdown>
+        </div>
+      </div>
+
       {/* Main Content */}
 
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'>
@@ -398,6 +499,8 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   onClearFilters={clearFilters}
                   initialOpenAccordion={filters.color ? 'color' : undefined}
                   availableYears={availableYears}
+                  sortBy={sortBy}
+                  searchQuery={searchQuery}
                 />
               </div>
             </div>
@@ -420,56 +523,6 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   Filtros {activeFiltersCount > 0 && `(${activeFiltersCount})`}
                 </Button>
               </div>
-
-              {/* Columna central - Dropdown de ordenamiento */}
-              <div className='flex-grow flex justify-start'>
-                <Dropdown>
-                  <DropdownTrigger>
-                    <Button
-                      variant='light'
-                      startContent={
-                        <Icon icon='mdi:sort' className='text-xl' />
-                      }
-                      className='w-full sm:w-auto justify-between'
-                    >
-                      {sortOptions.find((option) => option.key === sortBy)
-                        ?.label || 'Ordenar por'}
-                    </Button>
-                  </DropdownTrigger>
-
-                  <DropdownMenu
-                    selectionMode='single'
-                    selectedKeys={new Set([sortBy])}
-                    onSelectionChange={(keys) => {
-                      const selected = Array.from(keys)[0];
-                      if (selected) setSortBy(selected.toString());
-                    }}
-                  >
-                    {sortOptions.map((option) => (
-                      <DropdownItem
-                        key={option.key}
-                        startContent={
-                          <Icon icon={option.icon} className='text-xl' />
-                        }
-                      >
-                        {option.label}
-                      </DropdownItem>
-                    ))}
-                  </DropdownMenu>
-                </Dropdown>
-              </div>
-
-              {activeFiltersCount > 0 && (
-                <Chip
-                  variant='flat'
-                  color='primary'
-                  onClose={clearFilters}
-                  className='w-full sm:w-auto justify-center ml-auto sm:ml-0 md:mr-16 lg:mr-24 xl:mr-64 2xl:mr-96'
-                >
-                  {activeFiltersCount}{' '}
-                  {activeFiltersCount === 1 ? 'filtro' : 'filtros'} activos
-                </Chip>
-              )}
             </div>
 
             {/* Vehicle Cards */}
@@ -518,7 +571,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                 <Button
                   color='primary'
                   variant='light'
-                  onPress={clearFilters}
+                  onClick={clearFilters}
                   startContent={<Icon icon='mdi:filter-off' />}
                 >
                   Limpiar filtros
@@ -557,6 +610,8 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   onClearFilters={clearFilters}
                   initialOpenAccordion={filters.color ? 'color' : undefined}
                   availableYears={availableYears}
+                  sortBy={sortBy}
+                  searchQuery={searchQuery}
                 />
               </div>
             </ScrollShadow>

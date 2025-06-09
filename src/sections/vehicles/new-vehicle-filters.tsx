@@ -23,6 +23,8 @@ interface NewVehicleFiltersProps {
   onClearFilters: () => void;
   initialOpenAccordion?: string;
   availableYears?: string[];
+  sortBy?: string;
+  searchQuery?: string;
 }
 
 const NewVehicleFilters = ({
@@ -34,6 +36,8 @@ const NewVehicleFilters = ({
   onClearFilters,
   initialOpenAccordion,
   availableYears,
+  sortBy = 'date_desc',
+  searchQuery = '',
 }: NewVehicleFiltersProps) => {
   const { colors, categories, fuelTypes, conditions } = useGeneralStore();
   // Estado para controlar qué acordeón está abierto (solo uno a la vez o ninguno)
@@ -43,7 +47,9 @@ const NewVehicleFilters = ({
 
   const activeFiltersCount =
     Object.keys(filters).length +
-    (priceRange[0] > 0 || priceRange[1] < 1000000000 ? 1 : 0);
+    (priceRange[0] > 0 || priceRange[1] < 1000000000 ? 1 : 0) +
+    (sortBy !== 'date_desc' ? 1 : 0) +
+    (searchQuery.trim() !== '' ? 1 : 0);
 
   // Función para manejar la apertura/cierre de acordeones
   const handleAccordionSelection = (key: string) => {
@@ -108,11 +114,7 @@ const NewVehicleFilters = ({
               size='sm'
               variant='light'
               color='danger'
-              onClick={() => {
-                if (typeof onClearFilters === 'function') {
-                  onClearFilters();
-                }
-              }}
+              onClick={onClearFilters}
               className='text-[13px] py-0 px-0 font-normal bg-transparent min-w-0 flex items-center'
             >
               <Icon

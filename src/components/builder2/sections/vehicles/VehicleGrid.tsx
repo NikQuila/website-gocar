@@ -369,13 +369,18 @@ export const VehicleGrid = ({
     // Search filter - check brand, model, category
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(
-        (v) =>
-          (v.brand?.name && v.brand.name.toLowerCase().includes(query)) ||
-          (v.model?.name && v.model.name.toLowerCase().includes(query)) ||
-          (v.category?.name && v.category.name.toLowerCase().includes(query)) ||
-          (v.year && v.year.toString().includes(query))
-      );
+      const searchTerms = query.split(' ').filter((term) => term.length > 0);
+
+      filtered = filtered.filter((v) => {
+        return searchTerms.every((term) => {
+          const brandMatch = v.brand?.name?.toLowerCase().includes(term);
+          const modelMatch = v.model?.name?.toLowerCase().includes(term);
+          const categoryMatch = v.category?.name?.toLowerCase().includes(term);
+          const yearMatch = v.year?.toString().includes(term);
+
+          return brandMatch || modelMatch || categoryMatch || yearMatch;
+        });
+      });
     }
 
     // Filter by price range
