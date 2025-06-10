@@ -272,8 +272,8 @@ const VehiclesPage = () => {
       <main className='grid grid-cols-1 md:grid-cols-4'>
         {/* Sidebar de filtros para desktop */}
         {isMd && (
-          <aside className='col-span-1 md:sticky md:top-[3.5rem] mt-20 ml-20'>
-            <div className='overflow-y-auto max-h-[calc(100vh-130px)] bg-white dark:bg-dark-bg rounded-lg shadow-sm'>
+          <aside className='hidden md:block md:fixed md:top-[5.5rem] md:left-0 md:w-72 md:h-[calc(100vh-5.5rem)] z-30 ml-10'>
+            <div className='overflow-y-auto h-full dark:bg-dark-bg rounded-lg shadow-sm p-3'>
               <NewVehicleFilters
                 filters={filters}
                 priceRange={priceRange}
@@ -310,7 +310,7 @@ const VehiclesPage = () => {
         )}
 
         {/* Contenido principal */}
-        <div className='col-span-1 md:col-span-3 flex-1 transition-all duration-300 md:mr-10 mx-1'>
+        <div className='col-span-1 md:col-span-3 flex-1 transition-all duration-300 md:w-full md:ml-80 mx-1'>
           <div className='px-4 sm:px-6 pt-20'>
             {isPageLoading ? (
               <LoadingState />
