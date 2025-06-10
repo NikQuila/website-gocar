@@ -591,13 +591,14 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
         className='bg-white dark:bg-dark-card'
         classNames={{
           base: 'h-[90vh] rounded-t-xl',
-          header: 'border-b border-gray-200 dark:border-dark-border',
+          header:
+            'border-b border-transparent sm:border-gray-200 dark:sm:border-dark-border',
           body: 'p-0',
           footer: 'border-t border-gray-200 dark:border-dark-border px-4 py-4',
         }}
       >
         <DrawerContent>
-          <DrawerHeader className='font-bold'>Filtros</DrawerHeader>
+          <DrawerHeader></DrawerHeader>
           <DrawerBody>
             <ScrollShadow className='h-[calc(100vh-12rem)]'>
               <div className='px-4'>

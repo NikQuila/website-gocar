@@ -100,7 +100,7 @@ const NewVehicleFilters = ({
       <div className='p-4 border-b border-gray-200 dark:border-dark-border'>
         <div className='flex justify-between items-center'>
           <div>
-            <h3 className='text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2'>
+            <h3 className='text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2 mt-4 sm:mt-0'>
               Filtros
               {activeFiltersCount > 0 && (
                 <Chip size='sm' color='primary' variant='flat'>
@@ -115,7 +115,7 @@ const NewVehicleFilters = ({
               variant='light'
               color='danger'
               onClick={onClearFilters}
-              className='text-[13px] py-0 px-0 font-normal bg-transparent min-w-0 flex items-center'
+              className='text-[13px] py-0 px-0 font-normal bg-transparent min-w-0 flex items-center mx-auto mt-4 sm:mt-0 sm:mx-0'
             >
               <Icon
                 icon='solar:filter-linear'
