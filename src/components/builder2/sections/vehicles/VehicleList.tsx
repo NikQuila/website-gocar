@@ -19,14 +19,30 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
+import { Icon } from '@iconify/react';
 
 interface VehicleListProps {
   vehicles: ExtendedVehicle[];
   columns: 2 | 3 | 4;
   getStatusColor: (status: string) => string;
-  sortOrder: 'price_asc' | 'price_desc' | 'date_asc' | 'date_desc';
+  sortOrder:
+    | 'price_asc'
+    | 'price_desc'
+    | 'date_asc'
+    | 'date_desc'
+    | 'year_desc'
+    | 'year_asc'
+    | 'mileage_asc';
   setSortOrder: React.Dispatch<
-    React.SetStateAction<'price_asc' | 'price_desc' | 'date_asc' | 'date_desc'>
+    React.SetStateAction<
+      | 'price_asc'
+      | 'price_desc'
+      | 'date_asc'
+      | 'date_desc'
+      | 'year_desc'
+      | 'year_asc'
+      | 'mileage_asc'
+    >
   >;
   cardSettings?: {
     cardBgColor: string;
@@ -40,6 +56,40 @@ interface VehicleListProps {
   }[];
   newBadgeText?: string;
 }
+
+const sortOptions = [
+  {
+    key: 'date_desc',
+    label: 'Recientes primero',
+    icon: 'mdi:clock-outline',
+  },
+  {
+    key: 'date_asc',
+    label: 'Antiguos primero',
+    icon: 'mdi:clock',
+  },
+  {
+    key: 'price_asc',
+    label: 'Precio: Menor a Mayor',
+    icon: 'mdi:sort-ascending',
+  },
+  {
+    key: 'price_desc',
+    label: 'Precio: Mayor a Menor',
+    icon: 'mdi:sort-descending',
+  },
+  { key: 'year_desc', label: 'Año: Más Reciente', icon: 'mdi:calendar' },
+  {
+    key: 'year_asc',
+    label: 'Año: Más Antiguo',
+    icon: 'mdi:calendar-outline',
+  },
+  {
+    key: 'mileage_asc',
+    label: 'Kilometraje: Menor a Mayor',
+    icon: 'mdi:speedometer-slow',
+  },
+];
 
 export const VehicleList: React.FC<VehicleListProps> = ({
   vehicles,
@@ -57,20 +107,42 @@ export const VehicleList: React.FC<VehicleListProps> = ({
     4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
   }[columns];
 
-  const getSortButtonText = () => {
+  // Ordenar los vehículos según el criterio seleccionado
+  const sortedVehicles = [...vehicles].sort((a, b) => {
+    // Primero ordenar por estado (disponible primero)
+    if (a.status?.name === 'Vendido' && b.status?.name !== 'Vendido') return 1;
+    if (a.status?.name !== 'Vendido' && b.status?.name === 'Vendido') return -1;
+    if (a.status?.name === 'Reservado' && b.status?.name !== 'Reservado')
+      return 1;
+    if (a.status?.name !== 'Reservado' && b.status?.name === 'Reservado')
+      return -1;
+
+    // Luego aplicar el ordenamiento seleccionado
     switch (sortOrder) {
       case 'date_desc':
-        return 'Recientes primero';
+        return (
+          new Date(b.created_at || 0).getTime() -
+          new Date(a.created_at || 0).getTime()
+        );
       case 'date_asc':
-        return 'Antiguos primero';
+        return (
+          new Date(a.created_at || 0).getTime() -
+          new Date(b.created_at || 0).getTime()
+        );
       case 'price_asc':
-        return 'Precio: Menor a mayor';
+        return (a.price || 0) - (b.price || 0);
       case 'price_desc':
-        return 'Precio: Mayor a menor';
+        return (b.price || 0) - (a.price || 0);
+      case 'year_desc':
+        return (b.year || 0) - (a.year || 0);
+      case 'year_asc':
+        return (a.year || 0) - (b.year || 0);
+      case 'mileage_asc':
+        return (a.mileage || 0) - (b.mileage || 0);
       default:
-        return 'Ordenar';
+        return 0;
     }
-  };
+  });
 
   return (
     <div className='w-full'>
@@ -83,23 +155,26 @@ export const VehicleList: React.FC<VehicleListProps> = ({
               size='sm'
               className='flex items-center gap-1 text-xs'
             >
-              <span>{getSortButtonText()}</span>
-              <ArrowUpDown size={14} />
+              <span>
+                {sortOptions.find((option) => option.key === sortOrder)
+                  ?.label || 'Ordenar por'}
+              </span>
+              <Icon icon='mdi:sort' className='text-base' />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
-            <DropdownMenuItem onSelect={() => setSortOrder('date_desc')}>
-              Recientes primero
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setSortOrder('date_asc')}>
-              Antiguos primero
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setSortOrder('price_asc')}>
-              Precio: Menor a mayor
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setSortOrder('price_desc')}>
-              Precio: Mayor a menor
-            </DropdownMenuItem>
+            {sortOptions.map((option) => (
+              <DropdownMenuItem
+                key={option.key}
+                onSelect={() => setSortOrder(option.key as any)}
+                className={
+                  sortOrder === option.key ? 'font-bold bg-gray-100' : ''
+                }
+              >
+                <Icon icon={option.icon} className='text-sm mr-2' />
+                {option.label}
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -112,7 +187,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
         </div>
       ) : (
         <div className={`grid ${gridCols} gap-6`}>
-          {vehicles.map((vehicle) => (
+          {sortedVehicles.map((vehicle) => (
             <VehicleCard
               key={vehicle.id}
               vehicle={vehicle as unknown as SimpleVehicle}
