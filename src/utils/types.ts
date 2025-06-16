@@ -48,6 +48,9 @@ export interface Client {
     email: string;
     phone: string;
     address: string;
+    finance_emails?: string[];
+    consignments_emails?: string[];
+    buy_emails?: string[];
   };
   location: {
     lat: number | string;

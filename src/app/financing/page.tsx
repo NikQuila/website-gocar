@@ -126,9 +126,16 @@ Información Financiera:
 ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
       });
 
+      // Determinar emails de destino para financiamiento
+      const financeEmails =
+        client?.contact?.finance_emails &&
+        client.contact.finance_emails.length > 0
+          ? client.contact.finance_emails
+          : [client?.contact?.email || ''];
+
       // Enviar email al cliente/automotora
       const emailResult = await sendEmail({
-        to: [client?.contact?.email || ''],
+        to: financeEmails,
         subject: `Solicitud de Financiamiento${
           selectedVehicle ? `: ${vehicleInfo.brand} ${vehicleInfo.model}` : ''
         }`,

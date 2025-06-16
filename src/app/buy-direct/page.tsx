@@ -160,8 +160,14 @@ const CompramosTuAutoPage = () => {
         additionalMessage: formData.message,
       });
 
+      // Determinar emails de destino para compras
+      const buyEmails =
+        client?.contact?.buy_emails && client.contact.buy_emails.length > 0
+          ? client.contact.buy_emails
+          : [client?.contact?.email || ''];
+
       const emailResult = await sendEmail({
-        to: [client?.contact?.email || ''],
+        to: buyEmails,
         subject: `Solicitud de Compra: ${selectedBrand} ${selectedModel} (${formData.vehicle_year})`,
         content: emailContent,
       });
