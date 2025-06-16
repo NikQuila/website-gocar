@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 
 // Versión simplificada del vehículo - EXPORT this interface
 export interface SimpleVehicle extends Vehicle {
+  label?: string; // Campo para etiqueta personalizada
   vehicles_sales?:
     | Array<{ created_at: string; [key: string]: any }>
     | { created_at: string; [key: string]: any }
@@ -141,6 +142,7 @@ export const VehicleCarousel = ({
             status_id,
             discount_percentage,
             created_at,
+            label,
             status:status_id(id, name),
             brand:brand_id(id, name),
             model:model_id(id, name),

@@ -45,6 +45,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     condition,
     created_at,
     discount_percentage,
+    label,
   } = vehicle;
 
   // Calculate discounted_price for display
@@ -140,10 +141,10 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
           </div>
         )}
 
-        {isNew() && !isNotAvailable && (
+        {(label || (isNew() && !isNotAvailable)) && (
           <div className='absolute top-2 right-2 z-10'>
             <Badge className='bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full'>
-              {newBadgeText}
+              {label || newBadgeText}
             </Badge>
           </div>
         )}

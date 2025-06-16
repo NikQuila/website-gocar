@@ -16,9 +16,13 @@ import {
 
 interface VehicleHorizontalCardProps {
   vehicle: Vehicle;
+  newBadgeText?: string;
 }
 
-const VehicleHorizontalCard = ({ vehicle }: VehicleHorizontalCardProps) => {
+const VehicleHorizontalCard = ({
+  vehicle,
+  newBadgeText = 'Nuevo',
+}: VehicleHorizontalCardProps) => {
   const router = useRouter();
 
   const formattedPrice = new Intl.NumberFormat('es-CL', {
@@ -41,6 +45,14 @@ const VehicleHorizontalCard = ({ vehicle }: VehicleHorizontalCardProps) => {
 
   const isSold = vehicle.status?.name === 'Vendido';
   const isReserved = vehicle.status?.name === 'Reservado';
+
+  const isNew = () => {
+    if (!vehicle.created_at) return false;
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    const createdAtDate = new Date(vehicle.created_at);
+    return createdAtDate > fiveDaysAgo;
+  };
 
   const handleViewDetails = () => {
     router.push(`/vehicles/${vehicle.id}`);
@@ -75,6 +87,16 @@ const VehicleHorizontalCard = ({ vehicle }: VehicleHorizontalCardProps) => {
             className='object-cover h-full w-full'
             src={vehicle.main_image}
           />
+          {(vehicle.label || (isNew() && !isSold && !isReserved)) && (
+            <div className='absolute top-2 right-2 z-20'>
+              <Chip
+                size='sm'
+                className='shadow-lg text-white bg-green-100 text-green-700 border-none font-semibold'
+              >
+                {vehicle.label || newBadgeText}
+              </Chip>
+            </div>
+          )}
           {!isSold &&
             !isReserved &&
             vehicle.discount_percentage !== undefined &&

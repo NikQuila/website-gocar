@@ -162,6 +162,7 @@ export const VehicleGrid = ({
             main_image,
             status_id,
             discount_percentage,
+            label,
             created_at,
             status:status_id(id, name),
             brand:brand_id(id, name),

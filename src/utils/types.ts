@@ -65,6 +65,7 @@ export interface Vehicle {
   id: string;
   client_id: string;
   seller_id?: string; // ID del vendedor asociado al vehículo
+  label?: string; // Campo para etiqueta personalizada
 
   // Información básica del vehículo
   brand: Brand;

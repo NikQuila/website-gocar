@@ -99,13 +99,13 @@ const VehicleVerticalCard = ({
               </div>
             </div>
           )}
-          {isNew() && !isSold && !isReserved && (
+          {(vehicle.label || (isNew() && !isSold && !isReserved)) && (
             <div className='absolute top-2 right-2 z-20'>
               <Chip
                 size='sm'
                 className='shadow-lg text-white bg-primary border-none font-bold'
               >
-                {getRandomBadgeText()}
+                {vehicle.label || getRandomBadgeText()}
               </Chip>
             </div>
           )}
