@@ -25,6 +25,7 @@ interface NewVehicleFiltersProps {
   availableYears?: string[];
   sortBy?: string;
   searchQuery?: string;
+  maxPrice?: number;
 }
 
 const NewVehicleFilters = ({
@@ -38,6 +39,7 @@ const NewVehicleFilters = ({
   availableYears,
   sortBy = 'date_desc',
   searchQuery = '',
+  maxPrice = 1000000000,
 }: NewVehicleFiltersProps) => {
   const { colors, categories, fuelTypes, conditions } = useGeneralStore();
   // Estado para controlar qué acordeón está abierto (solo uno a la vez o ninguno)
@@ -47,7 +49,7 @@ const NewVehicleFilters = ({
 
   const activeFiltersCount =
     Object.keys(filters).length +
-    (priceRange[0] > 0 || priceRange[1] < 1000000000 ? 1 : 0) +
+    (priceRange[0] > 0 || priceRange[1] < maxPrice ? 1 : 0) +
     (sortBy !== 'date_desc' ? 1 : 0) +
     (searchQuery.trim() !== '' ? 1 : 0);
 
@@ -63,7 +65,7 @@ const NewVehicleFilters = ({
 
   // Función para resetear el rango de precios
   const handleResetPriceRange = () => {
-    onPriceRangeChange([0, 1000000000]);
+    onPriceRangeChange([0, maxPrice]);
   };
 
   const formatPrice = (price: number) => {
@@ -144,7 +146,7 @@ const NewVehicleFilters = ({
           title={
             <div className='flex flex-col items-start'>
               <div>Rango de Precio</div>
-              {(priceRange[0] > 0 || priceRange[1] < 1000000000) && (
+              {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
                 <Chip
                   size='sm'
                   color='primary'
@@ -222,7 +224,7 @@ const NewVehicleFilters = ({
                 value={priceRange}
                 onChange={(value) => onPriceRangeChange(value as number[])}
                 minValue={0}
-                maxValue={1000000000}
+                maxValue={maxPrice}
                 step={1000000}
                 className='max-w-full'
                 size='sm'

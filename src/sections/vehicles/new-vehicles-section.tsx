@@ -120,14 +120,6 @@ const NewVehiclesSection = () => {
   const { theme } = useThemeStore();
   const { vehicles, isLoading } = useVehiclesStore();
   const { client } = useClientStore();
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [showFilters, setShowFilters] = useState(true);
-  const [filters, setFilters] = useState<VehicleFiltersType>({});
-  const [priceRange, setPriceRange] = useState([0, 1000000000]);
-  const [sortBy, setSortBy] = useState('date_desc');
-  const [activeView, setActiveView] = useState<'grid' | 'list'>('grid');
-  const [searchQuery, setSearchQuery] = useState('');
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const isMd = useMediaQuery('(min-width: 768px)');
   const isMobile = useMediaQuery('(max-width: 639px)'); // xs
   const isTablet = useMediaQuery('(min-width: 640px) and (max-width: 1023px)'); // sm-md
@@ -140,6 +132,24 @@ const NewVehiclesSection = () => {
   ]
     .map(String)
     .sort((a, b) => b.localeCompare(a));
+
+  // Calcular el precio máximo real de todos los vehículos disponibles
+  const maxPrice = Math.max(
+    ...vehicles
+      .filter(
+        (v) => v.status?.name !== 'Vendido' && v.status?.name !== 'Reservado'
+      )
+      .map((v) => v.price || 0)
+  );
+
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(true);
+  const [filters, setFilters] = useState<VehicleFiltersType>({});
+  const [priceRange, setPriceRange] = useState([0, maxPrice]);
+  const [sortBy, setSortBy] = useState('date_desc');
+  const [activeView, setActiveView] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
     setFilters((prev) => {
@@ -160,7 +170,7 @@ const NewVehiclesSection = () => {
 
   const clearFilters = () => {
     setFilters({});
-    setPriceRange([0, 1000000000]);
+    setPriceRange([0, maxPrice]);
     setSelectedCategory('all');
     setSearchQuery('');
     setSortBy('date_desc');
@@ -289,7 +299,7 @@ const NewVehiclesSection = () => {
 
   const activeFiltersCount =
     Object.keys(filters).length +
-    (priceRange[0] > 0 || priceRange[1] < 1000000000 ? 1 : 0) +
+    (priceRange[0] > 0 || priceRange[1] < maxPrice ? 1 : 0) +
     (selectedCategory !== 'all' ? 1 : 0) +
     (sortBy !== 'date_desc' ? 1 : 0) +
     (searchQuery.trim() !== '' ? 1 : 0);
@@ -501,6 +511,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   availableYears={availableYears}
                   sortBy={sortBy}
                   searchQuery={searchQuery}
+                  maxPrice={maxPrice}
                 />
               </div>
             </div>
@@ -613,6 +624,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   availableYears={availableYears}
                   sortBy={sortBy}
                   searchQuery={searchQuery}
+                  maxPrice={maxPrice}
                 />
               </div>
             </ScrollShadow>

@@ -32,12 +32,32 @@ const VehiclesPage = () => {
     isLoading: isGeneralStoreLoading,
   } = useGeneralStore();
   const isMd = useMediaQuery('(min-width: 768px)');
+
+  // Extraer valores únicos para los filtros
+  const brands = [...new Set(vehicles.map((v) => v.brand))];
+  const models = [...new Set(vehicles.map((v) => v.model))].filter(Boolean);
+
+  // Calcular el precio máximo real de todos los vehículos disponibles
+  const maxPrice = Math.max(
+    ...vehicles
+      .filter(
+        (v) => v.status?.name !== 'Vendido' && v.status?.name !== 'Reservado'
+      )
+      .map((v) => v.price || 0)
+  );
+
   const [isFilterOpen, setIsFilterOpen] = useState(true);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<VehicleFiltersType>({});
-  const [priceRange, setPriceRange] = useState([0, 1000000000]);
+  const [priceRange, setPriceRange] = useState([0, 0]);
   const [sortOrder, setSortOrder] = useState('date_desc');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (maxPrice > 0) {
+      setPriceRange([0, maxPrice]);
+    }
+  }, [maxPrice]);
 
   const sortOptions = [
     {
@@ -87,10 +107,6 @@ const VehiclesPage = () => {
     console.log('Condiciones:', conditions);
   }, [colors, fuelTypes, conditions]);
 
-  // Extraer valores únicos para los filtros
-  const brands = [...new Set(vehicles.map((v) => v.brand))];
-  const models = [...new Set(vehicles.map((v) => v.model))].filter(Boolean);
-
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
     setFilters((prev) => {
       if (value === undefined) {
@@ -111,7 +127,7 @@ const VehiclesPage = () => {
 
   const clearFilters = () => {
     setFilters({});
-    setPriceRange([0, 1000000000]);
+    setPriceRange([0, maxPrice]);
     setSortOrder('date_desc');
     setSearchQuery('');
   };
@@ -284,6 +300,7 @@ const VehiclesPage = () => {
                 sortBy={sortOrder}
                 searchQuery={searchQuery}
                 availableYears={availableYears}
+                maxPrice={maxPrice}
               />
             </div>
           </aside>
@@ -305,6 +322,7 @@ const VehiclesPage = () => {
               sortBy={sortOrder}
               searchQuery={searchQuery}
               availableYears={availableYears}
+              maxPrice={maxPrice}
             />
           </ModalSlideFilter>
         )}

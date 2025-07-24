@@ -325,9 +325,16 @@ export const VehicleGrid = ({
             ...new Set(vehiclesData.map((v) => v.color?.name).filter(Boolean)),
           ];
 
-          // Fuerzo los valores solicitados
+          // Calcular el precio máximo real de los vehículos disponibles
+          const availableVehicles = vehiclesData.filter(
+            (v) =>
+              v.status?.name !== 'Vendido' && v.status?.name !== 'Reservado'
+          );
           const minPrice = 0;
-          const maxPrice = 1000000000;
+          const maxPrice =
+            availableVehicles.length > 0
+              ? Math.max(...availableVehicles.map((v) => v.price || 0))
+              : 1000000000; // valor por defecto si no hay vehículos disponibles
 
           setAvailableBrands(brands as string[]);
           setAvailableYears(years as string[]);
