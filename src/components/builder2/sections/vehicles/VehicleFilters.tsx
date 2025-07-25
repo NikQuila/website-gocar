@@ -372,7 +372,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                       priceRange.min === 0 &&
                       document.activeElement !== document.activeElement
                         ? ''
-                        : priceRange.min
+                        : formatPrice(priceRange.min).replace('$', '').trim()
                     }
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
@@ -411,7 +411,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                       priceRange.max === minMaxPrice.max &&
                       !document.activeElement
                         ? ''
-                        : priceRange.max
+                        : formatPrice(priceRange.max).replace('$', '').trim()
                     }
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');

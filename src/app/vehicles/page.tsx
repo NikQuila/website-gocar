@@ -297,7 +297,7 @@ const VehiclesPage = () => {
         <main className='grid grid-cols-1 md:grid-cols-4'>
           {/* Sidebar de filtros para desktop */}
           {isMd && (
-            <aside className='col-span-1 md:sticky md:top-[3.5rem] mt-20 ml-48 w-64'>
+            <aside className='col-span-1 md:sticky md:top-[3.5rem] mt-20 ml-48 w-[272px]'>
               <div className='overflow-y-auto max-h-[calc(100vh-130px)] bg-white dark:bg-dark-bg rounded-lg shadow-sm w-full'>
                 <NewVehicleFilters
                   filters={filters}

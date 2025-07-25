@@ -202,8 +202,12 @@ const NewVehicleFilters = ({
               <Input
                 type='text'
                 size='sm'
-                placeholder='Coloca un precio'
-                value={minPriceEmpty ? '' : priceRange[0].toString()}
+                placeholder='Precio mínimo'
+                value={
+                  minPriceEmpty
+                    ? ''
+                    : formatPrice(priceRange[0]).replace('$', '').trim()
+                }
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, '');
                   if (value === '') {
@@ -256,8 +260,12 @@ const NewVehicleFilters = ({
               <Input
                 type='text'
                 size='sm'
-                placeholder='Coloca un precio'
-                value={maxPriceEmpty ? '' : priceRange[1].toString()}
+                placeholder='Precio máximo'
+                value={
+                  maxPriceEmpty
+                    ? ''
+                    : formatPrice(priceRange[1]).replace('$', '').trim()
+                }
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, '');
                   if (value === '') {
