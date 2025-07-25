@@ -23,6 +23,7 @@ import { VehicleTypeFilter } from './VehicleTypeFilter';
 import { Vehicle } from '@/utils/types';
 import useClientStore from '@/store/useClientStore';
 import { supabase } from '@/lib/supabase';
+import useActiveBuilderFilter from '@/store/useActiveBuilderFilter';
 
 interface VehicleStatus {
   id: number;
@@ -102,32 +103,40 @@ export const VehicleGrid = ({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Filter values
-  const [priceRange, setPriceRange] = useState<PriceRange>({
-    min: 0,
-    max: 1000000000,
-  });
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [selectedYears, setSelectedYears] = useState<string[]>([]);
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedFuels, setSelectedFuels] = useState<string[]>([]);
-  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [sortOrder, setSortOrder] = useState<
-    'price_asc' | 'price_desc' | 'date_asc' | 'date_desc'
-  >('date_desc'); // Default to newest first
-
-  // Available options derived from vehicles
-  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
-  const [availableYears, setAvailableYears] = useState<string[]>([]);
-  const [availableTypes, setAvailableTypes] = useState<string[]>([]);
-  const [availableFuels, setAvailableFuels] = useState<string[]>([]);
-  const [availableConditions, setAvailableConditions] = useState<string[]>([]);
-  const [availableColors, setAvailableColors] = useState<string[]>([]);
-  const [minMaxPrice, setMinMaxPrice] = useState<{ min: number; max: number }>({
-    min: 0,
-    max: 1000000000,
-  });
+  // Obtén los filtros y setters del store
+  const {
+    selectedBrands,
+    setSelectedBrands,
+    selectedTypes,
+    setSelectedTypes,
+    selectedFuels,
+    setSelectedFuels,
+    selectedConditions,
+    setSelectedConditions,
+    selectedYears,
+    setSelectedYears,
+    selectedColors,
+    setSelectedColors,
+    priceRange,
+    setPriceRange,
+    minMaxPrice,
+    setMinMaxPrice,
+    availableBrands,
+    setAvailableBrands,
+    availableTypes,
+    setAvailableTypes,
+    availableFuels,
+    setAvailableFuels,
+    availableConditions,
+    setAvailableConditions,
+    availableColors,
+    setAvailableColors,
+    availableYears,
+    setAvailableYears,
+    clearFilters,
+    sortOrder,
+    setSortOrder,
+  } = useActiveBuilderFilter();
 
   // Check if any filters are active
   const hasActiveFilters =
@@ -343,7 +352,6 @@ export const VehicleGrid = ({
           setAvailableConditions(conditions as string[]);
           setAvailableColors(colors as string[]);
           setMinMaxPrice({ min: minPrice, max: maxPrice });
-          setPriceRange({ min: minPrice, max: maxPrice });
         }
       } catch (err) {
         console.error('Failed to fetch vehicles:', err);
@@ -355,6 +363,17 @@ export const VehicleGrid = ({
     fetchVehicles();
   }, [showStatuses, client?.id]);
 
+  // Inicializa el rango de precio SOLO si está en valores por defecto y hay un valor real nuevo
+  useEffect(() => {
+    if (
+      priceRange.min === 0 &&
+      priceRange.max === 1000000000 &&
+      minMaxPrice.max !== 1000000000 // hay un valor real
+    ) {
+      setPriceRange({ min: minMaxPrice.min, max: minMaxPrice.max });
+    }
+  }, [minMaxPrice]);
+
   // Reset all filters
   const resetAllFilters = () => {
     setPriceRange({ min: minMaxPrice.min, max: minMaxPrice.max });
@@ -364,7 +383,7 @@ export const VehicleGrid = ({
     setSelectedFuels([]);
     setSelectedConditions([]);
     setSelectedColors([]);
-    setActiveVehicleType('all');
+    activeVehicleType !== 'all' && setActiveVehicleType('all');
     setSearchQuery('');
   };
 

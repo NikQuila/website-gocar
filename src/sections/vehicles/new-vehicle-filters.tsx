@@ -50,6 +50,10 @@ const NewVehicleFilters = ({
     initialOpenAccordion || null
   );
 
+  // Estados para manejar campos vacíos
+  const [minPriceEmpty, setMinPriceEmpty] = useState(false);
+  const [maxPriceEmpty, setMaxPriceEmpty] = useState(false);
+
   const activeFiltersCount =
     Object.keys(filters).length +
     (priceRange[0] > 0 || priceRange[1] < maxPrice ? 1 : 0) +
@@ -74,11 +78,24 @@ const NewVehicleFilters = ({
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      maximumFractionDigits: 0,
-    }).format(price);
+    // Verificar si el precio es un número válido
+    if (
+      isNaN(price) ||
+      !isFinite(price) ||
+      price === undefined ||
+      price === null
+    ) {
+      return '$0';
+    }
+    try {
+      return new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+        maximumFractionDigits: 0,
+      }).format(price);
+    } catch (error) {
+      return '$0';
+    }
   };
 
   const getFilterName = (key: keyof VehicleFiltersType, id: string) => {
@@ -150,7 +167,7 @@ const NewVehicleFilters = ({
           }
           title={
             <div className='flex flex-col items-start'>
-              <div>Rango de Preciooo</div>
+              <div>Rango de Precio</div>
               {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
                 <Chip
                   size='sm'
@@ -185,11 +202,44 @@ const NewVehicleFilters = ({
               <Input
                 type='text'
                 size='sm'
-                placeholder='Mínimo'
-                value={priceRange[0].toString()}
+                placeholder='Coloca un precio'
+                value={minPriceEmpty ? '' : priceRange[0].toString()}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, '');
-                  setPriceRange([Number(value), priceRange[1]]);
+                  if (value === '') {
+                    setMinPriceEmpty(true);
+                    return;
+                  }
+                  setMinPriceEmpty(false);
+                  const numValue = Number(value);
+                  if (!isNaN(numValue) && isFinite(numValue)) {
+                    setPriceRange([numValue, priceRange[1]]);
+                  }
+                }}
+                onFocus={() => {
+                  // No vaciar automáticamente, solo permitir edición del valor actual
+                  setMinPriceEmpty(false);
+                }}
+                onBlur={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  const numValue = value ? Number(value) : 0;
+                  setMinPriceEmpty(false);
+                  if (!isNaN(numValue) && isFinite(numValue)) {
+                    setPriceRange([numValue, priceRange[1]]);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const value = (e.target as HTMLInputElement).value.replace(
+                      /\D/g,
+                      ''
+                    );
+                    const numValue = value ? Number(value) : 0;
+                    setMinPriceEmpty(false);
+                    if (!isNaN(numValue) && isFinite(numValue)) {
+                      setPriceRange([numValue, priceRange[1]]);
+                    }
+                  }
                 }}
                 startContent={
                   <span className='text-gray-500 dark:text-gray-400 text-xs'>
@@ -206,11 +256,44 @@ const NewVehicleFilters = ({
               <Input
                 type='text'
                 size='sm'
-                placeholder='Máximo'
-                value={priceRange[1].toString()}
+                placeholder='Coloca un precio'
+                value={maxPriceEmpty ? '' : priceRange[1].toString()}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, '');
-                  setPriceRange([priceRange[0], Number(value)]);
+                  if (value === '') {
+                    setMaxPriceEmpty(true);
+                    return;
+                  }
+                  setMaxPriceEmpty(false);
+                  const numValue = Number(value);
+                  if (!isNaN(numValue) && isFinite(numValue)) {
+                    setPriceRange([priceRange[0], numValue]);
+                  }
+                }}
+                onFocus={() => {
+                  // No vaciar automáticamente, solo permitir edición del valor actual
+                  setMaxPriceEmpty(false);
+                }}
+                onBlur={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  const numValue = value ? Number(value) : maxPrice;
+                  setMaxPriceEmpty(false);
+                  if (!isNaN(numValue) && isFinite(numValue)) {
+                    setPriceRange([priceRange[0], numValue]);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const value = (e.target as HTMLInputElement).value.replace(
+                      /\D/g,
+                      ''
+                    );
+                    const numValue = value ? Number(value) : maxPrice;
+                    setMaxPriceEmpty(false);
+                    if (!isNaN(numValue) && isFinite(numValue)) {
+                      setPriceRange([priceRange[0], numValue]);
+                    }
+                  }
                 }}
                 startContent={
                   <span className='text-gray-500 dark:text-gray-400 text-xs'>
