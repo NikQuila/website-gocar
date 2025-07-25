@@ -34,6 +34,7 @@ import useClientStore from '@/store/useClientStore';
 import { formatWhatsAppNumber } from '@/utils/contact-utils';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
 
 const vehicleCategories = [
   {
@@ -142,40 +143,37 @@ const NewVehiclesSection = () => {
       .map((v) => v.price || 0)
   );
 
+  // Estado de filtros global con Zustand
+  const {
+    filters,
+    priceRange,
+    sortOrder,
+    searchQuery,
+    setFilters,
+    setPriceRange,
+    setSortOrder,
+    setSearchQuery,
+    clearFilters,
+  } = useVehicleFiltersStore();
+
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(true);
-  const [filters, setFilters] = useState<VehicleFiltersType>({});
-  const [priceRange, setPriceRange] = useState([0, maxPrice]);
-  const [sortBy, setSortBy] = useState('date_desc');
-  const [activeView, setActiveView] = useState<'grid' | 'list'>('grid');
-  const [searchQuery, setSearchQuery] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [activeView, setActiveView] = useState<'grid' | 'list'>('grid');
 
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
-    setFilters((prev) => {
-      // Si el valor es undefined, eliminamos la propiedad del objeto
-      if (value === undefined) {
-        const newFilters = { ...prev };
-        delete newFilters[key];
-        return newFilters;
-      }
-
-      // Si no, actualizamos normalmente
-      return {
-        ...prev,
-        [key]: value,
-      };
+    setFilters({
+      ...filters,
+      [key]: value === undefined ? undefined : value,
     });
   };
 
-  const clearFilters = () => {
-    setFilters({});
-    setPriceRange([0, maxPrice]);
+  const clearAllFilters = () => {
+    clearFilters(maxPrice);
     setSelectedCategory('all');
-    setSearchQuery('');
-    setSortBy('date_desc');
   };
 
+  // Filtrado de vehículos usando el estado global
   const filteredVehicles = vehicles
     .filter((vehicle) => {
       let matches = true;
@@ -250,7 +248,7 @@ const NewVehiclesSection = () => {
       return matches;
     })
     .sort((a, b) => {
-      switch (sortBy) {
+      switch (sortOrder) {
         case 'date_desc':
           return (
             new Date(b.created_at || 0).getTime() -
@@ -262,15 +260,15 @@ const NewVehiclesSection = () => {
             new Date(b.created_at || 0).getTime()
           );
         case 'price_asc':
-          return a.price - b.price;
+          return (a.price || 0) - (b.price || 0);
         case 'price_desc':
-          return b.price - a.price;
+          return (b.price || 0) - (a.price || 0);
         case 'year_desc':
-          return b.year - a.year;
+          return (b.year || 0) - (a.year || 0);
         case 'year_asc':
-          return a.year - b.year;
+          return (a.year || 0) - (b.year || 0);
         case 'mileage_asc':
-          return a.mileage - b.mileage;
+          return (a.mileage || 0) - (b.mileage || 0);
         default:
           return (
             new Date(b.created_at || 0).getTime() -
@@ -301,7 +299,7 @@ const NewVehiclesSection = () => {
     Object.keys(filters).length +
     (priceRange[0] > 0 || priceRange[1] < maxPrice ? 1 : 0) +
     (selectedCategory !== 'all' ? 1 : 0) +
-    (sortBy !== 'date_desc' ? 1 : 0) +
+    (sortOrder !== 'date_desc' ? 1 : 0) +
     (searchQuery.trim() !== '' ? 1 : 0);
 
   const selectedCategoryData = vehicleCategories.find(
@@ -336,6 +334,12 @@ const NewVehiclesSection = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (maxPrice > 0 && priceRange[1] === 0) {
+      setPriceRange([0, maxPrice]);
+    }
+  }, [maxPrice]);
 
   return (
     <div className='min-h-screen bg-gray-50 dark:bg-dark-bg'>
@@ -467,16 +471,16 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                 startContent={<Icon icon='mdi:sort' className='text-base' />}
                 className='w-full flex items-center gap-x-1 px-3 py-2 min-h-[36px] text-sm shadow-none bg-transparent border-none hover:bg-gray-100 focus:bg-gray-100 transition-colors'
               >
-                {sortOptions.find((option) => option.key === sortBy)?.label ||
-                  'Ordenar por'}
+                {sortOptions.find((option) => option.key === sortOrder)
+                  ?.label || 'Ordenar por'}
               </Button>
             </DropdownTrigger>
             <DropdownMenu
               selectionMode='single'
-              selectedKeys={new Set([sortBy])}
+              selectedKeys={new Set([sortOrder])}
               onSelectionChange={(keys) => {
                 const selected = Array.from(keys)[0];
-                if (selected) setSortBy(selected.toString());
+                if (selected) setSortOrder(selected.toString());
               }}
             >
               {sortOptions.map((option) => (
@@ -501,16 +505,9 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
             <div className='w-72 md:sticky md:top-[calc(var(--navbar-height)+2rem)] self-start'>
               <div className='bg-white dark:bg-dark-bg p-3 rounded-xl shadow-sm border border-gray-100 dark:border-dark-border max-h-[calc(100vh-130px)] overflow-y-auto'>
                 <NewVehicleFilters
-                  filters={filters}
-                  priceRange={priceRange}
                   brands={brands}
-                  onFilterChange={handleFilterChange}
-                  onPriceRangeChange={setPriceRange}
-                  onClearFilters={clearFilters}
                   initialOpenAccordion={filters.color ? 'color' : undefined}
                   availableYears={availableYears}
-                  sortBy={sortBy}
-                  searchQuery={searchQuery}
                   maxPrice={maxPrice}
                 />
               </div>
@@ -582,7 +579,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                 <Button
                   color='primary'
                   variant='light'
-                  onClick={clearFilters}
+                  onClick={clearAllFilters}
                   startContent={<Icon icon='mdi:filter-off' />}
                 >
                   Limpiar filtros
@@ -614,16 +611,9 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
             <ScrollShadow className='h-[calc(100vh-12rem)]'>
               <div className='px-4'>
                 <NewVehicleFilters
-                  filters={filters}
-                  priceRange={priceRange}
                   brands={brands}
-                  onFilterChange={handleFilterChange}
-                  onPriceRangeChange={setPriceRange}
-                  onClearFilters={clearFilters}
                   initialOpenAccordion={filters.color ? 'color' : undefined}
                   availableYears={availableYears}
-                  sortBy={sortBy}
-                  searchQuery={searchQuery}
                   maxPrice={maxPrice}
                 />
               </div>

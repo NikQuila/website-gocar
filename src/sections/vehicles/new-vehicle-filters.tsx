@@ -13,6 +13,7 @@ import {
 import { Icon } from '@iconify/react';
 import { VehicleFilters as VehicleFiltersType } from '@/utils/types';
 import { useGeneralStore } from '@/store/useGeneralStore';
+import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
 
 interface NewVehicleFiltersProps {
   filters: VehicleFiltersType;
@@ -29,19 +30,21 @@ interface NewVehicleFiltersProps {
 }
 
 const NewVehicleFilters = ({
-  filters,
-  priceRange,
   brands,
-  onFilterChange,
-  onPriceRangeChange,
-  onClearFilters,
   initialOpenAccordion,
   availableYears,
-  sortBy = 'date_desc',
-  searchQuery = '',
   maxPrice = 1000000000,
-}: NewVehicleFiltersProps) => {
+}: any) => {
   const { colors, categories, fuelTypes, conditions } = useGeneralStore();
+  const {
+    filters,
+    priceRange,
+    setFilters,
+    setPriceRange,
+    clearFilters,
+    sortOrder,
+    searchQuery,
+  } = useVehicleFiltersStore();
   // Estado para controlar qué acordeón está abierto (solo uno a la vez o ninguno)
   const [openAccordion, setOpenAccordion] = useState<string | null>(
     initialOpenAccordion || null
@@ -50,7 +53,7 @@ const NewVehicleFilters = ({
   const activeFiltersCount =
     Object.keys(filters).length +
     (priceRange[0] > 0 || priceRange[1] < maxPrice ? 1 : 0) +
-    (sortBy !== 'date_desc' ? 1 : 0) +
+    (sortOrder !== 'date_desc' ? 1 : 0) +
     (searchQuery.trim() !== '' ? 1 : 0);
 
   // Función para manejar la apertura/cierre de acordeones
@@ -60,12 +63,14 @@ const NewVehicleFilters = ({
 
   // Función para eliminar un filtro individual
   const handleRemoveFilter = (key: keyof VehicleFiltersType) => {
-    onFilterChange(key, undefined);
+    const newFilters = { ...filters };
+    delete newFilters[key];
+    setFilters(newFilters);
   };
 
   // Función para resetear el rango de precios
   const handleResetPriceRange = () => {
-    onPriceRangeChange([0, maxPrice]);
+    setPriceRange([0, maxPrice]);
   };
 
   const formatPrice = (price: number) => {
@@ -116,7 +121,7 @@ const NewVehicleFilters = ({
               size='sm'
               variant='light'
               color='danger'
-              onClick={onClearFilters}
+              onClick={() => clearFilters(maxPrice)}
               className='text-[13px] py-0 px-0 font-normal bg-transparent min-w-0 flex items-center mx-auto mt-4 sm:mt-0 sm:mx-0'
             >
               <Icon
@@ -145,7 +150,7 @@ const NewVehicleFilters = ({
           }
           title={
             <div className='flex flex-col items-start'>
-              <div>Rango de Precio</div>
+              <div>Rango de Preciooo</div>
               {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
                 <Chip
                   size='sm'
@@ -184,7 +189,7 @@ const NewVehicleFilters = ({
                 value={priceRange[0].toString()}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, '');
-                  onPriceRangeChange([Number(value), priceRange[1]]);
+                  setPriceRange([Number(value), priceRange[1]]);
                 }}
                 startContent={
                   <span className='text-gray-500 dark:text-gray-400 text-xs'>
@@ -205,7 +210,7 @@ const NewVehicleFilters = ({
                 value={priceRange[1].toString()}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, '');
-                  onPriceRangeChange([priceRange[0], Number(value)]);
+                  setPriceRange([priceRange[0], Number(value)]);
                 }}
                 startContent={
                   <span className='text-gray-500 dark:text-gray-400 text-xs'>
@@ -222,7 +227,7 @@ const NewVehicleFilters = ({
             <div className='px-1'>
               <Slider
                 value={priceRange}
-                onChange={(value) => onPriceRangeChange(value as number[])}
+                onChange={(value) => setPriceRange(value as number[])}
                 minValue={0}
                 maxValue={maxPrice}
                 step={1000000}
@@ -278,7 +283,7 @@ const NewVehicleFilters = ({
           <Select
             placeholder='Selecciona una marca'
             selectedKeys={filters.brand ? [filters.brand] : []}
-            onChange={(e) => onFilterChange('brand', e.target.value)}
+            onChange={(e) => setFilters({ ...filters, brand: e.target.value })}
             classNames={{
               base: 'dark:bg-dark-card',
               trigger:
@@ -334,7 +339,7 @@ const NewVehicleFilters = ({
               <Chip
                 key={category.id}
                 onClick={() =>
-                  onFilterChange('category', category.id.toString())
+                  setFilters({ ...filters, category: category.id.toString() })
                 }
                 className=' capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
                 color={
@@ -386,7 +391,9 @@ const NewVehicleFilters = ({
             {fuelTypes.map((type) => (
               <Chip
                 key={type.id}
-                onClick={() => onFilterChange('fuel_type', type.id.toString())}
+                onClick={() =>
+                  setFilters({ ...filters, fuel_type: type.id.toString() })
+                }
                 className=' capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
                 color={
                   filters.fuel_type === type.id.toString()
@@ -437,7 +444,7 @@ const NewVehicleFilters = ({
           <Select
             placeholder='Selecciona un año'
             selectedKeys={filters.year ? [filters.year] : []}
-            onChange={(e) => onFilterChange('year', e.target.value)}
+            onChange={(e) => setFilters({ ...filters, year: e.target.value })}
             classNames={{
               base: 'dark:bg-dark-card',
               trigger:
@@ -493,7 +500,7 @@ const NewVehicleFilters = ({
               <Chip
                 key={condition.id}
                 onClick={() =>
-                  onFilterChange('condition', condition.id.toString())
+                  setFilters({ ...filters, condition: condition.id.toString() })
                 }
                 className=' capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
                 color={
@@ -547,7 +554,9 @@ const NewVehicleFilters = ({
             {colors.map((color) => (
               <button
                 key={color.id}
-                onClick={() => onFilterChange('color', color.id.toString())}
+                onClick={() =>
+                  setFilters({ ...filters, color: color.id.toString() })
+                }
                 className={`capitalize w-full flex items-center gap-2 px-2 py-1 rounded-lg border transition-all
                   ${
                     filters.color === color.id.toString()

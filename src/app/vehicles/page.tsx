@@ -19,6 +19,7 @@ import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
 import ModalSlideFilter from '@/components/filters/ModalSlideFilter';
 import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
 import { useGeneralStore } from '@/store/useGeneralStore';
+import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
 
 import { Input } from '@/components/ui/input';
 
@@ -46,17 +47,27 @@ const VehiclesPage = () => {
       .map((v) => v.price || 0)
   );
 
+  // Estado de filtros global con Zustand
+  const {
+    filters,
+    priceRange,
+    sortOrder,
+    searchQuery,
+    setFilters,
+    setPriceRange,
+    setSortOrder,
+    setSearchQuery,
+    clearFilters,
+  } = useVehicleFiltersStore();
+
   const [isFilterOpen, setIsFilterOpen] = useState(true);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [filters, setFilters] = useState<VehicleFiltersType>({});
-  const [priceRange, setPriceRange] = useState([0, 0]);
-  const [sortOrder, setSortOrder] = useState('date_desc');
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (maxPrice > 0) {
+    if (maxPrice > 0 && (priceRange[1] === 0 || priceRange[1] !== maxPrice)) {
       setPriceRange([0, maxPrice]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [maxPrice]);
 
   const sortOptions = [
@@ -108,16 +119,9 @@ const VehiclesPage = () => {
   }, [colors, fuelTypes, conditions]);
 
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
-    setFilters((prev) => {
-      if (value === undefined) {
-        const newFilters = { ...prev };
-        delete newFilters[key];
-        return newFilters;
-      }
-      return {
-        ...prev,
-        [key]: value,
-      };
+    setFilters({
+      ...filters,
+      [key]: value === undefined ? undefined : value,
     });
   };
 
@@ -125,11 +129,8 @@ const VehiclesPage = () => {
     setPriceRange(value);
   };
 
-  const clearFilters = () => {
-    setFilters({});
-    setPriceRange([0, maxPrice]);
-    setSortOrder('date_desc');
-    setSearchQuery('');
+  const clearAllFilters = () => {
+    clearFilters(maxPrice);
   };
 
   const filteredVehicles = vehicles.filter((vehicle) => {
@@ -296,7 +297,7 @@ const VehiclesPage = () => {
                 brands={brands}
                 onFilterChange={handleFilterChange}
                 onPriceRangeChange={handlePriceRangeChange}
-                onClearFilters={clearFilters}
+                onClearFilters={clearAllFilters}
                 sortBy={sortOrder}
                 searchQuery={searchQuery}
                 availableYears={availableYears}
@@ -318,7 +319,7 @@ const VehiclesPage = () => {
               brands={brands}
               onFilterChange={handleFilterChange}
               onPriceRangeChange={handlePriceRangeChange}
-              onClearFilters={clearFilters}
+              onClearFilters={clearAllFilters}
               sortBy={sortOrder}
               searchQuery={searchQuery}
               availableYears={availableYears}

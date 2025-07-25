@@ -350,7 +350,9 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           >
             <div className='flex items-center gap-2'>
               <Banknote size={18} />
-              <span className='font-medium text-gray-800'>Rango de Precio</span>
+              <span className='font-medium text-gray-800'>
+                Rango de Preciiiio
+              </span>
             </div>
             {priceRangeOpen ? (
               <ChevronDown size={18} className='text-gray-600' />
