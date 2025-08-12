@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNode } from '@craftjs/core';
 import { Button } from '@/components/ui/button';
 import { VehicleCard } from './VehicleCard';
@@ -6,6 +6,7 @@ import Marquee from 'react-fast-marquee';
 import { Vehicle } from '@/utils/types';
 import useClientStore from '@/store/useClientStore';
 import { supabase } from '@/lib/supabase';
+import { Icon } from '@iconify/react';
 
 // Versión simplificada del vehículo - EXPORT this interface
 export interface SimpleVehicle extends Vehicle {
@@ -97,6 +98,8 @@ export const VehicleCarousel = ({
   const { client } = useClientStore();
   const [vehicles, setVehicles] = useState<SimpleVehicle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const marqueeRef = useRef<any>(null);
 
   // Ajustar cantidad de vehículos visibles según el tamaño de pantalla
   const getVisibleItems = () => {
@@ -109,6 +112,49 @@ export const VehicleCarousel = ({
   };
 
   const [visibleItems, setVisibleItems] = useState(getVisibleItems());
+
+  // Funciones de navegación
+  const scrollLeft = () => {
+    // Pausar temporalmente el autoplay
+    setIsPaused(true);
+
+    // Buscar directamente el contenedor del marquee en el DOM
+    const marqueeElement = document.querySelector(
+      '.VehicleCarousel .marquee-container'
+    );
+    if (marqueeElement) {
+      marqueeElement.scrollTo({
+        left: marqueeElement.scrollLeft - 320,
+        behavior: 'smooth',
+      });
+    }
+
+    // Reanudar el autoplay después de un momento
+    setTimeout(() => {
+      setIsPaused(false);
+    }, 500);
+  };
+
+  const scrollRight = () => {
+    // Pausar temporalmente el autoplay
+    setIsPaused(true);
+
+    // Buscar directamente el contenedor del marquee en el DOM
+    const marqueeElement = document.querySelector(
+      '.VehicleCarousel .marquee-container'
+    );
+    if (marqueeElement) {
+      marqueeElement.scrollTo({
+        left: marqueeElement.scrollLeft + 320,
+        behavior: 'smooth',
+      });
+    }
+
+    // Reanudar el autoplay después de un momento
+    setTimeout(() => {
+      setIsPaused(false);
+    }, 500);
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -355,11 +401,33 @@ export const VehicleCarousel = ({
             </p>
           </div>
         ) : (
-          <div className='w-full overflow-hidden'>
+          <div className='w-full overflow-hidden relative'>
+            {/* Flecha izquierda */}
+            <button
+              onClick={scrollLeft}
+              className='absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-white hover:bg-gray-100 border border-gray-300 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110 md:left-4'
+              style={{ color: textColor }}
+              aria-label='Navegar hacia la izquierda'
+            >
+              <Icon icon='mdi:chevron-left' width={20} className='md:w-6' />
+            </button>
+
+            {/* Flecha derecha */}
+            <button
+              onClick={scrollRight}
+              className='absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-white hover:bg-gray-100 border border-gray-300 rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110 md:right-4'
+              style={{ color: textColor }}
+              aria-label='Navegar hacia la derecha'
+            >
+              <Icon icon='mdi:chevron-right' width={20} className='md:w-6' />
+            </button>
+
             <Marquee
               gradient={false}
-              speed={autoplayValue ? 50 : 0}
+              speed={autoplayValue && !isPaused ? 50 : 0}
               pauseOnHover={true}
+              ref={marqueeRef}
+              className='marquee-container'
             >
               {vehicles.map((vehicle) => (
                 <div
