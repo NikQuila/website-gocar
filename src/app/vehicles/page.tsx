@@ -19,8 +19,17 @@ import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
 import ModalSlideFilter from '@/components/filters/ModalSlideFilter';
 import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
 import { useGeneralStore } from '@/store/useGeneralStore';
+import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
 
 import { Input } from '@/components/ui/input';
+
+// Wrapper para renderizar solo en cliente
+function ClientOnly({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <>{children}</>;
+}
 
 const VehiclesPage = () => {
   const { vehicles, isLoading } = useVehiclesStore();
@@ -32,12 +41,41 @@ const VehiclesPage = () => {
     isLoading: isGeneralStoreLoading,
   } = useGeneralStore();
   const isMd = useMediaQuery('(min-width: 768px)');
+
+  // Extraer valores únicos para los filtros
+  const brands = [...new Set(vehicles.map((v) => v.brand))];
+  const models = [...new Set(vehicles.map((v) => v.model))].filter(Boolean);
+
+  // Calcular el precio máximo real de todos los vehículos disponibles
+  const maxPrice = Math.max(
+    ...vehicles
+      .filter(
+        (v) => v.status?.name !== 'Vendido' && v.status?.name !== 'Reservado'
+      )
+      .map((v) => v.price || 0)
+  );
+
+  // Estado de filtros global con Zustand
+  const {
+    filters,
+    priceRange,
+    sortOrder,
+    searchQuery,
+    setFilters,
+    setPriceRange,
+    setSortOrder,
+    setSearchQuery,
+    clearFilters,
+  } = useVehicleFiltersStore();
+
   const [isFilterOpen, setIsFilterOpen] = useState(true);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [filters, setFilters] = useState<VehicleFiltersType>({});
-  const [priceRange, setPriceRange] = useState([0, 1000000000]);
-  const [sortOrder, setSortOrder] = useState('date_desc');
-  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (maxPrice > 0 && priceRange[1] === 0) {
+      setPriceRange([0, maxPrice]);
+    }
+  }, [maxPrice, priceRange[1], setPriceRange]);
 
   const sortOptions = [
     {
@@ -87,21 +125,10 @@ const VehiclesPage = () => {
     console.log('Condiciones:', conditions);
   }, [colors, fuelTypes, conditions]);
 
-  // Extraer valores únicos para los filtros
-  const brands = [...new Set(vehicles.map((v) => v.brand))];
-  const models = [...new Set(vehicles.map((v) => v.model))].filter(Boolean);
-
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
-    setFilters((prev) => {
-      if (value === undefined) {
-        const newFilters = { ...prev };
-        delete newFilters[key];
-        return newFilters;
-      }
-      return {
-        ...prev,
-        [key]: value,
-      };
+    setFilters({
+      ...filters,
+      [key]: value === undefined ? undefined : value,
     });
   };
 
@@ -109,11 +136,8 @@ const VehiclesPage = () => {
     setPriceRange(value);
   };
 
-  const clearFilters = () => {
-    setFilters({});
-    setPriceRange([0, 1000000000]);
-    setSortOrder('date_desc');
-    setSearchQuery('');
+  const clearAllFilters = () => {
+    clearFilters(maxPrice);
   };
 
   const filteredVehicles = vehicles.filter((vehicle) => {
@@ -268,151 +292,155 @@ const VehiclesPage = () => {
     .sort((a, b) => b.localeCompare(a));
 
   return (
-    <div className='min-h-screen bg-gray-50 dark:bg-dark-bg'>
-      <main className='grid grid-cols-1 md:grid-cols-4'>
-        {/* Sidebar de filtros para desktop */}
-        {isMd && (
-          <aside className='hidden md:block md:fixed md:top-[5.5rem] md:left-0 md:w-72 md:h-[calc(100vh-5.5rem)] z-30 ml-10'>
-            <div className='overflow-y-auto h-full dark:bg-dark-bg rounded-lg shadow-sm p-3'>
+    <ClientOnly>
+      <div className='min-h-screen bg-gray-50 dark:bg-dark-bg'>
+        <main className='grid grid-cols-1 md:grid-cols-4'>
+          {/* Sidebar de filtros para desktop */}
+          {isMd && (
+            <aside className='col-span-1 md:sticky md:top-[3.5rem] mt-20 ml-48 w-[272px]'>
+              <div className='overflow-y-auto max-h-[calc(100vh-130px)] bg-white dark:bg-dark-bg rounded-lg shadow-sm w-full'>
+                <NewVehicleFilters
+                  filters={filters}
+                  priceRange={priceRange}
+                  brands={brands}
+                  onFilterChange={handleFilterChange}
+                  onPriceRangeChange={handlePriceRangeChange}
+                  onClearFilters={clearAllFilters}
+                  sortBy={sortOrder}
+                  searchQuery={searchQuery}
+                  availableYears={availableYears}
+                  maxPrice={maxPrice}
+                />
+              </div>
+            </aside>
+          )}
+
+          {/* Modal de filtros para mobile */}
+          {!isMd && (
+            <ModalSlideFilter
+              isOpen={isFilterModalOpen}
+              onClose={() => setIsFilterModalOpen(false)}
+            >
               <NewVehicleFilters
                 filters={filters}
                 priceRange={priceRange}
                 brands={brands}
                 onFilterChange={handleFilterChange}
                 onPriceRangeChange={handlePriceRangeChange}
-                onClearFilters={clearFilters}
+                onClearFilters={clearAllFilters}
                 sortBy={sortOrder}
                 searchQuery={searchQuery}
                 availableYears={availableYears}
+                maxPrice={maxPrice}
               />
-            </div>
-          </aside>
-        )}
+            </ModalSlideFilter>
+          )}
 
-        {/* Modal de filtros para mobile */}
-        {!isMd && (
-          <ModalSlideFilter
-            isOpen={isFilterModalOpen}
-            onClose={() => setIsFilterModalOpen(false)}
-          >
-            <NewVehicleFilters
-              filters={filters}
-              priceRange={priceRange}
-              brands={brands}
-              onFilterChange={handleFilterChange}
-              onPriceRangeChange={handlePriceRangeChange}
-              onClearFilters={clearFilters}
-              sortBy={sortOrder}
-              searchQuery={searchQuery}
-              availableYears={availableYears}
-            />
-          </ModalSlideFilter>
-        )}
-
-        {/* Contenido principal */}
-        <div className='col-span-1 md:col-span-3 flex-1 transition-all duration-300 md:w-full md:ml-80 mx-1'>
-          <div className='px-4 sm:px-6 pt-20'>
-            {isPageLoading ? (
-              <LoadingState />
-            ) : (
-              <>
-                <div className='mb-6'>
-                  <div className='flex-1 flex flex-col max-w-full'>
-                    <div className='flex items-center justify-between'>
-                      <div>
-                        <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
-                          Vehículos
-                        </h2>
-                        <p className='text-sm text-gray-600 dark:text-gray-400'>
-                          {filteredVehicles.length} vehículos encontrados
-                        </p>
+          {/* Contenido principal */}
+          <div className='col-span-1 md:col-span-3 flex-1 transition-all duration-300 md:mr-10 mx-1'>
+            <div className='px-4 sm:px-6 pt-20'>
+              {isPageLoading ? (
+                <LoadingState />
+              ) : (
+                <>
+                  <div className='mb-6'>
+                    <div className='flex-1 flex flex-col max-w-full'>
+                      <div className='flex items-center justify-between'>
+                        <div>
+                          <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
+                            Vehículos
+                          </h2>
+                          <p className='text-sm text-gray-600 dark:text-gray-400'>
+                            {filteredVehicles.length} vehículos encontrados
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() => setIsFilterModalOpen(true)}
+                          className='md:hidden h-8 px-3 text-sm'
+                          color='primary'
+                          variant='light'
+                          startContent={
+                            <Icon
+                              icon='solar:filter-linear'
+                              width={18}
+                              className='dark:text-white'
+                            />
+                          }
+                        >
+                          Filtros
+                        </Button>
                       </div>
-                      <Button
-                        onClick={() => setIsFilterModalOpen(true)}
-                        className='md:hidden h-8 px-3 text-sm'
-                        color='primary'
-                        variant='light'
-                        startContent={
+                      <div className='flex flex-col sm:flex-row gap-4 mt-4 w-full'>
+                        <div className='w-full sm:flex-[3] relative mt-1'>
                           <Icon
-                            icon='solar:filter-linear'
-                            width={18}
-                            className='dark:text-white'
+                            icon='mdi:magnify'
+                            className='absolute left-3 mt-5 transform -translate-y-1/2 text-gray-400 -mb-1'
+                            width={20}
                           />
-                        }
-                      >
-                        Filtros
-                      </Button>
-                    </div>
-                    <div className='flex flex-col sm:flex-row gap-4 mt-4 w-full'>
-                      <div className='w-full sm:flex-[3] relative mt-1'>
-                        <Icon
-                          icon='mdi:magnify'
-                          className='absolute left-3 mt-5 transform -translate-y-1/2 text-gray-400 -mb-1'
-                          width={20}
-                        />
-                        <Input
-                          type='text'
-                          placeholder='Buscar vehículos...'
-                          className='pl-12 pr-3 py-2 min-h-[36px] rounded-xl border border-gray-400 bg-gray-100 text-sm text-gray-700 shadow-md focus:border-primary focus:ring-2 focus:ring-primary transition-all w-full max-w-xxl'
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                      </div>
-                      <div className='w-full sm:w-1/4 flex-1 min-w-[30px] flex sm:mt-0 '>
-                        <Dropdown>
-                          <DropdownTrigger>
-                            <Button
-                              variant='light'
-                              startContent={
-                                <Icon icon='mdi:sort' className='text-base' />
-                              }
-                              className='w-full flex items-center gap-x-1 px-3 min-h-[44px] text-sm shadow-none bg-transparent hover:bg-gray-100 focus:bg-gray-100 transition-colors rounded-xl'
-                            >
-                              {sortOptions.find(
-                                (option) => option.key === sortOrder
-                              )?.label || 'Ordenar por'}
-                            </Button>
-                          </DropdownTrigger>
-                          <DropdownMenu
-                            selectionMode='single'
-                            selectedKeys={new Set([sortOrder])}
-                            onSelectionChange={(keys) => {
-                              const selected = Array.from(keys)[0];
-                              if (selected) setSortOrder(selected.toString());
-                            }}
-                          >
-                            {sortOptions.map((option) => (
-                              <DropdownItem
-                                key={option.key}
+                          <Input
+                            type='text'
+                            placeholder='Buscar vehículos...'
+                            className='pl-12 pr-3 py-2 min-h-[36px] rounded-xl border border-gray-400 bg-gray-100 text-sm text-gray-700 shadow-md focus:border-primary focus:ring-2 focus:ring-primary transition-all w-full max-w-xxl'
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                          />
+                        </div>
+                        <div className='w-full sm:w-1/4 flex-1 min-w-[30px] flex sm:mt-0 '>
+                          <Dropdown>
+                            <DropdownTrigger>
+                              <Button
+                                variant='light'
                                 startContent={
-                                  <Icon
-                                    icon={option.icon}
-                                    className='text-sm'
-                                  />
+                                  <Icon icon='mdi:sort' className='text-base' />
                                 }
+                                className='w-full flex items-center gap-x-1 px-3 min-h-[44px] text-sm shadow-none bg-transparent hover:bg-gray-100 focus:bg-gray-100 transition-colors rounded-xl'
                               >
-                                {option.label}
-                              </DropdownItem>
-                            ))}
-                          </DropdownMenu>
-                        </Dropdown>
+                                {sortOptions.find(
+                                  (option) => option.key === sortOrder
+                                )?.label || 'Ordenar por'}
+                              </Button>
+                            </DropdownTrigger>
+                            <DropdownMenu
+                              selectionMode='single'
+                              selectedKeys={new Set([sortOrder])}
+                              onSelectionChange={(keys) => {
+                                const selected = Array.from(keys)[0];
+                                if (selected) setSortOrder(selected.toString());
+                              }}
+                            >
+                              {sortOptions.map((option) => (
+                                <DropdownItem
+                                  key={option.key}
+                                  startContent={
+                                    <Icon
+                                      icon={option.icon}
+                                      className='text-sm'
+                                    />
+                                  }
+                                >
+                                  {option.label}
+                                </DropdownItem>
+                              ))}
+                            </DropdownMenu>
+                          </Dropdown>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Grid de vehículos */}
-                <div className='grid gap-4 pb-4 mt-2 sm:mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'>
-                  {sortVehicles(filteredVehicles).map((vehicle) => (
-                    <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
-                  ))}
-                </div>
-              </>
-            )}
+                  {/* Grid de vehículos */}
+                  <div className='grid gap-4 pb-4 mt-2 sm:mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'>
+                    {sortVehicles(filteredVehicles).map((vehicle) => (
+                      <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </ClientOnly>
   );
 };
 

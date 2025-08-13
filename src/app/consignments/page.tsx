@@ -149,8 +149,15 @@ const ConsignmentsPage = () => {
         additionalMessage: formData.message,
       });
 
+      // Determinar emails de destino para consignaciones
+      const consignmentEmails =
+        client?.contact?.consignments_emails &&
+        client.contact.consignments_emails.length > 0
+          ? client.contact.consignments_emails
+          : [client?.contact?.email || ''];
+
       const emailResult = await sendEmail({
-        to: [client?.contact?.email || ''],
+        to: consignmentEmails,
         subject: `Nueva Consignación: ${selectedBrand} ${selectedModel} (${formData.year})`,
         content: emailContent,
       });

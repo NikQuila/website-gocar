@@ -13,13 +13,18 @@ export const mapFuelTypeToSpanish = (
 };
 
 export const mapTransmissionTypeToSpanish = (
-  transmissionType: 'Automatic' | 'Manual'
+  transmissionType: string
 ): string => {
-  const transmissionTypeMap = {
+  if (transmissionType?.toLowerCase()?.includes('auto')) {
+    return 'Automático';
+  }
+
+  const transmissionTypeMap: { [key: string]: string } = {
     Automatic: 'Automático',
     Manual: 'Manual',
   };
-  return transmissionTypeMap[transmissionType];
+
+  return transmissionTypeMap[transmissionType] || transmissionType;
 };
 
 export const mapConditionTypeToSpanish = (

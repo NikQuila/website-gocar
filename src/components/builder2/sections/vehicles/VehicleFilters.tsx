@@ -102,7 +102,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
 
   // Asegurar valores por defecto para el rango de precio
   const DEFAULT_MIN_PRICE = 0;
-  const DEFAULT_MAX_PRICE = 1000000000;
+  const DEFAULT_MAX_PRICE = minMaxPrice.max;
 
   // Función local para formatear precios en CLP
   function formatPrice(price: number) {
@@ -372,7 +372,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                       priceRange.min === 0 &&
                       document.activeElement !== document.activeElement
                         ? ''
-                        : priceRange.min
+                        : formatPrice(priceRange.min).replace('$', '').trim()
                     }
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
@@ -408,9 +408,10 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                     type='text'
                     className='bg-transparent border-none outline-none w-full text-sm text-gray-900 text-center'
                     value={
-                      priceRange.max === 1000000000 && !document.activeElement
+                      priceRange.max === minMaxPrice.max &&
+                      !document.activeElement
                         ? ''
-                        : priceRange.max
+                        : formatPrice(priceRange.max).replace('$', '').trim()
                     }
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
@@ -423,7 +424,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                       const value = e.target.value.replace(/\D/g, '');
                       setPriceRange({
                         min: priceRange.min,
-                        max: value === '' ? 1000000000 : Number(value),
+                        max: value === '' ? minMaxPrice.max : Number(value),
                       });
                     }}
                     onKeyDown={(e) => {
@@ -433,7 +434,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                         ).value.replace(/\D/g, '');
                         setPriceRange({
                           min: priceRange.min,
-                          max: value === '' ? 1000000000 : Number(value),
+                          max: value === '' ? minMaxPrice.max : Number(value),
                         });
                       }
                     }}
@@ -442,9 +443,9 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
               </div>
               {/* Slider y valores formateados */}
               <Slider
-                value={[priceRange.min ?? 0, priceRange.max ?? 1000000000]}
+                value={[priceRange.min ?? 0, priceRange.max ?? minMaxPrice.max]}
                 min={0}
-                max={1000000000}
+                max={minMaxPrice.max}
                 step={1000000}
                 onValueChange={(values) => {
                   setPriceRange({ min: values[0], max: values[1] });
