@@ -14,28 +14,21 @@ import { Icon } from '@iconify/react';
 import { VehicleFilters as VehicleFiltersType } from '@/utils/types';
 import { useGeneralStore } from '@/store/useGeneralStore';
 import useThemeStore from '@/store/useThemeStore';
+import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
 
 interface VehicleFiltersProps {
-  filters: VehicleFiltersType;
-  priceRange: number[];
   brands: any[];
-  onFilterChange: (key: keyof VehicleFiltersType, value: any) => void;
-  onPriceRangeChange: (value: number[]) => void;
-  onClearFilters: () => void;
   initialOpenAccordion?: string;
 }
 
 const VehicleFilters = ({
-  filters,
-  priceRange,
   brands,
-  onFilterChange,
-  onPriceRangeChange,
-  onClearFilters,
   initialOpenAccordion,
 }: VehicleFiltersProps) => {
   const { colors, categories, fuelTypes, conditions } = useGeneralStore();
   const { theme } = useThemeStore();
+  const { filters, priceRange, setFilters, setPriceRange, clearFilters } =
+    useVehicleFiltersStore();
   // Estado para controlar qué acordeón está abierto (solo uno a la vez o ninguno)
   const [openAccordion, setOpenAccordion] = useState<string | null>(
     initialOpenAccordion || null
@@ -69,12 +62,14 @@ const VehicleFilters = ({
 
   // Función para eliminar un filtro individual
   const handleRemoveFilter = (key: keyof VehicleFiltersType) => {
-    onFilterChange(key, undefined);
+    const newFilters = { ...filters };
+    delete newFilters[key];
+    setFilters(newFilters);
   };
 
   // Función para resetear el rango de precios
   const handleResetPriceRange = () => {
-    onPriceRangeChange([0, MAX_PRICE]);
+    setPriceRange([0, MAX_PRICE]);
     setMinPriceInput('');
     setMaxPriceInput('');
   };
@@ -126,16 +121,7 @@ const VehicleFilters = ({
             size='sm'
             variant='light'
             color='danger'
-            onClick={() => {
-              if (typeof onClearFilters === 'function') {
-                onClearFilters();
-                // Resetear también los estados locales de los inputs
-                setMinPriceInput('');
-                setMaxPriceInput('');
-                // Asegurarnos de que el filtro de año también se resetee
-                onFilterChange('year', undefined);
-              }
-            }}
+            onClick={() => clearFilters(1000000000)}
             className='text-[13px] py-0 px-3 font-normal bg-transparent min-w-0 flex items-center mr-4 sm:mr-0'
           >
             <Icon
@@ -207,7 +193,7 @@ const VehicleFilters = ({
                   const value = e.target.value.replace(/\D/g, '');
                   setMinPriceInput(value);
                   const numValue = value ? Number(value) : 0;
-                  onPriceRangeChange([numValue, priceRange[1]]);
+                  setPriceRange([numValue, priceRange[1]]);
                 }}
                 startContent={
                   <span className='text-gray-500 dark:text-gray-400 text-xs'>
@@ -230,7 +216,7 @@ const VehicleFilters = ({
                   const value = e.target.value.replace(/\D/g, '');
                   setMaxPriceInput(value);
                   const numValue = value ? Number(value) : MAX_PRICE;
-                  onPriceRangeChange([priceRange[0], numValue]);
+                  setPriceRange([priceRange[0], numValue]);
                 }}
                 startContent={
                   <span className='text-gray-500 dark:text-gray-400 text-xs'>
@@ -249,7 +235,7 @@ const VehicleFilters = ({
                 value={priceRange}
                 onChange={(value) => {
                   if (Array.isArray(value)) {
-                    onPriceRangeChange(value);
+                    setPriceRange(value);
                     setMinPriceInput(value[0] > 0 ? value[0].toString() : '');
                     setMaxPriceInput(
                       value[1] < MAX_PRICE ? value[1].toString() : ''
@@ -317,7 +303,7 @@ const VehicleFilters = ({
           <Select
             placeholder='Selecciona una marca'
             selectedKeys={filters.brand ? [filters.brand] : []}
-            onChange={(e) => onFilterChange('brand', e.target.value)}
+            onChange={(e) => setFilters({ ...filters, brand: e.target.value })}
             size='sm'
             classNames={{
               base: 'dark:bg-dark-card',
@@ -373,7 +359,9 @@ const VehicleFilters = ({
           <Select
             placeholder='Selecciona un tipo'
             selectedKeys={filters.category ? [filters.category] : []}
-            onChange={(e) => onFilterChange('category', e.target.value)}
+            onChange={(e) =>
+              setFilters({ ...filters, category: e.target.value })
+            }
             size='sm'
             classNames={{
               base: 'dark:bg-dark-card',
@@ -428,7 +416,9 @@ const VehicleFilters = ({
             {fuelTypes.map((type) => (
               <Chip
                 key={type.id}
-                onClick={() => onFilterChange('fuel_type', type.id.toString())}
+                onClick={() =>
+                  setFilters({ ...filters, fuel_type: type.id.toString() })
+                }
                 className='capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center text-xs'
                 color={
                   filters.fuel_type === type.id.toString()
@@ -482,7 +472,7 @@ const VehicleFilters = ({
               <Chip
                 key={condition.id}
                 onClick={() =>
-                  onFilterChange('condition', condition.id.toString())
+                  setFilters({ ...filters, condition: condition.id.toString() })
                 }
                 className='capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center text-xs'
                 color={
@@ -538,7 +528,9 @@ const VehicleFilters = ({
             {colors.map((color) => (
               <button
                 key={color.id}
-                onClick={() => onFilterChange('color', color.id.toString())}
+                onClick={() =>
+                  setFilters({ ...filters, color: color.id.toString() })
+                }
                 className={`capitalize w-full flex items-center gap-2 px-2 py-1 rounded-lg border transition-all text-xs
                   ${
                     filters.color === color.id.toString()
