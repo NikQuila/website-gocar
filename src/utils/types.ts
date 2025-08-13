@@ -119,6 +119,17 @@ export interface Vehicle {
 
   // Extras
   extras: VehicleExtras[];
+
+  // Sales and reservations data for 3-day filter
+  vehicles_sales?:
+    | Array<{ created_at: string; [key: string]: any }>
+    | { created_at: string; [key: string]: any }
+    | null;
+  vehicles_reservations?:
+    | Array<{ created_at: string; [key: string]: any }>
+    | { created_at: string; [key: string]: any }
+    | null;
+  event_date?: string; // Calculated field for sale/reservation date
 }
 
 export interface VehicleExtras {

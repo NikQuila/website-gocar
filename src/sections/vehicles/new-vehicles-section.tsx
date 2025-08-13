@@ -1,5 +1,8 @@
 'use client';
 
+// Vehículos vendidos y reservados se muestran solo por 3 días desde la fecha de venta/reserva
+// Sold and reserved vehicles are shown only for 3 days from the sale/reservation date
+
 import { useState, useEffect, useRef } from 'react';
 
 import {
@@ -122,9 +125,7 @@ const NewVehiclesSection = () => {
   const { vehicles, isLoading } = useVehiclesStore();
   const { client } = useClientStore();
   const isMd = useMediaQuery('(min-width: 768px)');
-  const isMobile = useMediaQuery('(max-width: 639px)'); // xs
-  const isTablet = useMediaQuery('(min-width: 640px) and (max-width: 1023px)'); // sm-md
-  const isDesktop = useMediaQuery('(min-width: 1024px)'); // lg+
+
   // Extract unique values for filters
 
   const brands = [...new Set(vehicles.map((v) => v.brand))];
@@ -137,9 +138,7 @@ const NewVehiclesSection = () => {
   // Calcular el precio máximo real de todos los vehículos disponibles
   const maxPrice = Math.max(
     ...vehicles
-      .filter(
-        (v) => v.status?.name !== 'Vendido' && v.status?.name !== 'Reservado'
-      )
+      .filter((v) => v.price && v.price > 0) // Only filter by having a valid price
       .map((v) => v.price || 0)
   );
 
@@ -276,24 +275,6 @@ const NewVehiclesSection = () => {
           );
       }
     });
-
-  const sortVehicles = (vehicles: Vehicle[]) => {
-    return [...vehicles].sort((a, b) => {
-      // Primero los no vendidos
-
-      if (a.status?.name === 'Vendido' && b.status?.name !== 'Vendido')
-        return 1;
-
-      if (a.status?.name !== 'Vendido' && b.status?.name === 'Vendido')
-        return -1;
-
-      return 0;
-    });
-  };
-
-  // Aplicar el ordenamiento antes de renderizar
-
-  const sortedVehicles = sortVehicles(filteredVehicles);
 
   const activeFiltersCount =
     Object.keys(filters).length +
@@ -547,7 +528,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                     .fill(null)
 
                     .map((_, index) => <VehicleCardSkeleton key={index} />)
-                : sortedVehicles.map((vehicle) =>
+                : filteredVehicles.map((vehicle) =>
                     activeView === 'grid' ? (
                       <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
                     ) : (

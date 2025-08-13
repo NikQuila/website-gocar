@@ -37,7 +37,9 @@ const useVehiclesStore = create<VehiclesStore>((set) => ({
           condition:condition_id(*),
           status:clients_vehicles_states(*),
           color:color_id(*),
-          dealership:dealership_id(*)
+          dealership:dealership_id(*),
+          vehicles_sales!vehicle_id(*),
+          vehicles_reservations!vehicle_id(*)
         `);
 
       // Filtrado por cliente
@@ -55,14 +57,88 @@ const useVehiclesStore = create<VehiclesStore>((set) => ({
 
       if (error) throw error;
 
-      // Filtrar los resultados en memoria para quedarnos solo con los publicados o vendidos
-      const filteredVehicles =
-        data?.filter(
-          (vehicle) =>
-            vehicle.status?.name === 'Publicado' ||
-            vehicle.status?.name === 'Vendido' ||
-            vehicle.status?.name === 'Reservado'
-        ) || [];
+      // Process event_date for Vendido/Reservado vehicles
+      const processedData =
+        data?.map((vehicle: any) => {
+          let event_date: string | undefined;
+
+          // Process sale date for Vendido vehicles
+          if (vehicle.status?.name === 'Vendido' && vehicle.vehicles_sales) {
+            if (
+              Array.isArray(vehicle.vehicles_sales) &&
+              vehicle.vehicles_sales.length > 0
+            ) {
+              const sortedSales = [...vehicle.vehicles_sales].sort(
+                (a, b) =>
+                  new Date(b.created_at).getTime() -
+                  new Date(a.created_at).getTime()
+              );
+              event_date = sortedSales[0].created_at;
+            } else if (
+              !Array.isArray(vehicle.vehicles_sales) &&
+              (vehicle.vehicles_sales as { created_at: string }).created_at
+            ) {
+              event_date = (vehicle.vehicles_sales as { created_at: string })
+                .created_at;
+            }
+          }
+          // Process reservation date for Reservado vehicles
+          else if (
+            vehicle.status?.name === 'Reservado' &&
+            vehicle.vehicles_reservations
+          ) {
+            if (
+              Array.isArray(vehicle.vehicles_reservations) &&
+              vehicle.vehicles_reservations.length > 0
+            ) {
+              const sortedReservations = [
+                ...vehicle.vehicles_reservations,
+              ].sort(
+                (a, b) =>
+                  new Date(b.created_at).getTime() -
+                  new Date(a.created_at).getTime()
+              );
+              event_date = sortedReservations[0].created_at;
+            } else if (
+              !Array.isArray(vehicle.vehicles_reservations) &&
+              (vehicle.vehicles_reservations as { created_at: string })
+                .created_at
+            ) {
+              event_date = (
+                vehicle.vehicles_reservations as { created_at: string }
+              ).created_at;
+            }
+          }
+
+          return { ...vehicle, event_date };
+        }) || [];
+
+      // Apply 3-day filter for sold/reserved vehicles
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      threeDaysAgo.setHours(0, 0, 0, 0);
+
+      // Filtrar los resultados en memoria para quedarnos solo con los publicados o vendidos recientes (3 días)
+      const filteredVehicles = processedData.filter((vehicle) => {
+        // Always include published vehicles
+        if (vehicle.status?.name === 'Publicado') {
+          return true;
+        }
+
+        // For sold or reserved vehicles, check if they are within 3 days
+        if (
+          vehicle.status?.name === 'Vendido' ||
+          vehicle.status?.name === 'Reservado'
+        ) {
+          if (vehicle.event_date) {
+            const eventDate = new Date(vehicle.event_date);
+            return eventDate >= threeDaysAgo;
+          }
+          return false; // Exclude if sold/reserved but no event_date
+        }
+
+        return false; // Exclude other statuses
+      });
 
       console.log('Vehículos filtrados:', filteredVehicles.length);
       set({ vehicles: filteredVehicles, error: null });
