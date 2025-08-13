@@ -297,7 +297,7 @@ const VehiclesPage = () => {
         <main className='grid grid-cols-1 md:grid-cols-4'>
           {/* Sidebar de filtros para desktop */}
           {isMd && (
-            <aside className='col-span-1 md:sticky md:top-[3.5rem] mt-20 ml-48 w-[272px]'>
+            <aside className='col-span-1 md:sticky md:top-[3.5rem] mt-20 ml-24 w-[272px]'>
               <div className='overflow-y-auto max-h-[calc(100vh-130px)] bg-white dark:bg-dark-bg rounded-lg shadow-sm w-full'>
                 <NewVehicleFilters
                   filters={filters}
@@ -337,7 +337,7 @@ const VehiclesPage = () => {
           )}
 
           {/* Contenido principal */}
-          <div className='col-span-1 md:col-span-3 flex-1 transition-all duration-300 md:mr-10 mx-1'>
+          <div className='col-span-1 md:col-span-3 flex-1 transition-all duration-300 md:ml-8 md:mr-4 mx-1'>
             <div className='px-4 sm:px-6 pt-20'>
               {isPageLoading ? (
                 <LoadingState />
@@ -429,7 +429,7 @@ const VehiclesPage = () => {
                   </div>
 
                   {/* Grid de vehículos */}
-                  <div className='grid gap-4 pb-4 mt-2 sm:mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'>
+                  <div className='grid gap-4 pb-4 mt-2 sm:mt-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3'>
                     {sortVehicles(filteredVehicles).map((vehicle) => (
                       <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
                     ))}
