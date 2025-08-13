@@ -103,7 +103,7 @@ const VehicleVerticalCard = ({
             <div className='absolute top-2 right-2 z-20'>
               <Chip
                 size='sm'
-                className='shadow-lg text-white bg-primary border-none font-bold'
+                className='shadow-lg text-white bg-green-500 border-none font-bold'
               >
                 {vehicle.label || getRandomBadgeText()}
               </Chip>
