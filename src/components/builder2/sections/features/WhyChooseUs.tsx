@@ -22,6 +22,7 @@ interface FeatureCardProps {
   cardBgColor: string;
   cardTextColor: string;
   descriptionColor: string;
+  link?: string;
 }
 
 const FeatureCard = ({
@@ -31,11 +32,72 @@ const FeatureCard = ({
   cardBgColor,
   cardTextColor,
   descriptionColor,
+  link,
 }: FeatureCardProps) => {
+  const scrollToSection = (sectionId: string) => {
+    // Check if it's a phone number (starts with + or contains only numbers and spaces)
+    const phoneRegex = /^(\+?[\d\s\-\(\)]+)$/;
+    if (phoneRegex.test(sectionId.trim())) {
+      // Convert to WhatsApp link
+      const cleanNumber = sectionId.replace(/[\s\-\(\)]/g, '');
+      const whatsappUrl = `https://wa.me/${cleanNumber}`;
+      window.open(whatsappUrl, '_blank');
+      return;
+    }
+
+    if (sectionId.startsWith('#')) {
+      const targetId = sectionId.substring(1); // Remover el # inicial
+
+      // Buscar por ID
+      const section = document.getElementById(targetId);
+
+      // Si no encuentra por ID, buscar por clase o por atributo data-section
+      const alternativeSection =
+        section ||
+        document.querySelector(`[data-section="${targetId}"]`) ||
+        document.querySelector(`.section-${targetId}`);
+
+      if (alternativeSection) {
+        alternativeSection.scrollIntoView({ behavior: 'smooth' });
+        console.log(`Scrolling to section: ${targetId}`);
+        return;
+      }
+
+      // Si no hemos encontrado la sección, intentamos buscar componentes con nombres similares
+      const possibleSections = document.querySelectorAll(
+        '[class*="vehicle"], [id*="vehicle"], [data-section*="vehicle"]'
+      );
+      if (possibleSections.length > 0) {
+        possibleSections[0].scrollIntoView({ behavior: 'smooth' });
+        console.log(`Scrolling to vehicle section via fuzzy match`);
+        return;
+      }
+
+      console.log(
+        `Section ${targetId} not found. This is normal in editor mode.`
+      );
+    } else if (sectionId.startsWith('/')) {
+      // Es una ruta interna, navegamos a ella
+      window.location.href = sectionId;
+    } else if (sectionId.startsWith('http')) {
+      // Es una URL externa, navegamos a ella
+      window.open(sectionId, '_blank');
+    }
+  };
+
+  const handleClick = () => {
+    if (link) {
+      scrollToSection(link);
+    }
+  };
+
   return (
     <div
-      className='rounded-lg p-6 flex flex-col items-center text-center'
+      className={`rounded-lg p-6 flex flex-col items-center text-center transition-all duration-200 ${
+        link ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : ''
+      }`}
       style={{ backgroundColor: cardBgColor }}
+      onClick={handleClick}
     >
       <div className='mb-4 flex justify-center'>{icon}</div>
       <h3 className='text-xl font-bold mb-2' style={{ color: cardTextColor }}>
@@ -53,6 +115,7 @@ interface WhyChooseUsProps {
     icon: string;
     title: string;
     description: string;
+    link?: string;
   }[];
   bgColor?: string;
   textColor?: string;
@@ -159,6 +222,7 @@ export const WhyChooseUs = ({
               cardBgColor={cardBgColor}
               cardTextColor={cardTextColor}
               descriptionColor={descriptionColor}
+              link={feature.link}
             />
           ))}
         </div>
@@ -177,16 +241,19 @@ WhyChooseUs.craft = {
         icon: 'check',
         title: 'Autos inspeccionados y garantizados',
         description: 'Seguridad y calidad aseguradas',
+        link: '',
       },
       {
         icon: 'dollar',
         title: 'Financiamiento a tu medida',
         description: 'Diseñado según tus necesidades',
+        link: '',
       },
       {
         icon: 'user',
         title: 'Atención personalizada',
         description: 'Un asesor te acompaña en todo el proceso',
+        link: '',
       },
     ],
     bgColor: '#000000',
