@@ -22,6 +22,7 @@ interface FeatureCardProps {
   cardBgColor: string;
   cardTextColor: string;
   descriptionColor: string;
+  link?: string;
 }
 
 const FeatureCard = ({
@@ -31,11 +32,107 @@ const FeatureCard = ({
   cardBgColor,
   cardTextColor,
   descriptionColor,
+  link,
 }: FeatureCardProps) => {
+  const scrollToSection = (sectionId: string) => {
+    // Detectar si es un número de teléfono (WhatsApp)
+    const phoneRegex = /^(\+?[\d\s\-\(\)]+)$/;
+    if (phoneRegex.test(sectionId.trim())) {
+      let cleanNumber = sectionId.replace(/[\s\-\(\)]/g, '');
+      if (cleanNumber.startsWith('+569')) {
+        const whatsappUrl = `https://wa.me/${cleanNumber}`;
+        window.open(whatsappUrl, '_blank');
+      } else if (cleanNumber.startsWith('569')) {
+        const whatsappUrl = `https://wa.me/+${cleanNumber}`;
+        window.open(whatsappUrl, '_blank');
+      } else if (cleanNumber.startsWith('9') && cleanNumber.length === 9) {
+        const whatsappUrl = `https://wa.me/+56${cleanNumber}`;
+        window.open(whatsappUrl, '_blank');
+      } else if (cleanNumber.length >= 8 && cleanNumber.length <= 10) {
+        const whatsappUrl = `https://wa.me/+569${cleanNumber}`;
+        window.open(whatsappUrl, '_blank');
+      } else {
+        const whatsappUrl = `https://wa.me/${cleanNumber}`;
+        window.open(whatsappUrl, '_blank');
+      }
+      return;
+    }
+
+    // Detectar si es una URL completa
+    if (sectionId.startsWith('http://') || sectionId.startsWith('https://')) {
+      window.open(sectionId, '_blank');
+      return;
+    }
+
+    // Detectar URLs de redes sociales sin protocolo
+    const socialRegex =
+      /^(www\.|wa\.me|instagram\.com|facebook\.com|twitter\.com|x\.com|linkedin\.com|youtube\.com|tiktok\.com)/i;
+    if (socialRegex.test(sectionId)) {
+      const fullUrl = sectionId.startsWith('www.')
+        ? `https://${sectionId}`
+        : `https://${sectionId}`;
+      window.open(fullUrl, '_blank');
+      return;
+    }
+
+    // Detectar hash links (navegación interna)
+    if (sectionId.startsWith('#')) {
+      const targetId = sectionId.substring(1); // Remover el # inicial
+
+      // Buscar por ID
+      const section = document.getElementById(targetId);
+
+      // Si no encuentra por ID, buscar por clase o por atributo data-section
+      const alternativeSection =
+        section ||
+        document.querySelector(`[data-section="${targetId}"]`) ||
+        document.querySelector(`.section-${targetId}`);
+
+      if (alternativeSection) {
+        alternativeSection.scrollIntoView({ behavior: 'smooth' });
+        console.log(`Scrolling to section: ${targetId}`);
+        return;
+      }
+
+      // Si no hemos encontrado la sección, intentamos buscar componentes con nombres similares
+      const possibleSections = document.querySelectorAll(
+        '[class*="vehicle"], [id*="vehicle"], [data-section*="vehicle"]'
+      );
+      if (possibleSections.length > 0) {
+        possibleSections[0].scrollIntoView({ behavior: 'smooth' });
+        console.log(`Scrolling to vehicle section via fuzzy match`);
+        return;
+      }
+
+      console.log(
+        `Section ${targetId} not found. This is normal in editor mode.`
+      );
+      return;
+    }
+
+    // Detectar rutas internas
+    if (sectionId.startsWith('/')) {
+      window.location.href = sectionId;
+      return;
+    }
+
+    // Si no es ninguno de los anteriores, tratar como URL externa
+    window.open(sectionId, '_blank');
+  };
+
+  const handleClick = () => {
+    if (link) {
+      scrollToSection(link);
+    }
+  };
+
   return (
     <div
-      className='rounded-lg p-6 flex flex-col items-center text-center'
+      className={`rounded-lg p-6 flex flex-col items-center text-center transition-all duration-200 ${
+        link ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : ''
+      }`}
       style={{ backgroundColor: cardBgColor }}
+      onClick={handleClick}
     >
       <div className='mb-4 flex justify-center'>{icon}</div>
       <h3 className='text-xl font-bold mb-2' style={{ color: cardTextColor }}>
@@ -53,6 +150,7 @@ interface WhyChooseUsProps {
     icon: string;
     title: string;
     description: string;
+    link?: string;
   }[];
   bgColor?: string;
   textColor?: string;
@@ -159,6 +257,7 @@ export const WhyChooseUs = ({
               cardBgColor={cardBgColor}
               cardTextColor={cardTextColor}
               descriptionColor={descriptionColor}
+              link={feature.link}
             />
           ))}
         </div>
@@ -177,16 +276,19 @@ WhyChooseUs.craft = {
         icon: 'check',
         title: 'Autos inspeccionados y garantizados',
         description: 'Seguridad y calidad aseguradas',
+        link: '',
       },
       {
         icon: 'dollar',
         title: 'Financiamiento a tu medida',
         description: 'Diseñado según tus necesidades',
+        link: '',
       },
       {
         icon: 'user',
         title: 'Atención personalizada',
         description: 'Un asesor te acompaña en todo el proceso',
+        link: '',
       },
     ],
     bgColor: '#000000',
