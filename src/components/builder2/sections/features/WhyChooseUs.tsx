@@ -35,16 +35,47 @@ const FeatureCard = ({
   link,
 }: FeatureCardProps) => {
   const scrollToSection = (sectionId: string) => {
-    // Check if it's a phone number (starts with + or contains only numbers and spaces)
+    // Detectar si es un número de teléfono (WhatsApp)
     const phoneRegex = /^(\+?[\d\s\-\(\)]+)$/;
     if (phoneRegex.test(sectionId.trim())) {
-      // Convert to WhatsApp link
-      const cleanNumber = sectionId.replace(/[\s\-\(\)]/g, '');
-      const whatsappUrl = `https://wa.me/${cleanNumber}`;
-      window.open(whatsappUrl, '_blank');
+      let cleanNumber = sectionId.replace(/[\s\-\(\)]/g, '');
+      if (cleanNumber.startsWith('+569')) {
+        const whatsappUrl = `https://wa.me/${cleanNumber}`;
+        window.open(whatsappUrl, '_blank');
+      } else if (cleanNumber.startsWith('569')) {
+        const whatsappUrl = `https://wa.me/+${cleanNumber}`;
+        window.open(whatsappUrl, '_blank');
+      } else if (cleanNumber.startsWith('9') && cleanNumber.length === 9) {
+        const whatsappUrl = `https://wa.me/+56${cleanNumber}`;
+        window.open(whatsappUrl, '_blank');
+      } else if (cleanNumber.length >= 8 && cleanNumber.length <= 10) {
+        const whatsappUrl = `https://wa.me/+569${cleanNumber}`;
+        window.open(whatsappUrl, '_blank');
+      } else {
+        const whatsappUrl = `https://wa.me/${cleanNumber}`;
+        window.open(whatsappUrl, '_blank');
+      }
       return;
     }
 
+    // Detectar si es una URL completa
+    if (sectionId.startsWith('http://') || sectionId.startsWith('https://')) {
+      window.open(sectionId, '_blank');
+      return;
+    }
+
+    // Detectar URLs de redes sociales sin protocolo
+    const socialRegex =
+      /^(www\.|wa\.me|instagram\.com|facebook\.com|twitter\.com|x\.com|linkedin\.com|youtube\.com|tiktok\.com)/i;
+    if (socialRegex.test(sectionId)) {
+      const fullUrl = sectionId.startsWith('www.')
+        ? `https://${sectionId}`
+        : `https://${sectionId}`;
+      window.open(fullUrl, '_blank');
+      return;
+    }
+
+    // Detectar hash links (navegación interna)
     if (sectionId.startsWith('#')) {
       const targetId = sectionId.substring(1); // Remover el # inicial
 
@@ -76,13 +107,17 @@ const FeatureCard = ({
       console.log(
         `Section ${targetId} not found. This is normal in editor mode.`
       );
-    } else if (sectionId.startsWith('/')) {
-      // Es una ruta interna, navegamos a ella
-      window.location.href = sectionId;
-    } else if (sectionId.startsWith('http')) {
-      // Es una URL externa, navegamos a ella
-      window.open(sectionId, '_blank');
+      return;
     }
+
+    // Detectar rutas internas
+    if (sectionId.startsWith('/')) {
+      window.location.href = sectionId;
+      return;
+    }
+
+    // Si no es ninguno de los anteriores, tratar como URL externa
+    window.open(sectionId, '_blank');
   };
 
   const handleClick = () => {
