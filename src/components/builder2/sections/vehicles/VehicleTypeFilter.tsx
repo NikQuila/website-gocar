@@ -20,37 +20,37 @@ export const commonVehicleTypes = [
   },
   {
     id: 'suv',
-    label: 'SUV',
+    label: 'SUVs',
     icon: <Car size={16} className='text-current' />,
   },
   {
     id: 'sedan',
-    label: 'Sedán',
+    label: 'Sedanes',
     icon: <Car size={16} className='text-current' />,
   },
   {
     id: 'hatchback',
-    label: 'Hatchback',
+    label: 'Hatchbacks',
     icon: <CarFront size={16} className='text-current' />,
   },
   {
     id: 'pickup',
-    label: 'Pickup',
+    label: 'Pickups',
     icon: <Truck size={16} className='text-current' />,
   },
   {
     id: 'van',
-    label: 'Van',
+    label: 'Vans',
     icon: <Truck size={16} className='text-current' />,
   },
   {
     id: 'coupe',
-    label: 'Coupé',
+    label: 'Coupés',
     icon: <Car size={16} className='text-current' />,
   },
   {
     id: 'wagon',
-    label: 'Wagon',
+    label: 'Wagons',
     icon: <CarFront size={16} className='text-current' />,
   },
 ];
@@ -86,6 +86,12 @@ interface VehicleTypeFilterProps {
   setActiveVehicleType: (type: string) => void;
   availableTypes: string[];
   setSelectedTypes: React.Dispatch<React.SetStateAction<string[]>>;
+  buttonBgColor?: string;
+  buttonTextColor?: string;
+  buttonBorderColor?: string;
+  activeButtonBgColor?: string;
+  activeButtonTextColor?: string;
+  activeButtonBorderColor?: string;
 }
 
 export const VehicleTypeFilter: React.FC<VehicleTypeFilterProps> = ({
@@ -93,7 +99,22 @@ export const VehicleTypeFilter: React.FC<VehicleTypeFilterProps> = ({
   setActiveVehicleType,
   availableTypes,
   setSelectedTypes,
+  buttonBgColor = '#ffffff',
+  buttonTextColor = '#3b82f6',
+  buttonBorderColor = '#3b82f6',
+  activeButtonBgColor = '#3b82f6',
+  activeButtonTextColor = '#ffffff',
+  activeButtonBorderColor = '#3b82f6',
 }) => {
+  // Debug: Log de las configuraciones de colores
+  console.log('VehicleTypeFilter - Configuraciones de colores:', {
+    buttonBgColor,
+    buttonTextColor,
+    buttonBorderColor,
+    activeButtonBgColor,
+    activeButtonTextColor,
+    activeButtonBorderColor,
+  });
   // Filter by vehicle type
   const handleVehicleTypeClick = (typeId: string) => {
     // Si ya estaba activo o se selecciona "Todos", quitamos todos los filtros de tipo
@@ -144,38 +165,49 @@ export const VehicleTypeFilter: React.FC<VehicleTypeFilterProps> = ({
     <div className='w-full mb-6 bg-white rounded-lg shadow-sm border border-gray-100 p-3 relative'>
       <ScrollArea className='w-full relative'>
         <div className='flex py-1 px-4 gap-2 items-center overflow-x-auto'>
-          {commonVehicleTypes.map((type) => (
-            <Button
-              key={type.id}
-              variant={activeVehicleType === type.id ? 'default' : 'outline'}
-              size='sm'
-              className={`
-                flex items-center gap-2 px-4 py-2 min-w-max
-                ${
-                  activeVehicleType === type.id
-                    ? 'bg-blue-600 hover:bg-blue-700 shadow-md'
-                    : 'bg-white hover:bg-blue-50 border-gray-200 hover:border-blue-300'
-                }
-                transition-all duration-200 ease-in-out rounded-full
-              `}
-              onClick={() => handleVehicleTypeClick(type.id)}
-            >
-              <span
-                className={`${
-                  activeVehicleType === type.id ? 'text-white' : 'text-gray-700'
-                } transition-colors`}
+          {commonVehicleTypes.map((type) => {
+            const isActive = activeVehicleType === type.id;
+
+            return (
+              <Button
+                key={type.id}
+                variant={isActive ? 'default' : 'outline'}
+                size='sm'
+                style={{
+                  backgroundColor: isActive
+                    ? activeButtonBgColor
+                    : buttonBgColor,
+                  color: isActive ? activeButtonTextColor : buttonTextColor,
+                  borderColor: isActive
+                    ? activeButtonBorderColor
+                    : buttonBorderColor,
+                }}
+                className={`
+                  flex items-center gap-2 px-4 py-2 min-w-max
+                  transition-all duration-200 ease-in-out rounded-full
+                  ${isActive ? 'shadow-md' : 'hover:opacity-80'}
+                `}
+                onClick={() => handleVehicleTypeClick(type.id)}
               >
-                {type.icon}
-              </span>
-              <span
-                className={`text-sm font-medium ${
-                  activeVehicleType === type.id ? 'text-white' : 'text-gray-700'
-                }`}
-              >
-                {type.label}
-              </span>
-            </Button>
-          ))}
+                <span
+                  style={{
+                    color: isActive ? activeButtonTextColor : buttonTextColor,
+                  }}
+                  className='transition-colors'
+                >
+                  {type.icon}
+                </span>
+                <span
+                  style={{
+                    color: isActive ? activeButtonTextColor : buttonTextColor,
+                  }}
+                  className='text-sm font-medium'
+                >
+                  {type.label}
+                </span>
+              </Button>
+            );
+          })}
         </div>
         <ScrollBar orientation='horizontal' className='h-1.5' />
       </ScrollArea>

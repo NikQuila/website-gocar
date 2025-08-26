@@ -63,6 +63,12 @@ interface VehicleGridProps {
     bannerPosition: 'left' | 'right';
   }[];
   newBadgeText?: string;
+  buttonBgColor?: string;
+  buttonTextColor?: string;
+  buttonBorderColor?: string;
+  activeButtonBgColor?: string;
+  activeButtonTextColor?: string;
+  activeButtonBorderColor?: string;
 }
 
 export const VehicleGrid = ({
@@ -86,11 +92,27 @@ export const VehicleGrid = ({
     },
   ],
   newBadgeText = 'Nuevo',
+  buttonBgColor = '#ffffff',
+  buttonTextColor = '#3b82f6',
+  buttonBorderColor = '#3b82f6',
+  activeButtonBgColor = '#3b82f6',
+  activeButtonTextColor = '#ffffff',
+  activeButtonBorderColor = '#3b82f6',
   children,
 }: VehicleGridProps) => {
   const { connectors, selected } = useNode((state) => ({
     selected: state.events.selected,
   }));
+
+  // Debug: Log de las configuraciones de colores
+  console.log('VehicleGrid - Configuraciones de colores:', {
+    buttonBgColor,
+    buttonTextColor,
+    buttonBorderColor,
+    activeButtonBgColor,
+    activeButtonTextColor,
+    activeButtonBorderColor,
+  });
 
   const { client } = useClientStore();
   const [vehicles, setVehicles] = useState<ExtendedVehicle[]>([]);
@@ -790,6 +812,12 @@ export const VehicleGrid = ({
               setActiveVehicleType={setActiveVehicleType}
               availableTypes={availableTypes}
               setSelectedTypes={setSelectedTypes}
+              buttonBgColor={buttonBgColor}
+              buttonTextColor={buttonTextColor}
+              buttonBorderColor={buttonBorderColor}
+              activeButtonBgColor={activeButtonBgColor}
+              activeButtonTextColor={activeButtonTextColor}
+              activeButtonBorderColor={activeButtonBorderColor}
             />
 
             <div className='flex flex-col md:flex-row gap-6'>
@@ -904,6 +932,12 @@ VehicleGrid.craft = {
       },
     ],
     newBadgeText: 'Nuevo',
+    buttonBgColor: '#ffffff',
+    buttonTextColor: '#3b82f6',
+    buttonBorderColor: '#3b82f6',
+    activeButtonBgColor: '#3b82f6',
+    activeButtonTextColor: '#ffffff',
+    activeButtonBorderColor: '#3b82f6',
   },
   related: {
     // Settings component will be external
