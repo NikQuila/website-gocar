@@ -78,28 +78,37 @@ export default function VehicleDetailSection({
 
   // Función para formatear números de teléfono
   const formatPhoneNumber = (phone: string | null | undefined) => {
-    // Si el teléfono es null o undefined, retornar null
     if (!phone) return null;
 
     // Limpiar el número de cualquier caracter no numérico
-    const cleanNumber = phone.replace(/\D/g, '');
+    const clean = phone.replace(/\D/g, '');
 
-    // Si ya tiene el formato internacional completo (+569)
-    if (phone.startsWith('+569')) {
-      return phone;
+    // Casos soportados:
+    // - +56 9 xxx xxxx -> 569xxxxxxxx (11) → "+569xxxxxxxx"
+    // - 56 9 xxx xxxx  -> 569xxxxxxxx (11) → "+569xxxxxxxx"
+    // - 9xxxxxxxx      -> (9) → "+56" + clean
+    // - xxxxxxxx       -> (8) → "+569" + clean
+
+    if (clean.length === 11 && clean.startsWith('569')) {
+      return `+${clean}`;
     }
 
-    // Si empieza con 9 y tiene 9 dígitos (número chileno sin código)
-    if (cleanNumber.startsWith('9') && cleanNumber.length === 9) {
-      return `+56${cleanNumber}`;
+    if (clean.length === 9 && clean.startsWith('9')) {
+      return `+56${clean}`;
     }
 
-    // Si tiene 8 dígitos (número local sin el 9)
-    if (cleanNumber.length === 8) {
-      return `+569${cleanNumber}`;
+    if (clean.length === 8) {
+      return `+569${clean}`;
     }
 
-    // Si no cumple ningún formato esperado o está vacío, retornar null
+    // Algunos formatos con ceros de prefijo (p.ej. 0569xxxxxxxx o 00569xxxxxxxx)
+    if (clean.length === 12 && clean.startsWith('0569')) {
+      return `+${clean.slice(1)}`; // +569xxxxxxxx
+    }
+    if (clean.length === 13 && clean.startsWith('00569')) {
+      return `+${clean.slice(2)}`; // +569xxxxxxxx
+    }
+
     return null;
   };
 
