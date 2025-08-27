@@ -26,6 +26,55 @@ export default function WebsitePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Fallback component for unknown CraftJS nodes
+  const Unknown: React.FC = () => null;
+
+  const resolver = {
+    Container,
+    Text,
+    Image,
+    HeroBasic,
+    HeroWithBackground,
+    VehicleGrid,
+    HeroMinimalistic,
+    Testimonials,
+    FAQ,
+    WhyChooseUs,
+    Unknown,
+  } as const;
+
+  function sanitizeCraftState(state: any) {
+    if (!state || typeof state !== 'object') {
+      return state;
+    }
+
+    const ensureType = (node: any) => {
+      if (!node) return node;
+      const resolvedName = node?.type?.resolvedName;
+      if (!resolvedName || !(resolvedName in resolver)) {
+        node.type = { resolvedName: 'Unknown' };
+        node.displayName = 'Unknown';
+      }
+      return node;
+    };
+
+    if (state.nodes && typeof state.nodes === 'object') {
+      const next = { ...state, nodes: { ...state.nodes } };
+      for (const key of Object.keys(next.nodes)) {
+        next.nodes[key] = ensureType({ ...next.nodes[key] });
+      }
+      return next;
+    }
+
+    const next: any = { ...state };
+    for (const key of Object.keys(next)) {
+      if (key === 'ROOT' || key.startsWith('node')) {
+        next[key] = ensureType({ ...next[key] });
+      }
+    }
+    return next;
+  }
+
   useEffect(() => {
     const fetchState = async () => {
       if (!client?.id) return;
@@ -44,7 +93,8 @@ export default function WebsitePage() {
           const decompressed = JSON.parse(
             lz.decompress(lz.decodeBase64(data.elements_structure))
           );
-          setJson(decompressed);
+          const sanitized = sanitizeCraftState(decompressed);
+          setJson(sanitized);
         }
       } catch (err: any) {
         setError(err.message || 'Error al cargar el estado');
@@ -77,22 +127,7 @@ export default function WebsitePage() {
   return (
     <div className='min-h-screen mt-[6vh]'>
       {json && (
-        <Editor
-          resolver={{
-            Container,
-            Text,
-            Image,
-            HeroBasic,
-            HeroWithBackground,
-            VehicleGrid,
-            HeroMinimalistic,
-            Testimonials,
-            FAQ,
-            WhyChooseUs,
-            /*, …otros*/
-          }}
-          enabled={false}
-        >
+        <Editor resolver={resolver} enabled={false}>
           <div className=''>
             <Frame data={json} />
           </div>

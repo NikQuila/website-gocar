@@ -70,6 +70,62 @@ function CraftJSContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Fallback component for unknown CraftJS nodes
+  const Unknown: React.FC = () => null;
+
+  // Centralized resolver including fallback
+  const resolver = {
+    Container,
+    Text,
+    Image,
+    HeroBasic,
+    HeroWithBackground,
+    VehicleGrid,
+    HeroMinimalistic,
+    Testimonials,
+    FAQ,
+    WhyChooseUs,
+    VehicleCarousel,
+    VideoEmbed,
+    Unknown,
+  } as const;
+
+  // Sanitize CraftJS state to avoid undefined types
+  function sanitizeCraftState(state: any) {
+    if (!state || typeof state !== 'object') {
+      return state;
+    }
+
+    const ensureType = (node: any) => {
+      if (!node) return node;
+      const resolvedName = node?.type?.resolvedName;
+      if (!resolvedName || !(resolvedName in resolver)) {
+        node.type = { resolvedName: 'Unknown' };
+        node.displayName = 'Unknown';
+      }
+      return node;
+    };
+
+    // CraftJS serialized formats can vary; handle both shapes
+    if (state.nodes && typeof state.nodes === 'object') {
+      // Newer shape: { nodes: { id: node } }
+      const next = { ...state, nodes: { ...state.nodes } };
+      for (const key of Object.keys(next.nodes)) {
+        next.nodes[key] = ensureType({ ...next.nodes[key] });
+      }
+      return next;
+    }
+
+    // Older shape: top-level keys for ROOT and others
+    const next: any = { ...state };
+    for (const key of Object.keys(next)) {
+      if (key === 'ROOT' || key.startsWith('node')) {
+        next[key] = ensureType({ ...next[key] });
+      }
+    }
+    return next;
+  }
+
   useEffect(() => {
     const fetchState = async () => {
       if (!client?.id) return;
@@ -88,7 +144,8 @@ function CraftJSContent() {
           const decompressed = JSON.parse(
             lz.decompress(lz.decodeBase64(data.elements_structure))
           );
-          setJson(decompressed);
+          const sanitized = sanitizeCraftState(decompressed);
+          setJson(sanitized);
         }
       } catch (err: any) {
         setError(err.message || 'Error al cargar el estado');
@@ -120,23 +177,7 @@ function CraftJSContent() {
     <div className='min-h-screen '>
       {json && (
         <div style={{ margin: '0 auto', padding: '0px' }}>
-          <Editor
-            resolver={{
-              Container,
-              Text,
-              Image,
-              HeroBasic,
-              HeroWithBackground,
-              VehicleGrid,
-              HeroMinimalistic,
-              Testimonials,
-              FAQ,
-              WhyChooseUs,
-              VehicleCarousel,
-              VideoEmbed,
-            }}
-            enabled={false}
-          >
+          <Editor resolver={resolver} enabled={false}>
             <Frame data={json} />
           </Editor>
         </div>
