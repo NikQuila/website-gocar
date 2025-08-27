@@ -19,6 +19,7 @@ import { VehicleGrid } from '@/components/builder2/sections/vehicles';
 import { HeroMinimalistic } from '@/components/builder2/sections/initialfold/HeroMinimalistic';
 import { Testimonials } from '@/components/builder2/sections/testimonials';
 import { FAQ, WhyChooseUs } from '@/components/builder2/sections/features';
+import HowToArrive from '@/sections/home/HowToArrive';
 
 export default function WebsitePage() {
   const { client, isLoading: isClientLoading } = useClientStore();
@@ -40,6 +41,7 @@ export default function WebsitePage() {
     Testimonials,
     FAQ,
     WhyChooseUs,
+    HowToArrive,
     Unknown,
   } as const;
 
@@ -59,11 +61,36 @@ export default function WebsitePage() {
     };
 
     if (state.nodes && typeof state.nodes === 'object') {
-      const next = { ...state, nodes: { ...state.nodes } };
-      for (const key of Object.keys(next.nodes)) {
-        next.nodes[key] = ensureType({ ...next.nodes[key] });
+      const originalNodes = state.nodes as Record<string, any>;
+      const validIds = Object.keys(originalNodes).filter((id) => {
+        const n = originalNodes[id];
+        return n && typeof n === 'object';
+      });
+
+      const sanitizedMap: Record<string, any> = {};
+      for (const id of validIds) {
+        sanitizedMap[id] = ensureType({ ...originalNodes[id] });
       }
-      return next;
+
+      for (const id of Object.keys(sanitizedMap)) {
+        const node = sanitizedMap[id];
+        if (Array.isArray(node.nodes)) {
+          node.nodes = node.nodes.filter((childId: string) =>
+            validIds.includes(childId)
+          );
+        }
+        if (node.linkedNodes && typeof node.linkedNodes === 'object') {
+          const ln: Record<string, string> = node.linkedNodes;
+          for (const key of Object.keys(ln)) {
+            if (!validIds.includes(ln[key])) {
+              delete ln[key];
+            }
+          }
+          node.linkedNodes = ln;
+        }
+      }
+
+      return { ...state, nodes: sanitizedMap };
     }
 
     const next: any = { ...state };

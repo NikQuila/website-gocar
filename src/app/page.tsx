@@ -5,7 +5,6 @@ import {
   useWebsiteConfig,
 } from '@/providers/ClientWebsiteConfigProvider';
 import ContactCTA from '@/sections/home/ContactCTA';
-import HowToArrive from '@/sections/home/HowToArrive';
 import VehiclesSectionSkeleton from '@/sections/home/VehiclesSectionSkeleton';
 import WelcomeSection from '@/sections/home/WelcomeSection';
 import WelcomeSectionSkeleton from '@/sections/home/WelcomeSectionSkeleton';
@@ -32,6 +31,7 @@ import { Testimonials } from '@/components/builder2/sections/testimonials';
 import { FAQ, WhyChooseUs } from '@/components/builder2/sections/features';
 import { VehicleCarousel } from '@/components/builder2/sections/vehicles/VehicleCarousel';
 import { VideoEmbed } from '@/components/builder2/sections/videos/VideoEmbed';
+import HowToArrive from '@/sections/home/HowToArrive';
 
 // Generic Skeleton loader component
 function GenericSkeleton() {
@@ -87,6 +87,7 @@ function CraftJSContent() {
     WhyChooseUs,
     VehicleCarousel,
     VideoEmbed,
+    HowToArrive,
     Unknown,
   } as const;
 
@@ -109,11 +110,37 @@ function CraftJSContent() {
     // CraftJS serialized formats can vary; handle both shapes
     if (state.nodes && typeof state.nodes === 'object') {
       // Newer shape: { nodes: { id: node } }
-      const next = { ...state, nodes: { ...state.nodes } };
-      for (const key of Object.keys(next.nodes)) {
-        next.nodes[key] = ensureType({ ...next.nodes[key] });
+      const originalNodes = state.nodes as Record<string, any>;
+      const validIds = Object.keys(originalNodes).filter((id) => {
+        const n = originalNodes[id];
+        return n && typeof n === 'object';
+      });
+
+      const sanitizedMap: Record<string, any> = {};
+      for (const id of validIds) {
+        sanitizedMap[id] = ensureType({ ...originalNodes[id] });
       }
-      return next;
+
+      // Filter child references to only existing nodes
+      for (const id of Object.keys(sanitizedMap)) {
+        const node = sanitizedMap[id];
+        if (Array.isArray(node.nodes)) {
+          node.nodes = node.nodes.filter((childId: string) =>
+            validIds.includes(childId)
+          );
+        }
+        if (node.linkedNodes && typeof node.linkedNodes === 'object') {
+          const ln: Record<string, string> = node.linkedNodes;
+          for (const key of Object.keys(ln)) {
+            if (!validIds.includes(ln[key])) {
+              delete ln[key];
+            }
+          }
+          node.linkedNodes = ln;
+        }
+      }
+
+      return { ...state, nodes: sanitizedMap };
     }
 
     // Older shape: top-level keys for ROOT and others
