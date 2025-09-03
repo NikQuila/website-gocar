@@ -86,12 +86,16 @@ interface VehicleTypeFilterProps {
   setActiveVehicleType: (type: string) => void;
   availableTypes: string[];
   setSelectedTypes: React.Dispatch<React.SetStateAction<string[]>>;
-  buttonBgColor?: string;
-  buttonTextColor?: string;
-  buttonBorderColor?: string;
-  activeButtonBgColor?: string;
-  activeButtonTextColor?: string;
-  activeButtonBorderColor?: string;
+  filterButtonColors?: {
+    buttonBgColor: string;
+    buttonTextColor: string;
+    buttonBorderColor: string;
+    activeButtonBgColor: string;
+    activeButtonTextColor: string;
+    activeButtonBorderColor: string;
+    containerBgColor: string;
+    containerBorderColor: string;
+  }[];
 }
 
 export const VehicleTypeFilter: React.FC<VehicleTypeFilterProps> = ({
@@ -99,22 +103,24 @@ export const VehicleTypeFilter: React.FC<VehicleTypeFilterProps> = ({
   setActiveVehicleType,
   availableTypes,
   setSelectedTypes,
-  buttonBgColor = '#ffffff',
-  buttonTextColor = '#3b82f6',
-  buttonBorderColor = '#3b82f6',
-  activeButtonBgColor = '#3b82f6',
-  activeButtonTextColor = '#ffffff',
-  activeButtonBorderColor = '#3b82f6',
+  filterButtonColors = [
+    {
+      buttonBgColor: '#ffffff',
+      buttonTextColor: '#3b82f6',
+      buttonBorderColor: '#3b82f6',
+      activeButtonBgColor: '#3b82f6',
+      activeButtonTextColor: '#ffffff',
+      activeButtonBorderColor: '#3b82f6',
+      containerBgColor: '#ffffff',
+      containerBorderColor: '#e5e7eb',
+    },
+  ],
 }) => {
+  // Obtener la configuración de colores (siempre será el primer elemento)
+  const buttonColors = filterButtonColors[0] || filterButtonColors[0];
+
   // Debug: Log de las configuraciones de colores
-  console.log('VehicleTypeFilter - Configuraciones de colores:', {
-    buttonBgColor,
-    buttonTextColor,
-    buttonBorderColor,
-    activeButtonBgColor,
-    activeButtonTextColor,
-    activeButtonBorderColor,
-  });
+  console.log('VehicleTypeFilter - Configuraciones de colores:', buttonColors);
   // Filter by vehicle type
   const handleVehicleTypeClick = (typeId: string) => {
     // Si ya estaba activo o se selecciona "Todos", quitamos todos los filtros de tipo
@@ -162,7 +168,13 @@ export const VehicleTypeFilter: React.FC<VehicleTypeFilterProps> = ({
   };
 
   return (
-    <div className='w-full mb-6 bg-white rounded-lg shadow-sm border border-gray-100 p-3 relative'>
+    <div
+      className='w-full mb-6 rounded-lg shadow-sm p-3 relative'
+      style={{
+        backgroundColor: buttonColors.containerBgColor,
+        border: `1px solid ${buttonColors.containerBorderColor}`,
+      }}
+    >
       <ScrollArea className='w-full relative'>
         <div className='flex py-1 px-4 gap-2 items-center overflow-x-auto'>
           {commonVehicleTypes.map((type) => {
@@ -175,12 +187,14 @@ export const VehicleTypeFilter: React.FC<VehicleTypeFilterProps> = ({
                 size='sm'
                 style={{
                   backgroundColor: isActive
-                    ? activeButtonBgColor
-                    : buttonBgColor,
-                  color: isActive ? activeButtonTextColor : buttonTextColor,
+                    ? buttonColors.activeButtonBgColor
+                    : buttonColors.buttonBgColor,
+                  color: isActive
+                    ? buttonColors.activeButtonTextColor
+                    : buttonColors.buttonTextColor,
                   borderColor: isActive
-                    ? activeButtonBorderColor
-                    : buttonBorderColor,
+                    ? buttonColors.activeButtonBorderColor
+                    : buttonColors.buttonBorderColor,
                 }}
                 className={`
                   flex items-center gap-2 px-4 py-2 min-w-max
@@ -191,7 +205,9 @@ export const VehicleTypeFilter: React.FC<VehicleTypeFilterProps> = ({
               >
                 <span
                   style={{
-                    color: isActive ? activeButtonTextColor : buttonTextColor,
+                    color: isActive
+                      ? buttonColors.activeButtonTextColor
+                      : buttonColors.buttonTextColor,
                   }}
                   className='transition-colors'
                 >
@@ -199,7 +215,9 @@ export const VehicleTypeFilter: React.FC<VehicleTypeFilterProps> = ({
                 </span>
                 <span
                   style={{
-                    color: isActive ? activeButtonTextColor : buttonTextColor,
+                    color: isActive
+                      ? buttonColors.activeButtonTextColor
+                      : buttonColors.buttonTextColor,
                   }}
                   className='text-sm font-medium'
                 >

@@ -63,12 +63,16 @@ interface VehicleGridProps {
     bannerPosition: 'left' | 'right';
   }[];
   newBadgeText?: string;
-  buttonBgColor?: string;
-  buttonTextColor?: string;
-  buttonBorderColor?: string;
-  activeButtonBgColor?: string;
-  activeButtonTextColor?: string;
-  activeButtonBorderColor?: string;
+  filterButtonColors?: {
+    buttonBgColor: string;
+    buttonTextColor: string;
+    buttonBorderColor: string;
+    activeButtonBgColor: string;
+    activeButtonTextColor: string;
+    activeButtonBorderColor: string;
+    containerBgColor: string;
+    containerBorderColor: string;
+  }[];
 }
 
 export const VehicleGrid = ({
@@ -92,12 +96,18 @@ export const VehicleGrid = ({
     },
   ],
   newBadgeText = 'Nuevo',
-  buttonBgColor = '#ffffff',
-  buttonTextColor = '#3b82f6',
-  buttonBorderColor = '#3b82f6',
-  activeButtonBgColor = '#3b82f6',
-  activeButtonTextColor = '#ffffff',
-  activeButtonBorderColor = '#3b82f6',
+  filterButtonColors = [
+    {
+      buttonBgColor: '#ffffff',
+      buttonTextColor: '#3b82f6',
+      buttonBorderColor: '#3b82f6',
+      activeButtonBgColor: '#3b82f6',
+      activeButtonTextColor: '#ffffff',
+      activeButtonBorderColor: '#3b82f6',
+      containerBgColor: '#ffffff',
+      containerBorderColor: '#e5e7eb',
+    },
+  ],
   children,
 }: VehicleGridProps) => {
   const { connectors, selected } = useNode((state) => ({
@@ -106,12 +116,14 @@ export const VehicleGrid = ({
 
   // Debug: Log de las configuraciones de colores
   console.log('VehicleGrid - Configuraciones de colores:', {
-    buttonBgColor,
-    buttonTextColor,
-    buttonBorderColor,
-    activeButtonBgColor,
-    activeButtonTextColor,
-    activeButtonBorderColor,
+    buttonBgColor: filterButtonColors[0]?.buttonBgColor,
+    buttonTextColor: filterButtonColors[0]?.buttonTextColor,
+    buttonBorderColor: filterButtonColors[0]?.buttonBorderColor,
+    activeButtonBgColor: filterButtonColors[0]?.activeButtonBgColor,
+    activeButtonTextColor: filterButtonColors[0]?.activeButtonTextColor,
+    activeButtonBorderColor: filterButtonColors[0]?.activeButtonBorderColor,
+    containerBgColor: filterButtonColors[0]?.containerBgColor,
+    containerBorderColor: filterButtonColors[0]?.containerBorderColor,
   });
 
   const { client } = useClientStore();
@@ -812,12 +824,7 @@ export const VehicleGrid = ({
               setActiveVehicleType={setActiveVehicleType}
               availableTypes={availableTypes}
               setSelectedTypes={setSelectedTypes}
-              buttonBgColor={buttonBgColor}
-              buttonTextColor={buttonTextColor}
-              buttonBorderColor={buttonBorderColor}
-              activeButtonBgColor={activeButtonBgColor}
-              activeButtonTextColor={activeButtonTextColor}
-              activeButtonBorderColor={activeButtonBorderColor}
+              filterButtonColors={filterButtonColors}
             />
 
             <div className='flex flex-col md:flex-row gap-6'>
@@ -932,12 +939,18 @@ VehicleGrid.craft = {
       },
     ],
     newBadgeText: 'Nuevo',
-    buttonBgColor: '#ffffff',
-    buttonTextColor: '#3b82f6',
-    buttonBorderColor: '#3b82f6',
-    activeButtonBgColor: '#3b82f6',
-    activeButtonTextColor: '#ffffff',
-    activeButtonBorderColor: '#3b82f6',
+    filterButtonColors: [
+      {
+        buttonBgColor: '#ffffff',
+        buttonTextColor: '#3b82f6',
+        buttonBorderColor: '#3b82f6',
+        activeButtonBgColor: '#3b82f6',
+        activeButtonTextColor: '#ffffff',
+        activeButtonBorderColor: '#3b82f6',
+        containerBgColor: '#ffffff',
+        containerBorderColor: '#e5e7eb',
+      },
+    ],
   },
   related: {
     // Settings component will be external
