@@ -171,6 +171,8 @@ function CraftJSContent() {
           const decompressed = JSON.parse(
             lz.decompress(lz.decodeBase64(data.elements_structure))
           );
+
+          // Validar que los datos descomprimidos sean válidos
           const sanitized = sanitizeCraftState(decompressed);
           setJson(sanitized);
         }

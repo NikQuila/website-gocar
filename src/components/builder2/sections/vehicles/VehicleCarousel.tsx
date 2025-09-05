@@ -43,6 +43,12 @@ interface VehicleCarouselProps {
     cardButtonTextColor: string;
     detailsButtonText: string;
     bannerPosition: 'left' | 'right';
+    featuresConfig?: {
+      feature1: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature2: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature3: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature4: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+    };
   }[];
   newBadgeText?: string; // New prop for the "Recién publicado" badge text
   children?: React.ReactNode;
@@ -71,6 +77,12 @@ export const VehicleCarousel = ({
       cardButtonTextColor: '#ffffff',
       detailsButtonText: 'Ver detalles',
       bannerPosition: 'right',
+      featuresConfig: {
+        feature1: 'category',
+        feature2: 'year',
+        feature3: 'fuel',
+        feature4: 'mileage',
+      },
     },
   ],
   newBadgeText = 'Nuevo',
@@ -143,6 +155,7 @@ export const VehicleCarousel = ({
             discount_percentage,
             created_at,
             label,
+            transmission,
             status:status_id(id, name),
             brand:brand_id(id, name),
             model:model_id(id, name),
@@ -380,6 +393,7 @@ export const VehicleCarousel = ({
                     cardButtonTextColor={cardSettings[0]?.cardButtonTextColor}
                     detailsButtonText={cardSettings[0]?.detailsButtonText}
                     bannerPosition={cardSettings[0]?.bannerPosition}
+                    featuresConfig={cardSettings[0]?.featuresConfig}
                     newBadgeText={newBadgeText}
                   />
                 </div>
@@ -419,6 +433,12 @@ VehicleCarousel.craft = {
         cardButtonTextColor: '#ffffff',
         detailsButtonText: 'Ver detalles',
         bannerPosition: 'right',
+        featuresConfig: {
+          feature1: 'category',
+          feature2: 'year',
+          feature3: 'fuel',
+          feature4: 'mileage',
+        },
       },
     ],
     newBadgeText: 'Nuevo',

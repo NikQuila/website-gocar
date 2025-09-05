@@ -61,14 +61,24 @@ interface VehicleGridProps {
     cardButtonTextColor: string;
     detailsButtonText: string;
     bannerPosition: 'left' | 'right';
+    featuresConfig?: {
+      feature1: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature2: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature3: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature4: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+    };
   }[];
   newBadgeText?: string;
-  buttonBgColor?: string;
-  buttonTextColor?: string;
-  buttonBorderColor?: string;
-  activeButtonBgColor?: string;
-  activeButtonTextColor?: string;
-  activeButtonBorderColor?: string;
+  filterButtonColors?: {
+    buttonBgColor: string;
+    buttonTextColor: string;
+    buttonBorderColor: string;
+    activeButtonBgColor: string;
+    activeButtonTextColor: string;
+    activeButtonBorderColor: string;
+    containerBgColor: string;
+    containerBorderColor: string;
+  }[];
 }
 
 export const VehicleGrid = ({
@@ -85,34 +95,36 @@ export const VehicleGrid = ({
       cardBorderColor: '#e5e7eb',
       cardTextColor: '#1f2937',
       cardPriceColor: '#ffffff',
-      cardButtonColor: '#3b82f6',
-      cardButtonTextColor: '#ffffff',
+      cardButtonColor: '#3b82f6', // Color del texto y borde del botón
+      cardButtonTextColor: '#ffffff', // Color del fondo del botón
       detailsButtonText: 'Ver detalles',
       bannerPosition: 'right',
+      featuresConfig: {
+        feature1: 'category',
+        feature2: 'year',
+        feature3: 'fuel',
+        feature4: 'mileage',
+      },
     },
   ],
   newBadgeText = 'Nuevo',
-  buttonBgColor = '#ffffff',
-  buttonTextColor = '#3b82f6',
-  buttonBorderColor = '#3b82f6',
-  activeButtonBgColor = '#3b82f6',
-  activeButtonTextColor = '#ffffff',
-  activeButtonBorderColor = '#3b82f6',
+  filterButtonColors = [
+    {
+      buttonBgColor: '#ffffff',
+      buttonTextColor: '#3b82f6',
+      buttonBorderColor: '#3b82f6',
+      activeButtonBgColor: '#3b82f6',
+      activeButtonTextColor: '#ffffff',
+      activeButtonBorderColor: '#3b82f6',
+      containerBgColor: '#ffffff',
+      containerBorderColor: '#e5e7eb',
+    },
+  ],
   children,
 }: VehicleGridProps) => {
   const { connectors, selected } = useNode((state) => ({
     selected: state.events.selected,
   }));
-
-  // Debug: Log de las configuraciones de colores
-  console.log('VehicleGrid - Configuraciones de colores:', {
-    buttonBgColor,
-    buttonTextColor,
-    buttonBorderColor,
-    activeButtonBgColor,
-    activeButtonTextColor,
-    activeButtonBorderColor,
-  });
 
   const { client } = useClientStore();
   const [vehicles, setVehicles] = useState<ExtendedVehicle[]>([]);
@@ -194,6 +206,7 @@ export const VehicleGrid = ({
             status_id,
             discount_percentage,
             label,
+            transmission,
             created_at,
             status:status_id(id, name),
             brand:brand_id(id, name),
@@ -812,12 +825,7 @@ export const VehicleGrid = ({
               setActiveVehicleType={setActiveVehicleType}
               availableTypes={availableTypes}
               setSelectedTypes={setSelectedTypes}
-              buttonBgColor={buttonBgColor}
-              buttonTextColor={buttonTextColor}
-              buttonBorderColor={buttonBorderColor}
-              activeButtonBgColor={activeButtonBgColor}
-              activeButtonTextColor={activeButtonTextColor}
-              activeButtonBorderColor={activeButtonBorderColor}
+              filterButtonColors={filterButtonColors}
             />
 
             <div className='flex flex-col md:flex-row gap-6'>
@@ -925,19 +933,31 @@ VehicleGrid.craft = {
         cardBorderColor: '#e5e7eb',
         cardTextColor: '#1f2937',
         cardPriceColor: '#ffffff',
-        cardButtonColor: '#3b82f6',
-        cardButtonTextColor: '#ffffff',
+        cardButtonColor: '#3b82f6', // Color del texto y borde del botón
+        cardButtonTextColor: '#ffffff', // Color del fondo del botón
         detailsButtonText: 'Ver detalles',
         bannerPosition: 'right',
+        featuresConfig: {
+          feature1: 'category',
+          feature2: 'year',
+          feature3: 'fuel',
+          feature4: 'mileage',
+        },
       },
     ],
     newBadgeText: 'Nuevo',
-    buttonBgColor: '#ffffff',
-    buttonTextColor: '#3b82f6',
-    buttonBorderColor: '#3b82f6',
-    activeButtonBgColor: '#3b82f6',
-    activeButtonTextColor: '#ffffff',
-    activeButtonBorderColor: '#3b82f6',
+    filterButtonColors: [
+      {
+        buttonBgColor: '#ffffff',
+        buttonTextColor: '#3b82f6',
+        buttonBorderColor: '#3b82f6',
+        activeButtonBgColor: '#3b82f6',
+        activeButtonTextColor: '#ffffff',
+        activeButtonBorderColor: '#3b82f6',
+        containerBgColor: '#ffffff',
+        containerBorderColor: '#e5e7eb',
+      },
+    ],
   },
   related: {
     // Settings component will be external

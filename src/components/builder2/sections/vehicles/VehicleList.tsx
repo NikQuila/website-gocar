@@ -53,6 +53,12 @@ interface VehicleListProps {
     cardButtonTextColor: string;
     detailsButtonText: string;
     bannerPosition: 'left' | 'right';
+    featuresConfig?: {
+      feature1: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature2: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature3: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature4: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+    };
   }[];
   newBadgeText?: string;
 }
@@ -200,6 +206,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
               cardButtonTextColor={cardSettings?.[0]?.cardButtonTextColor}
               detailsButtonText={cardSettings?.[0]?.detailsButtonText}
               bannerPosition={cardSettings?.[0]?.bannerPosition}
+              featuresConfig={cardSettings?.[0]?.featuresConfig}
               newBadgeText={newBadgeText}
             />
           ))}
