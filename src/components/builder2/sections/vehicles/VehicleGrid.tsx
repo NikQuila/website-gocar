@@ -61,6 +61,12 @@ interface VehicleGridProps {
     cardButtonTextColor: string;
     detailsButtonText: string;
     bannerPosition: 'left' | 'right';
+    featuresConfig?: {
+      feature1: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature2: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature3: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+      feature4: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+    };
   }[];
   newBadgeText?: string;
   filterButtonColors?: {
@@ -93,6 +99,12 @@ export const VehicleGrid = ({
       cardButtonTextColor: '#ffffff', // Color del fondo del botón
       detailsButtonText: 'Ver detalles',
       bannerPosition: 'right',
+      featuresConfig: {
+        feature1: 'category',
+        feature2: 'year',
+        feature3: 'fuel',
+        feature4: 'mileage',
+      },
     },
   ],
   newBadgeText = 'Nuevo',
@@ -139,6 +151,7 @@ export const VehicleGrid = ({
     cardButtonColor: cardSettings[0]?.cardButtonColor,
     cardButtonTextColor: cardSettings[0]?.cardButtonTextColor,
     detailsButtonText: cardSettings[0]?.detailsButtonText,
+    featuresConfig: cardSettings[0]?.featuresConfig,
   });
 
   const { client } = useClientStore();
@@ -221,6 +234,7 @@ export const VehicleGrid = ({
             status_id,
             discount_percentage,
             label,
+            transmission,
             created_at,
             status:status_id(id, name),
             brand:brand_id(id, name),
@@ -951,6 +965,12 @@ VehicleGrid.craft = {
         cardButtonTextColor: '#ffffff', // Color del fondo del botón
         detailsButtonText: 'Ver detalles',
         bannerPosition: 'right',
+        featuresConfig: {
+          feature1: 'category',
+          feature2: 'year',
+          feature3: 'fuel',
+          feature4: 'mileage',
+        },
       },
     ],
     newBadgeText: 'Nuevo',

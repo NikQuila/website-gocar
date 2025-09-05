@@ -1,7 +1,14 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Car, Tag, Calendar, Gauge } from 'lucide-react';
+import {
+  ExternalLink,
+  Car,
+  Tag,
+  Calendar,
+  Gauge,
+  Settings,
+} from 'lucide-react';
 import { useEditor } from '@craftjs/core';
 import { SimpleVehicle } from './VehicleCarousel';
 
@@ -17,6 +24,12 @@ export interface VehicleCardProps {
   detailsButtonText?: string;
   bannerPosition?: 'left' | 'right';
   newBadgeText?: string; // New prop for the "Recién publicado" badge text
+  featuresConfig?: {
+    feature1: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+    feature2: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+    feature3: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+    feature4: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+  };
 }
 
 export const VehicleCard: React.FC<VehicleCardProps> = ({
@@ -31,6 +44,12 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   detailsButtonText = 'Ver detalles',
   bannerPosition = 'right',
   newBadgeText = 'Nuevo', // Default text
+  featuresConfig = {
+    feature1: 'category',
+    feature2: 'year',
+    feature3: 'fuel',
+    feature4: 'mileage',
+  },
 }) => {
   // Detectar si estamos en modo editor
   const { enabled } = useEditor((state) => ({
@@ -46,8 +65,10 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     cardButtonColor,
     cardButtonTextColor,
     detailsButtonText,
+    featuresConfig,
     enabled,
   });
+
   const {
     id,
     brand,
@@ -60,10 +81,18 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     category,
     fuel_type,
     condition,
+    transmission,
     created_at,
     discount_percentage,
     label,
   } = vehicle;
+
+  // Debug: Log específico para transmission (después de la destructuración)
+  console.log('VehicleCard - Transmission data:', {
+    transmission,
+    hasTransmission: !!transmission,
+    transmissionValid: transmission && transmission.trim() !== '',
+  });
 
   // Calculate discounted_price for display
   let displayDiscountedPrice;
@@ -99,6 +128,62 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
       currency: 'CLP',
       minimumFractionDigits: 0,
     }).format(priceValue);
+  };
+
+  // Función para renderizar una característica específica
+  const renderFeature = (featureType: string) => {
+    const iconProps = {
+      size: 14,
+      className: 'mr-1',
+      style: { opacity: '0.6' },
+    };
+    const textStyle = { color: cardTextColor, opacity: '0.7' };
+
+    switch (featureType) {
+      case 'category':
+        return category?.name ? (
+          <div className='flex items-center text-xs' style={textStyle}>
+            <Car {...iconProps} />
+            <span>{category.name}</span>
+          </div>
+        ) : null;
+
+      case 'year':
+        return year ? (
+          <div className='flex items-center text-xs' style={textStyle}>
+            <Calendar {...iconProps} />
+            <span>{year}</span>
+          </div>
+        ) : null;
+
+      case 'fuel':
+        return fuel_type?.name ? (
+          <div className='flex items-center text-xs' style={textStyle}>
+            <Tag {...iconProps} />
+            <span>{fuel_type.name}</span>
+          </div>
+        ) : null;
+
+      case 'mileage':
+        return mileage != null && mileage !== undefined ? (
+          <div className='flex items-center text-xs' style={textStyle}>
+            <Gauge {...iconProps} />
+            <span>{mileage.toLocaleString()} km</span>
+          </div>
+        ) : null;
+
+      case 'transmission':
+        // Validación robusta para transmission (es un string directo, no un objeto)
+        return transmission && transmission.trim() !== '' ? (
+          <div className='flex items-center text-xs' style={textStyle}>
+            <Settings {...iconProps} />
+            <span>{transmission}</span>
+          </div>
+        ) : null;
+
+      default:
+        return null;
+    }
   };
 
   const bannerBaseClasses =
@@ -223,49 +308,20 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
 
         {!compact && (
           <div className='mt-3 grid grid-cols-2 gap-2'>
-            {category?.name && (
-              <div
-                className='flex items-center text-xs'
-                style={{ color: cardTextColor, opacity: '0.7' }}
-              >
-                <Car size={14} className='mr-1' style={{ opacity: '0.6' }} />
-                <span>{category.name}</span>
-              </div>
-            )}
-
-            {fuel_type?.name && (
-              <div
-                className='flex items-center text-xs'
-                style={{ color: cardTextColor, opacity: '0.7' }}
-              >
-                <Tag size={14} className='mr-1' style={{ opacity: '0.6' }} />
-                <span>{fuel_type.name}</span>
-              </div>
-            )}
-
-            {year && (
-              <div
-                className='flex items-center text-xs'
-                style={{ color: cardTextColor, opacity: '0.7' }}
-              >
-                <Calendar
-                  size={14}
-                  className='mr-1'
-                  style={{ opacity: '0.6' }}
-                />
-                <span>{year}</span>
-              </div>
-            )}
-
-            {mileage != null && (
-              <div
-                className='flex items-center text-xs'
-                style={{ color: cardTextColor, opacity: '0.7' }}
-              >
-                <Gauge size={14} className='mr-1' style={{ opacity: '0.6' }} />
-                <span>{mileage.toLocaleString()} km</span>
-              </div>
-            )}
+            {/* Renderizar características en el orden especificado por featuresConfig */}
+            {/* Fallback: si featuresConfig no está definido, usar valores por defecto */}
+            {featuresConfig?.feature1
+              ? renderFeature(featuresConfig.feature1)
+              : renderFeature('category')}
+            {featuresConfig?.feature2
+              ? renderFeature(featuresConfig.feature2)
+              : renderFeature('year')}
+            {featuresConfig?.feature3
+              ? renderFeature(featuresConfig.feature3)
+              : renderFeature('fuel')}
+            {featuresConfig?.feature4
+              ? renderFeature(featuresConfig.feature4)
+              : renderFeature('mileage')}
           </div>
         )}
 
