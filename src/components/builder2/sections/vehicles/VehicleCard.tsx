@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Car, Tag, Calendar, Gauge } from 'lucide-react';
+import { useEditor } from '@craftjs/core';
 import { SimpleVehicle } from './VehicleCarousel';
 
 export interface VehicleCardProps {
@@ -31,6 +32,22 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   bannerPosition = 'right',
   newBadgeText = 'Nuevo', // Default text
 }) => {
+  // Detectar si estamos en modo editor
+  const { enabled } = useEditor((state) => ({
+    enabled: state.options.enabled,
+  }));
+
+  // Debug: Log de los parámetros recibidos
+  console.log('VehicleCard - Parámetros recibidos:', {
+    cardBgColor,
+    cardBorderColor,
+    cardTextColor,
+    cardPriceColor,
+    cardButtonColor,
+    cardButtonTextColor,
+    detailsButtonText,
+    enabled,
+  });
   const {
     id,
     brand,
@@ -100,10 +117,13 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
         borderColor: cardBorderColor,
         borderWidth: '1px',
         borderStyle: 'solid',
-        cursor: !isNotAvailable ? 'pointer' : 'default',
+        cursor: !enabled && !isNotAvailable ? 'pointer' : 'default',
       }}
       onClick={() => {
-        if (!isNotAvailable) window.location.href = `/vehicles/${id}`;
+        // Solo navegar si no estamos en modo editor y el vehículo está disponible
+        if (!enabled && !isNotAvailable) {
+          window.location.href = `/vehicles/${id}`;
+        }
       }}
     >
       {/* Imagen */}
@@ -254,28 +274,27 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
             variant='outline'
             size='sm'
             className={`text-xs transition-colors w-full hover:opacity-90 ${
-              isNotAvailable ? 'opacity-60 cursor-not-allowed' : ''
+              isNotAvailable || enabled ? 'opacity-60 cursor-not-allowed' : ''
             }`}
             style={{
               borderColor: cardButtonColor,
-              backgroundColor: 'transparent',
-              color: cardButtonColor,
+              backgroundColor: cardButtonTextColor, // Fondo del botón usa cardButtonTextColor
+              color: cardButtonColor, // Texto del botón usa cardButtonColor
             }}
-            asChild
             onClick={(e) => {
-              if (isNotAvailable) {
+              // En modo editor o si no está disponible, prevenir la navegación
+              if (enabled || isNotAvailable) {
                 e.preventDefault();
+                e.stopPropagation();
+                return;
               }
+              // En modo normal, navegar a la página del vehículo
+              window.location.href = `/vehicles/${id}`;
             }}
+            disabled={enabled || isNotAvailable}
           >
-            <a
-              href={`/vehicles/${id}`}
-              className='flex items-center justify-center'
-              tabIndex={isNotAvailable ? -1 : undefined}
-            >
-              <span>{detailsButtonText}</span>
-              <ExternalLink size={12} className='ml-1' />
-            </a>
+            <span>{detailsButtonText}</span>
+            <ExternalLink size={12} className='ml-1' />
           </Button>
         </div>
       </div>

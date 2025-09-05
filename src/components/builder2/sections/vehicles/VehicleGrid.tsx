@@ -89,8 +89,8 @@ export const VehicleGrid = ({
       cardBorderColor: '#e5e7eb',
       cardTextColor: '#1f2937',
       cardPriceColor: '#ffffff',
-      cardButtonColor: '#3b82f6',
-      cardButtonTextColor: '#ffffff',
+      cardButtonColor: '#3b82f6', // Color del texto y borde del botón
+      cardButtonTextColor: '#ffffff', // Color del fondo del botón
       detailsButtonText: 'Ver detalles',
       bannerPosition: 'right',
     },
@@ -126,6 +126,19 @@ export const VehicleGrid = ({
     activeButtonBorderColor: filterButtonColors[0]?.activeButtonBorderColor,
     containerBgColor: filterButtonColors[0]?.containerBgColor,
     containerBorderColor: filterButtonColors[0]?.containerBorderColor,
+  });
+
+  // Debug: Log de las configuraciones de las tarjetas
+  console.log('VehicleGrid - cardSettings completo:', cardSettings);
+  console.log('VehicleGrid - cardSettings[0]:', cardSettings[0]);
+  console.log('VehicleGrid - Configuraciones de tarjetas detalladas:', {
+    cardBgColor: cardSettings[0]?.cardBgColor,
+    cardBorderColor: cardSettings[0]?.cardBorderColor,
+    cardTextColor: cardSettings[0]?.cardTextColor,
+    cardPriceColor: cardSettings[0]?.cardPriceColor,
+    cardButtonColor: cardSettings[0]?.cardButtonColor,
+    cardButtonTextColor: cardSettings[0]?.cardButtonTextColor,
+    detailsButtonText: cardSettings[0]?.detailsButtonText,
   });
 
   const { client } = useClientStore();
@@ -934,8 +947,8 @@ VehicleGrid.craft = {
         cardBorderColor: '#e5e7eb',
         cardTextColor: '#1f2937',
         cardPriceColor: '#ffffff',
-        cardButtonColor: '#3b82f6',
-        cardButtonTextColor: '#ffffff',
+        cardButtonColor: '#3b82f6', // Color del texto y borde del botón
+        cardButtonTextColor: '#ffffff', // Color del fondo del botón
         detailsButtonText: 'Ver detalles',
         bannerPosition: 'right',
       },
