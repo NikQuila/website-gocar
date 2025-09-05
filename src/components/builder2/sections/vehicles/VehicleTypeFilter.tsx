@@ -120,7 +120,21 @@ export const VehicleTypeFilter: React.FC<VehicleTypeFilterProps> = ({
   const buttonColors = filterButtonColors[0] || filterButtonColors[0];
 
   // Debug: Log de las configuraciones de colores
-  console.log('VehicleTypeFilter - Configuraciones de colores:', buttonColors);
+  console.log(
+    'VehicleTypeFilter - filterButtonColors completo:',
+    filterButtonColors
+  );
+  console.log(
+    'VehicleTypeFilter - filterButtonColors[0]:',
+    filterButtonColors[0]
+  );
+  console.log('VehicleTypeFilter - buttonColors extraído:', buttonColors);
+  console.log('VehicleTypeFilter - Colores específicos:', {
+    containerBgColor: buttonColors?.containerBgColor,
+    containerBorderColor: buttonColors?.containerBorderColor,
+    buttonBgColor: buttonColors?.buttonBgColor,
+    activeButtonBgColor: buttonColors?.activeButtonBgColor,
+  });
   // Filter by vehicle type
   const handleVehicleTypeClick = (typeId: string) => {
     // Si ya estaba activo o se selecciona "Todos", quitamos todos los filtros de tipo

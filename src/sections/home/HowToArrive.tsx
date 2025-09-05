@@ -4,13 +4,25 @@ import { useLoadScript, GoogleMap, OverlayView } from '@react-google-maps/api';
 import { Icon } from '@iconify/react';
 import { Button } from '@heroui/react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNode } from '@craftjs/core';
 import useClientStore from '@/store/useClientStore';
 import { Dealership, Location } from '@/utils/types';
 import { supabase } from '@/lib/supabase';
 import useThemeStore from '@/store/useThemeStore';
 
 interface HowToArriveProps {
+  title?: string;
+  subtitle?: string;
+  titleAlignment?: 'left' | 'center' | 'right';
   height?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  cardBgColor?: string;
+  cardTextColor?: string;
+  buttonBgColor?: string;
+  buttonTextColor?: string;
+  buttonLabel?: string;
+  iconColor?: string;
 }
 
 const grayMapStyle = [
@@ -50,10 +62,12 @@ const MapMarker = ({
   onClick,
   address,
   isSelected,
+  iconColor = '#60a5fa',
 }: {
   onClick?: () => void;
   address?: string;
   isSelected?: boolean;
+  iconColor?: string;
 }) => (
   <div className='relative group'>
     <div
@@ -66,12 +80,16 @@ const MapMarker = ({
         <svg
           xmlns='http://www.w3.org/2000/svg'
           viewBox='0 0 24 24'
-          className={`w-8 h-8 text-primary drop-shadow-lg`}
+          className='w-8 h-8 drop-shadow-lg'
+          style={{ color: iconColor }}
           fill='currentColor'
         >
           <path d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM12 11.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z' />
         </svg>
-        <div className='absolute -inset-1 animate-ping rounded-full bg-primary/30 duration-1000' />
+        <div
+          className='absolute -inset-1 animate-ping rounded-full duration-1000'
+          style={{ backgroundColor: `${iconColor}30` }}
+        />
       </div>
     </div>
 
@@ -86,9 +104,53 @@ const MapMarker = ({
   </div>
 );
 
-export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
+export default function HowToArrive({
+  title = '¿Cómo llegar?',
+  subtitle = 'Encuentranos en la siguiente dirección:',
+  titleAlignment = 'center',
+  height = '400px',
+  backgroundColor = '#f9fafb',
+  textColor = '#111827',
+  cardBgColor = '#ffffff',
+  cardTextColor = '#111827',
+  buttonBgColor = '#2563eb',
+  buttonTextColor = '#ffffff',
+  buttonLabel = 'Cómo llegar en Google Maps',
+  iconColor,
+}: HowToArriveProps) {
+  const { connectors, selected } = useNode((state) => ({
+    selected: state.events.selected,
+  }));
+
+  // Debug: Log de los parámetros recibidos
+  console.log('HowToArrive - Parámetros recibidos:', {
+    title,
+    subtitle,
+    titleAlignment,
+    height,
+    backgroundColor,
+    textColor,
+    cardBgColor,
+    cardTextColor,
+    buttonBgColor,
+    buttonTextColor,
+    buttonLabel,
+    iconColor,
+  });
+
   const { client } = useClientStore();
   const { theme } = useThemeStore();
+
+  // Color primario por defecto (celestito claro)
+  const primaryColor = '#60a5fa';
+  const finalIconColor = iconColor || primaryColor;
+
+  // Debug: Log del color final de los iconos
+  console.log('HowToArrive - Color de iconos:', {
+    iconColorRecibido: iconColor,
+    primaryColor: '#60a5fa (celestito claro)',
+    finalIconColor,
+  });
   const [dealerships, setDealerships] = useState<Dealership[]>([]);
   const [selectedDealership, setSelectedDealership] =
     useState<Dealership | null>(null);
@@ -178,18 +240,46 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
   }
 
   return (
-    <div className='bg-gray-50 dark:bg-dark-bg py-12 rounded-2xl'>
+    <div
+      ref={connectors.connect}
+      className='py-12 rounded-2xl'
+      style={{
+        backgroundColor: backgroundColor,
+        color: textColor,
+        border: selected ? '2px dashed #666666' : '1px solid transparent',
+        outline: selected ? '1px dashed #999999' : 'none',
+        outlineOffset: selected ? '2px' : '0px',
+      }}
+    >
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <h3 className='text-4xl font-semibold text-black text-center mb-4 dark:text-dark-text'>
-          ¿Cómo llegar?
+        <h3
+          className='text-4xl font-semibold mb-4'
+          style={{
+            color: textColor,
+            textAlign: titleAlignment,
+          }}
+        >
+          {title}
         </h3>
-        <p className='text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto'>
-          Encuentranos en la siguiente dirección:
+        <p
+          className='mb-12 max-w-3xl mx-auto'
+          style={{
+            color: textColor,
+            textAlign: titleAlignment,
+          }}
+        >
+          {subtitle}
         </p>
 
         <div className='grid md:grid-cols-3 gap-8 items-start'>
           {/* Contact Info with Navigation */}
-          <div className='md:col-span-1 space-y-6 p-6 h-full flex flex-col justify-between bg-white dark:bg-dark-card rounded-xl shadow-sm dark:border dark:border-dark-border mx-auto max-w-[90vw]'>
+          <div
+            className='md:col-span-1 space-y-6 p-6 h-full flex flex-col justify-between rounded-xl shadow-sm mx-auto max-w-[90vw]'
+            style={{
+              backgroundColor: cardBgColor,
+              color: cardTextColor,
+            }}
+          >
             {client?.logo && (
               <img
                 src={client.logo}
@@ -203,13 +293,14 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                 <button
                   onClick={handlePrevDealership}
                   className='p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full'
+                  style={{ color: cardTextColor }}
                 >
-                  <Icon
-                    icon='mdi:chevron-left'
-                    className='text-2xl dark:text-dark-text'
-                  />
+                  <Icon icon='mdi:chevron-left' className='text-2xl' />
                 </button>
-                <span className='text-sm text-gray-500 dark:text-gray-400'>
+                <span
+                  className='text-sm'
+                  style={{ color: cardTextColor, opacity: 0.7 }}
+                >
                   {dealerships.findIndex(
                     (d) => d.id === selectedDealership?.id
                   ) + 1}{' '}
@@ -218,11 +309,9 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                 <button
                   onClick={handleNextDealership}
                   className='p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full'
+                  style={{ color: cardTextColor }}
                 >
-                  <Icon
-                    icon='mdi:chevron-right'
-                    className='text-2xl dark:text-dark-text'
-                  />
+                  <Icon icon='mdi:chevron-right' className='text-2xl' />
                 </button>
               </div>
             )}
@@ -232,13 +321,17 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                 <div className='flex items-start space-x-3'>
                   <Icon
                     icon='mdi:map-marker'
-                    className='text-2xl text-primary  flex-shrink-0 mt-1'
+                    className='text-2xl flex-shrink-0 mt-1'
+                    style={{ color: finalIconColor }}
                   />
                   <div>
-                    <h4 className='font-medium text-gray-900 dark:text-dark-text'>
+                    <h4
+                      className='font-medium'
+                      style={{ color: cardTextColor }}
+                    >
                       Dirección
                     </h4>
-                    <p className='text-gray-600 dark:text-gray-400'>
+                    <p style={{ color: cardTextColor, opacity: 0.7 }}>
                       {selectedDealership.address}
                     </p>
                   </div>
@@ -247,13 +340,17 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                 <div className='flex items-start space-x-3'>
                   <Icon
                     icon='mdi:phone'
-                    className='text-2xl text-primary  flex-shrink-0 mt-1'
+                    className='text-2xl flex-shrink-0 mt-1'
+                    style={{ color: finalIconColor }}
                   />
                   <div>
-                    <h4 className='font-medium text-gray-900 dark:text-dark-text'>
+                    <h4
+                      className='font-medium'
+                      style={{ color: cardTextColor }}
+                    >
                       Teléfono
                     </h4>
-                    <p className='text-gray-600 dark:text-gray-400'>
+                    <p style={{ color: cardTextColor, opacity: 0.7 }}>
                       {selectedDealership.phone}
                     </p>
                   </div>
@@ -262,13 +359,20 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                 <div className='flex items-start space-x-3'>
                   <Icon
                     icon='mdi:email'
-                    className='text-2xl text-primary  flex-shrink-0 mt-1'
+                    className='text-2xl flex-shrink-0 mt-1'
+                    style={{ color: finalIconColor }}
                   />
                   <div className='min-w-0'>
-                    <h4 className='font-medium text-gray-900 dark:text-dark-text'>
+                    <h4
+                      className='font-medium'
+                      style={{ color: cardTextColor }}
+                    >
                       Email
                     </h4>
-                    <p className='text-gray-600 dark:text-gray-400 break-words'>
+                    <p
+                      style={{ color: cardTextColor, opacity: 0.7 }}
+                      className='break-words'
+                    >
                       {selectedDealership.email}
                     </p>
                   </div>
@@ -277,14 +381,16 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
             )}
 
             <Button
-              color='primary'
-              startContent={<Icon icon='mdi:navigation' />}
-              className={`w-full mt-6 ${theme === 'dark' ? 'text-black' : ''}`}
+              className='w-full mt-6'
+              style={{
+                backgroundColor: buttonBgColor,
+                color: buttonTextColor,
+              }}
               onPress={() =>
                 selectedDealership && handleMarkerClick(selectedDealership)
               }
             >
-              Cómo llegar en Google Maps
+              {buttonLabel}
             </Button>
           </div>
 
@@ -292,7 +398,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
           <div className='md:col-span-2'>
             <div
               style={{ height, width: '100%' }}
-              className='rounded-xl overflow-hidden shadow-lg dark:border dark:border-dark-border'
+              className='rounded-xl overflow-hidden shadow-lg'
             >
               <GoogleMap
                 zoom={13}
@@ -323,6 +429,7 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
                       }}
                       address={dealership.address}
                       isSelected={selectedDealership?.id === dealership.id}
+                      iconColor={finalIconColor}
                     />
                   </OverlayView>
                 ))}
@@ -334,3 +441,27 @@ export default function HowToArrive({ height = '400px' }: HowToArriveProps) {
     </div>
   );
 }
+
+// Configuración de CraftJS
+HowToArrive.craft = {
+  displayName: 'HowToArrive',
+  props: {
+    title: '¿Cómo llegar?',
+    subtitle: 'Encuentranos en la siguiente dirección:',
+    titleAlignment: 'center',
+    height: '400px',
+    backgroundColor: '#f9fafb',
+    textColor: '#111827',
+    cardBgColor: '#ffffff',
+    cardTextColor: '#111827',
+    buttonBgColor: '#2563eb',
+    buttonTextColor: '#ffffff',
+    buttonLabel: 'Cómo llegar en Google Maps',
+    iconColor: '#60a5fa',
+  },
+  rules: {
+    canDrag: () => true,
+    canDrop: () => true,
+    canMoveIn: () => true,
+  },
+};

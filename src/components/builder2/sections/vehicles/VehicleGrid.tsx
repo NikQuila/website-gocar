@@ -115,7 +115,9 @@ export const VehicleGrid = ({
   }));
 
   // Debug: Log de las configuraciones de colores
-  console.log('VehicleGrid - Configuraciones de colores:', {
+  console.log('VehicleGrid - filterButtonColors completo:', filterButtonColors);
+  console.log('VehicleGrid - filterButtonColors[0]:', filterButtonColors[0]);
+  console.log('VehicleGrid - Configuraciones de colores detalladas:', {
     buttonBgColor: filterButtonColors[0]?.buttonBgColor,
     buttonTextColor: filterButtonColors[0]?.buttonTextColor,
     buttonBorderColor: filterButtonColors[0]?.buttonBorderColor,
