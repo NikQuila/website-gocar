@@ -126,34 +126,6 @@ export const VehicleGrid = ({
     selected: state.events.selected,
   }));
 
-  // Debug: Log de las configuraciones de colores
-  console.log('VehicleGrid - filterButtonColors completo:', filterButtonColors);
-  console.log('VehicleGrid - filterButtonColors[0]:', filterButtonColors[0]);
-  console.log('VehicleGrid - Configuraciones de colores detalladas:', {
-    buttonBgColor: filterButtonColors[0]?.buttonBgColor,
-    buttonTextColor: filterButtonColors[0]?.buttonTextColor,
-    buttonBorderColor: filterButtonColors[0]?.buttonBorderColor,
-    activeButtonBgColor: filterButtonColors[0]?.activeButtonBgColor,
-    activeButtonTextColor: filterButtonColors[0]?.activeButtonTextColor,
-    activeButtonBorderColor: filterButtonColors[0]?.activeButtonBorderColor,
-    containerBgColor: filterButtonColors[0]?.containerBgColor,
-    containerBorderColor: filterButtonColors[0]?.containerBorderColor,
-  });
-
-  // Debug: Log de las configuraciones de las tarjetas
-  console.log('VehicleGrid - cardSettings completo:', cardSettings);
-  console.log('VehicleGrid - cardSettings[0]:', cardSettings[0]);
-  console.log('VehicleGrid - Configuraciones de tarjetas detalladas:', {
-    cardBgColor: cardSettings[0]?.cardBgColor,
-    cardBorderColor: cardSettings[0]?.cardBorderColor,
-    cardTextColor: cardSettings[0]?.cardTextColor,
-    cardPriceColor: cardSettings[0]?.cardPriceColor,
-    cardButtonColor: cardSettings[0]?.cardButtonColor,
-    cardButtonTextColor: cardSettings[0]?.cardButtonTextColor,
-    detailsButtonText: cardSettings[0]?.detailsButtonText,
-    featuresConfig: cardSettings[0]?.featuresConfig,
-  });
-
   const { client } = useClientStore();
   const [vehicles, setVehicles] = useState<ExtendedVehicle[]>([]);
   const [filteredVehicles, setFilteredVehicles] = useState<ExtendedVehicle[]>(

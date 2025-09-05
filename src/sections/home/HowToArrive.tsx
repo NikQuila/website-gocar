@@ -122,35 +122,12 @@ export default function HowToArrive({
     selected: state.events.selected,
   }));
 
-  // Debug: Log de los parámetros recibidos
-  console.log('HowToArrive - Parámetros recibidos:', {
-    title,
-    subtitle,
-    titleAlignment,
-    height,
-    backgroundColor,
-    textColor,
-    cardBgColor,
-    cardTextColor,
-    buttonBgColor,
-    buttonTextColor,
-    buttonLabel,
-    iconColor,
-  });
-
   const { client } = useClientStore();
   const { theme } = useThemeStore();
 
   // Color primario por defecto (celestito claro)
   const primaryColor = '#60a5fa';
   const finalIconColor = iconColor || primaryColor;
-
-  // Debug: Log del color final de los iconos
-  console.log('HowToArrive - Color de iconos:', {
-    iconColorRecibido: iconColor,
-    primaryColor: '#60a5fa (celestito claro)',
-    finalIconColor,
-  });
   const [dealerships, setDealerships] = useState<Dealership[]>([]);
   const [selectedDealership, setSelectedDealership] =
     useState<Dealership | null>(null);

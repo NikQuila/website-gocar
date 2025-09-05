@@ -172,30 +172,6 @@ function CraftJSContent() {
             lz.decompress(lz.decodeBase64(data.elements_structure))
           );
 
-          // Debug: Ver qué datos se están descomprimiendo
-          console.log('Datos descomprimidos completos:', decompressed);
-
-          // Buscar específicamente VehicleGrid en los datos
-          const vehicleGridNodes = Object.keys(decompressed).filter(
-            (key) => decompressed[key]?.type === 'VehicleGrid'
-          );
-          console.log('Nodos VehicleGrid encontrados:', vehicleGridNodes);
-
-          if (vehicleGridNodes.length > 0) {
-            console.log(
-              'Configuración de VehicleGrid:',
-              decompressed[vehicleGridNodes[0]]
-            );
-            console.log(
-              'Props de VehicleGrid:',
-              decompressed[vehicleGridNodes[0]]?.props
-            );
-            console.log(
-              'filterButtonColors:',
-              decompressed[vehicleGridNodes[0]]?.props?.filterButtonColors
-            );
-          }
-
           // Validar que los datos descomprimidos sean válidos
           const sanitized = sanitizeCraftState(decompressed);
           setJson(sanitized);

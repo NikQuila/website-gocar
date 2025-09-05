@@ -56,19 +56,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     enabled: state.options.enabled,
   }));
 
-  // Debug: Log de los parámetros recibidos
-  console.log('VehicleCard - Parámetros recibidos:', {
-    cardBgColor,
-    cardBorderColor,
-    cardTextColor,
-    cardPriceColor,
-    cardButtonColor,
-    cardButtonTextColor,
-    detailsButtonText,
-    featuresConfig,
-    enabled,
-  });
-
   const {
     id,
     brand,
@@ -86,13 +73,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     discount_percentage,
     label,
   } = vehicle;
-
-  // Debug: Log específico para transmission (después de la destructuración)
-  console.log('VehicleCard - Transmission data:', {
-    transmission,
-    hasTransmission: !!transmission,
-    transmissionValid: transmission && transmission.trim() !== '',
-  });
 
   // Calculate discounted_price for display
   let displayDiscountedPrice;

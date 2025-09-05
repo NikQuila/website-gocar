@@ -92,20 +92,6 @@ export const VehicleCarousel = ({
     selected: state.events.selected,
   }));
 
-  // Debug: Log de las configuraciones de las tarjetas
-  console.log('VehicleCarousel - cardSettings completo:', cardSettings);
-  console.log('VehicleCarousel - cardSettings[0]:', cardSettings[0]);
-  console.log('VehicleCarousel - Configuraciones de tarjetas detalladas:', {
-    cardBgColor: cardSettings[0]?.cardBgColor,
-    cardBorderColor: cardSettings[0]?.cardBorderColor,
-    cardTextColor: cardSettings[0]?.cardTextColor,
-    cardPriceColor: cardSettings[0]?.cardPriceColor,
-    cardButtonColor: cardSettings[0]?.cardButtonColor,
-    cardButtonTextColor: cardSettings[0]?.cardButtonTextColor,
-    detailsButtonText: cardSettings[0]?.detailsButtonText,
-    featuresConfig: cardSettings[0]?.featuresConfig,
-  });
-
   // Convert string-based props to their actual types
   const autoplayValue =
     typeof autoplay === 'string' ? autoplay === 'true' : autoplay;
