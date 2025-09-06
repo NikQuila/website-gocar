@@ -88,9 +88,21 @@ export const VehicleCarousel = ({
   newBadgeText = 'Nuevo',
   children,
 }: VehicleCarouselProps) => {
-  const { connectors, selected } = useNode((state) => ({
-    selected: state.events.selected,
-  }));
+  // useNode solo está disponible en el contexto de CraftJS Editor
+  let connectors: any = null;
+  let selected = false;
+
+  try {
+    const nodeData = useNode((state) => ({
+      selected: state.events.selected,
+    }));
+    connectors = nodeData.connectors;
+    selected = nodeData.selected;
+  } catch (error) {
+    // useNode no está disponible (contexto tradicional), usar valores por defecto
+    connectors = null;
+    selected = false;
+  }
 
   // Convert string-based props to their actual types
   const autoplayValue =
@@ -313,7 +325,7 @@ export const VehicleCarousel = ({
 
   return (
     <div
-      ref={(ref) => ref && connectors.connect(ref)}
+      ref={(ref) => ref && connectors?.connect?.(ref)}
       style={{
         background: bgColor,
         color: textColor,

@@ -118,9 +118,21 @@ export default function HowToArrive({
   buttonLabel = 'Cómo llegar en Google Maps',
   iconColor,
 }: HowToArriveProps) {
-  const { connectors, selected } = useNode((state) => ({
-    selected: state.events.selected,
-  }));
+  // useNode solo está disponible en el contexto de CraftJS Editor
+  let connectors: any = null;
+  let selected = false;
+
+  try {
+    const nodeData = useNode((state) => ({
+      selected: state.events.selected,
+    }));
+    connectors = nodeData.connectors;
+    selected = nodeData.selected;
+  } catch (error) {
+    // useNode no está disponible (contexto tradicional), usar valores por defecto
+    connectors = null;
+    selected = false;
+  }
 
   const { client } = useClientStore();
   const { theme } = useThemeStore();
@@ -218,7 +230,7 @@ export default function HowToArrive({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={connectors?.connect || null}
       className='py-12 rounded-2xl'
       style={{
         backgroundColor: backgroundColor,

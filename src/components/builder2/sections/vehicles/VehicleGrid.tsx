@@ -122,9 +122,21 @@ export const VehicleGrid = ({
   ],
   children,
 }: VehicleGridProps) => {
-  const { connectors, selected } = useNode((state) => ({
-    selected: state.events.selected,
-  }));
+  // useNode solo está disponible en el contexto de CraftJS Editor
+  let connectors: any = null;
+  let selected = false;
+
+  try {
+    const nodeData = useNode((state) => ({
+      selected: state.events.selected,
+    }));
+    connectors = nodeData.connectors;
+    selected = nodeData.selected;
+  } catch (error) {
+    // useNode no está disponible (contexto tradicional), usar valores por defecto
+    connectors = null;
+    selected = false;
+  }
 
   const { client } = useClientStore();
   const [vehicles, setVehicles] = useState<ExtendedVehicle[]>([]);
