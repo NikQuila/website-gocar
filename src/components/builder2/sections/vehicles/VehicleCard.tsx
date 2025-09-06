@@ -51,10 +51,18 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     feature4: 'mileage',
   },
 }) => {
-  // Detectar si estamos en modo editor
-  const { enabled } = useEditor((state) => ({
-    enabled: state.options.enabled,
-  }));
+  // Detectar si estamos en modo editor (solo disponible en contexto CraftJS)
+  let enabled = false;
+
+  try {
+    const editorData = useEditor((state) => ({
+      enabled: state.options.enabled,
+    }));
+    enabled = editorData.enabled;
+  } catch (error) {
+    // useEditor no está disponible (contexto tradicional), usar valor por defecto
+    enabled = false;
+  }
 
   const {
     id,
