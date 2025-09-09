@@ -211,6 +211,9 @@ export enum LeadTypes {
   SELL_FINANCING = 'sell-financing',
   SELL_TRANSFER = 'sell-transfer',
 
+  // Búsqueda de vehículos
+  SEARCH_REQUEST = 'search-request',
+
   // Otros
   CONTACT_GENERAL = 'contact-general',
 }

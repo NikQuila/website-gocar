@@ -15,6 +15,7 @@ interface SuccessModalProps {
   message?: string;
   buttonText?: string;
   leadType?: string;
+  customMessage?: string;
 }
 
 /**
@@ -27,9 +28,13 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
   message = 'Tu solicitud ha sido recibida. Nos pondremos en contacto contigo lo antes posible.',
   buttonText = 'Aceptar',
   leadType,
+  customMessage,
 }) => {
   // Mensajes personalizados según el tipo de lead
   const getCustomMessage = () => {
+    // Si hay un mensaje personalizado, usarlo
+    if (customMessage) return customMessage;
+
     if (!leadType) return message;
 
     switch (leadType) {
@@ -41,6 +46,8 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
         return 'Tu solicitud de financiamiento ha sido recibida. Un ejecutivo se comunicará contigo para presentarte las opciones disponibles.';
       case 'contact-general':
         return 'Tu mensaje ha sido recibido. Nos pondremos en contacto contigo lo antes posible.';
+      case 'search-request':
+        return 'Tu solicitud de búsqueda ha sido recibida. Te contactaremos cuando encontremos vehículos que se ajusten a tus criterios.';
       default:
         return message;
     }

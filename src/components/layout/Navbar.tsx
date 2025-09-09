@@ -23,6 +23,7 @@ const navigation = [
   { name: 'Financiamiento', href: '/financing' },
   { name: 'Consignaciones', href: '/consignments' },
   { name: 'Compramos Tu Auto', href: '/buy-direct' },
+  { name: 'Buscamos Tu Auto', href: '/we-search-for-you' },
 ];
 
 const Navbar = () => {
