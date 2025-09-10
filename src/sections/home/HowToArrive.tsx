@@ -95,9 +95,9 @@ const MapMarker = ({
 
     {address && (
       <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
-        <div className='bg-white px-4 py-2 rounded-lg shadow-lg text-sm text-gray-700 border border-gray-100'>
+        <div className='bg-white dark:bg-dark-card px-4 py-2 rounded-lg shadow-lg text-sm text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-dark-border'>
           {address}
-          <div className='absolute -bottom-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white' />
+          <div className='absolute -bottom-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white dark:border-t-dark-card' />
         </div>
       </div>
     )}
@@ -231,44 +231,43 @@ export default function HowToArrive({
   return (
     <div
       ref={connectors?.connect || null}
-      className='py-12 rounded-2xl'
+      className={`py-12 rounded-2xl bg-gray-50 dark:bg-black text-gray-900 dark:text-white ${
+        selected
+          ? 'border-2 border-dashed border-gray-600 outline outline-1 outline-dashed outline-gray-400 outline-offset-2'
+          : 'border border-transparent'
+      }`}
       style={{
-        backgroundColor: backgroundColor,
-        color: textColor,
-        border: selected ? '2px dashed #666666' : '1px solid transparent',
-        outline: selected ? '1px dashed #999999' : 'none',
-        outlineOffset: selected ? '2px' : '0px',
+        ...(backgroundColor !== '#f9fafb' && { backgroundColor }),
+        ...(textColor !== '#111827' && { color: textColor }),
       }}
     >
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <h3
-          className='text-4xl font-semibold mb-4'
-          style={{
-            color: textColor,
-            textAlign: titleAlignment,
-          }}
+          className={`text-4xl font-semibold mb-4 text-gray-900 dark:text-white ${
+            titleAlignment === 'center'
+              ? 'text-center'
+              : titleAlignment === 'right'
+              ? 'text-right'
+              : 'text-left'
+          }`}
         >
           {title}
         </h3>
         <p
-          className='mb-12 max-w-3xl mx-auto'
-          style={{
-            color: textColor,
-            textAlign: titleAlignment,
-          }}
+          className={`mb-12 max-w-3xl mx-auto text-gray-700 dark:text-gray-300 ${
+            titleAlignment === 'center'
+              ? 'text-center'
+              : titleAlignment === 'right'
+              ? 'text-right'
+              : 'text-left'
+          }`}
         >
           {subtitle}
         </p>
 
         <div className='grid md:grid-cols-3 gap-8 items-start'>
           {/* Contact Info with Navigation */}
-          <div
-            className='md:col-span-1 space-y-6 p-6 h-full flex flex-col justify-between rounded-xl shadow-sm mx-auto max-w-[90vw]'
-            style={{
-              backgroundColor: cardBgColor,
-              color: cardTextColor,
-            }}
-          >
+          <div className='md:col-span-1 space-y-6 p-6 h-full flex flex-col justify-between rounded-xl shadow-sm mx-auto max-w-[90vw] bg-white dark:bg-dark-card text-gray-900 dark:text-white'>
             {client?.logo && (
               <img
                 src={client.logo}
@@ -281,15 +280,11 @@ export default function HowToArrive({
               <div className='flex items-center justify-between mb-4'>
                 <button
                   onClick={handlePrevDealership}
-                  className='p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full'
-                  style={{ color: cardTextColor }}
+                  className='p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full text-gray-700 dark:text-gray-300'
                 >
                   <Icon icon='mdi:chevron-left' className='text-2xl' />
                 </button>
-                <span
-                  className='text-sm'
-                  style={{ color: cardTextColor, opacity: 0.7 }}
-                >
+                <span className='text-sm text-gray-600 dark:text-gray-400 opacity-70'>
                   {dealerships.findIndex(
                     (d) => d.id === selectedDealership?.id
                   ) + 1}{' '}
@@ -297,8 +292,7 @@ export default function HowToArrive({
                 </span>
                 <button
                   onClick={handleNextDealership}
-                  className='p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full'
-                  style={{ color: cardTextColor }}
+                  className='p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full text-gray-700 dark:text-gray-300'
                 >
                   <Icon icon='mdi:chevron-right' className='text-2xl' />
                 </button>
@@ -314,13 +308,10 @@ export default function HowToArrive({
                     style={{ color: finalIconColor }}
                   />
                   <div>
-                    <h4
-                      className='font-medium'
-                      style={{ color: cardTextColor }}
-                    >
+                    <h4 className='font-medium text-gray-900 dark:text-white'>
                       Dirección
                     </h4>
-                    <p style={{ color: cardTextColor, opacity: 0.7 }}>
+                    <p className='text-gray-600 dark:text-gray-400 opacity-70'>
                       {selectedDealership.address}
                     </p>
                   </div>
@@ -333,13 +324,10 @@ export default function HowToArrive({
                     style={{ color: finalIconColor }}
                   />
                   <div>
-                    <h4
-                      className='font-medium'
-                      style={{ color: cardTextColor }}
-                    >
+                    <h4 className='font-medium text-gray-900 dark:text-white'>
                       Teléfono
                     </h4>
-                    <p style={{ color: cardTextColor, opacity: 0.7 }}>
+                    <p className='text-gray-600 dark:text-gray-400 opacity-70'>
                       {selectedDealership.phone}
                     </p>
                   </div>
@@ -352,16 +340,10 @@ export default function HowToArrive({
                     style={{ color: finalIconColor }}
                   />
                   <div className='min-w-0'>
-                    <h4
-                      className='font-medium'
-                      style={{ color: cardTextColor }}
-                    >
+                    <h4 className='font-medium text-gray-900 dark:text-white'>
                       Email
                     </h4>
-                    <p
-                      style={{ color: cardTextColor, opacity: 0.7 }}
-                      className='break-words'
-                    >
+                    <p className='break-words text-gray-600 dark:text-gray-400 opacity-70'>
                       {selectedDealership.email}
                     </p>
                   </div>
