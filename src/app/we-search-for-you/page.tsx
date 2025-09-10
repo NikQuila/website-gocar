@@ -14,6 +14,7 @@ import useClientStore from '@/store/useClientStore';
 import useCustomerStore from '@/store/useCustomerStore';
 import { supabase } from '@/lib/supabase';
 import { Brand, Model, LeadTypes } from '@/utils/types';
+import { sendEmail, createVehicleLeadEmailTemplate } from '@/lib/send-email';
 import SuccessModal from '@/components/ui/SuccessModal';
 
 const WeSearchForYouPage = () => {
@@ -146,6 +147,58 @@ const WeSearchForYouPage = () => {
 
       if (leadError) {
         throw leadError;
+      }
+
+      // 3. Send email notification
+      const selectedBrand =
+        brands.find((b) => b.id === formData.brand_id)?.name || '';
+      const selectedModel =
+        models.find((m) => m.id === parseInt(formData.model_id))?.name || '';
+
+      // Format budget with thousands separators
+      const formattedBudget = formData.budget
+        ? parseInt(formData.budget.replace(/\D/g, '')).toLocaleString('es-CL')
+        : '';
+
+      // Usar la función de email
+      const emailContent = createVehicleLeadEmailTemplate({
+        leadType: LeadTypes.SEARCH_REQUEST,
+        customerName: `${formData.first_name} ${formData.last_name}`,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
+        vehicleDetails: {
+          brand: selectedBrand,
+          model: selectedModel,
+          year:
+            formData.year_from && formData.year_to
+              ? `${formData.year_from} - ${formData.year_to}`
+              : formData.year_from || formData.year_to || 'No especificado',
+          mileage: formData.max_mileage
+            ? `Máximo ${formData.max_mileage}`
+            : 'No especificado',
+          price: formattedBudget
+            ? `Máximo $${formattedBudget}`
+            : 'No especificado',
+        },
+        additionalMessage: formData.message,
+      });
+
+      // Determinar emails de destino para búsquedas
+      const searchEmails =
+        client?.contact?.search_emails &&
+        client.contact.search_emails.length > 0
+          ? client.contact.search_emails
+          : [client?.contact?.email || ''];
+
+      const emailResult = await sendEmail({
+        to: searchEmails,
+        subject: `Solicitud de Búsqueda: ${selectedBrand} ${selectedModel}`,
+        content: emailContent,
+      });
+
+      if (!emailResult.success) {
+        // Continuar con el flujo aunque el email falle
+        // La solicitud ya se guardó en la base de datos
       }
 
       // Clear form after successful submission

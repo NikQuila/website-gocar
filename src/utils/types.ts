@@ -51,6 +51,7 @@ export interface Client {
     finance_emails?: string[];
     consignments_emails?: string[];
     buy_emails?: string[];
+    search_emails?: string[];
   };
   location: {
     lat: number | string;
