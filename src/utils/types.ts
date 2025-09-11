@@ -59,6 +59,7 @@ export interface Client {
   dealerships: Dealership[];
   has_dark_mode: boolean;
   client_website_config: ClientWebsiteConfig;
+  currency: 'CLP' | 'USD';
 }
 
 export interface Vehicle {

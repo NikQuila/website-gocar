@@ -22,6 +22,7 @@ import {
 import useThemeStore from '@/store/useThemeStore';
 import useCustomerStore from '@/store/useCustomerStore';
 import { supabase } from '@/lib/supabase';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface VehicleDetailSectionProps {
   vehicle: Vehicle | null;
@@ -64,6 +65,7 @@ export default function VehicleDetailSection({
   isLiked = false,
   showLikeButton = true,
 }: VehicleDetailSectionProps) {
+  const { formatPrice } = useCurrency();
   const [currentModalImage, setCurrentModalImage] = useState<string>('');
   const [isVerticalImage, setIsVerticalImage] = useState<boolean>(false);
   const [mainImageStyle, setMainImageStyle] = useState({});
@@ -253,10 +255,7 @@ export default function VehicleDetailSection({
     }
   };
 
-  const formattedPrice = new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-  }).format(vehicle.price);
+  const formattedPrice = formatPrice(vehicle.price);
 
   const discountedPrice = vehicle.discount_percentage
     ? vehicle.price * (1 - vehicle.discount_percentage / 100)
@@ -586,10 +585,7 @@ export default function VehicleDetailSection({
                     {formattedPrice}
                   </p>
                   <p className='text-4xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent'>
-                    {new Intl.NumberFormat('es-CL', {
-                      style: 'currency',
-                      currency: 'CLP',
-                    }).format(discountedPrice!)}
+                    {formatPrice(discountedPrice!)}
                   </p>
                 </>
               ) : (

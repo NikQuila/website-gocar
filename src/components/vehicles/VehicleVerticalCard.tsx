@@ -13,6 +13,8 @@ import {
   mapFuelTypeToSpanish,
   mapTransmissionTypeToSpanish,
 } from '@/utils/functions';
+import useClientStore from '@/store/useClientStore';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface VehicleVerticalCardProps {
   vehicle: Vehicle;
@@ -24,11 +26,10 @@ const VehicleVerticalCard = ({
   newBadgeText = 'Nuevo',
 }: VehicleVerticalCardProps) => {
   const router = useRouter();
+  const { client } = useClientStore();
+  const { formatPrice } = useCurrency();
 
-  const formattedPrice = new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-  }).format(vehicle.price);
+  const formattedPrice = formatPrice(vehicle.price);
 
   const discountedPrice = vehicle.discount_percentage
     ? vehicle.price * (1 - vehicle.discount_percentage / 100)
@@ -38,10 +39,7 @@ const VehicleVerticalCard = ({
     ? vehicle.price - (discountedPrice || 0)
     : 0;
 
-  const formattedSavings = new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-  }).format(savingsAmount);
+  const formattedSavings = formatPrice(savingsAmount);
 
   const isSold = vehicle.status?.name === 'Vendido';
   const isReserved = vehicle.status?.name === 'Reservado';
@@ -176,10 +174,7 @@ const VehicleVerticalCard = ({
                   {formattedPrice}
                 </p>
                 <p className='text-xl font-semibold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent text-left'>
-                  {new Intl.NumberFormat('es-CL', {
-                    style: 'currency',
-                    currency: 'CLP',
-                  }).format(discountedPrice!)}
+                  {formatPrice(discountedPrice!)}
                 </p>
               </>
             ) : (

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useEditor } from '@craftjs/core';
 import { SimpleVehicle } from './VehicleCarousel';
+import { useCurrency } from '@/hooks/useCurrency';
 
 export interface VehicleCardProps {
   vehicle: SimpleVehicle; // Expect the whole vehicle object
@@ -51,6 +52,8 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     feature4: 'mileage',
   },
 }) => {
+  const { formatPrice } = useCurrency();
+
   // Detectar si estamos en modo editor (solo disponible en contexto CraftJS)
   let enabled = false;
 
@@ -108,14 +111,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
       default:
         return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const formatPrice = (priceValue: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0,
-    }).format(priceValue);
   };
 
   // Función para renderizar una característica específica
@@ -335,7 +330,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
               // En modo normal, navegar a la página del vehículo
               window.location.href = `/vehicles/${id}`;
             }}
-            disabled={enabled || isNotAvailable}
+            disabled={!!(enabled || isNotAvailable)}
           >
             <span>{detailsButtonText}</span>
             <ExternalLink size={12} className='ml-1' />
