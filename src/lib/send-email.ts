@@ -105,7 +105,7 @@ export function createVehicleLeadEmailTemplate({
   const leadTypeMap: Record<string, string> = {
     'buy-direct': 'Venta de Vehículo',
     'buy-consignment': 'Consignación',
-
+    'search-request': 'Búsqueda de Vehículo',
     'sell-vehicle': 'Compra de Vehículo',
   };
 
@@ -117,7 +117,11 @@ export function createVehicleLeadEmailTemplate({
     model: vehicleDetails.model || 'No especificado',
     year: vehicleDetails.year || 'No especificado',
     mileage: vehicleDetails.mileage
-      ? `${vehicleDetails.mileage} km`
+      ? vehicleDetails.mileage.includes('km')
+        ? vehicleDetails.mileage
+        : vehicleDetails.mileage.includes('Máximo')
+        ? `${vehicleDetails.mileage} km`
+        : `${vehicleDetails.mileage} km`
       : 'No especificado',
     condition: vehicleDetails.condition || 'No especificado',
     price: vehicleDetails.price
@@ -165,9 +169,11 @@ export function createVehicleLeadEmailTemplate({
             <tr><td style="padding: 7px 0;"><strong>Kilometraje:</strong></td><td style="padding: 7px 0;">${
               formattedVehicleDetails.mileage
             }</td></tr>
-            <tr><td style="padding: 7px 0;"><strong>Condición:</strong></td><td style="padding: 7px 0;">${
-              formattedVehicleDetails.condition
-            }</td></tr>
+            ${
+              leadType !== 'search-request'
+                ? `<tr><td style="padding: 7px 0;"><strong>Condición:</strong></td><td style="padding: 7px 0;">${formattedVehicleDetails.condition}</td></tr>`
+                : ''
+            }
             ${
               leadType === 'buy-consignment'
                 ? ''

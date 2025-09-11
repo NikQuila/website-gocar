@@ -51,6 +51,7 @@ export interface Client {
     finance_emails?: string[];
     consignments_emails?: string[];
     buy_emails?: string[];
+    search_emails?: string[];
   };
   location: {
     lat: number | string;
@@ -211,6 +212,9 @@ export enum LeadTypes {
   SELL_VEHICLE = 'sell-vehicle',
   SELL_FINANCING = 'sell-financing',
   SELL_TRANSFER = 'sell-transfer',
+
+  // Búsqueda de vehículos
+  SEARCH_REQUEST = 'search-request',
 
   // Otros
   CONTACT_GENERAL = 'contact-general',
