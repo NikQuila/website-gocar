@@ -7,8 +7,14 @@ interface HeroBasicProps {
   subtitle?: string;
   buttonText?: string;
   buttonLink?: string;
+  buttonTextSecondary?: string;
+  buttonLinkSecondary?: string;
   bgColor?: string;
   textColor?: string;
+  buttonBgColor?: string;
+  buttonTextColor?: string;
+  buttonSecondaryBgColor?: string;
+  buttonSecondaryTextColor?: string;
   alignment?: 'left' | 'center' | 'right';
 }
 
@@ -36,15 +42,31 @@ const HeroBasicComponent = forwardRef<HTMLDivElement, HeroBasicProps>(
       subtitle = 'Amplio catálogo de vehículos seminuevos certificados con garantía y financiamiento a tu medida',
       buttonText = 'Ver catálogo',
       buttonLink = '/catalogo',
+      buttonTextSecondary = 'Contactar',
+      buttonLinkSecondary = '#contact',
       bgColor = '#f8f9fa',
       textColor = '#333333',
+      buttonBgColor = '#3b82f6',
+      buttonTextColor = '#ffffff',
+      buttonSecondaryBgColor = 'transparent',
+      buttonSecondaryTextColor = '#3b82f6',
       alignment = 'center',
     }: HeroBasicProps,
     ref
   ) => {
-    const { connectors, selected } = useNode((state) => ({
-      selected: state.events.selected,
-    }));
+    let connectors, selected;
+
+    try {
+      const nodeData = useNode((state) => ({
+        selected: state.events.selected,
+      }));
+      connectors = nodeData.connectors;
+      selected = nodeData.selected;
+    } catch (error) {
+      // Si no estamos en el contexto de CraftJS, usar valores por defecto
+      connectors = { connect: null };
+      selected = false;
+    }
 
     const textAlignClass = {
       left: 'text-left',
@@ -56,7 +78,7 @@ const HeroBasicComponent = forwardRef<HTMLDivElement, HeroBasicProps>(
       <div
         ref={(node) => {
           if (node) {
-            connectors.connect(node);
+            connectors?.connect?.(node);
             if (typeof ref === 'function') {
               ref(node);
             } else if (ref) {
@@ -86,9 +108,38 @@ const HeroBasicComponent = forwardRef<HTMLDivElement, HeroBasicProps>(
           >
             {subtitle}
           </p>
-          <Button className='px-8 py-3 text-white rounded-md bg-blue-600 hover:bg-blue-700 transition-colors'>
-            <a href={buttonLink}>{buttonText}</a>
-          </Button>
+          <div className='flex flex-wrap gap-4 justify-center'>
+            <Button
+              className='px-8 py-3 rounded-md transition-colors'
+              style={{
+                backgroundColor: buttonBgColor,
+                color: buttonTextColor,
+              }}
+            >
+              <a
+                href={buttonLink}
+                style={{ color: 'inherit', textDecoration: 'none' }}
+              >
+                {buttonText}
+              </a>
+            </Button>
+            <Button
+              className='px-8 py-3 rounded-md border transition-colors'
+              variant='outline'
+              style={{
+                backgroundColor: buttonSecondaryBgColor,
+                color: buttonSecondaryTextColor,
+                borderColor: buttonSecondaryTextColor,
+              }}
+            >
+              <a
+                href={buttonLinkSecondary}
+                style={{ color: 'inherit', textDecoration: 'none' }}
+              >
+                {buttonTextSecondary}
+              </a>
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -105,8 +156,14 @@ HeroBasicComponent.displayName = 'HeroBasic';
       'Amplio catálogo de vehículos seminuevos certificados con garantía y financiamiento a tu medida',
     buttonText: 'Ver catálogo',
     buttonLink: '/catalogo',
+    buttonTextSecondary: 'Contactar',
+    buttonLinkSecondary: '#contact',
     bgColor: '#f8f9fa',
     textColor: '#333333',
+    buttonBgColor: '#3b82f6',
+    buttonTextColor: '#ffffff',
+    buttonSecondaryBgColor: 'transparent',
+    buttonSecondaryTextColor: '#3b82f6',
     alignment: 'center',
   },
   related: {

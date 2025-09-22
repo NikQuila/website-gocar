@@ -40,14 +40,24 @@ export const HeroMinimalistic = ({
   titleAlignment = 'left',
   children,
 }: HeroMinimalisticProps) => {
-  const {
-    connectors: { connect, drag },
-    selected,
-    actions: { setProp },
-  } = useNode((state) => ({
-    selected: state.events.selected,
-    dragged: state.events.dragged,
-  }));
+  // Debug logs temporales
+
+  let connectors, selected, actions;
+
+  try {
+    const nodeData = useNode((state) => ({
+      selected: state.events.selected,
+      dragged: state.events.dragged,
+    }));
+    connectors = nodeData.connectors;
+    selected = nodeData.selected;
+    actions = nodeData.actions;
+  } catch (error) {
+    // Si no estamos en el contexto de CraftJS, usar valores por defecto
+    connectors = { connect: null };
+    selected = false;
+    actions = { setProp: () => {} };
+  }
 
   const scrollToSection = (sectionId: string) => {
     // En el modo editor, simplemente registramos que se ha hecho clic
@@ -90,7 +100,7 @@ export const HeroMinimalistic = ({
 
   return (
     <div
-      ref={(ref) => connect(ref as HTMLDivElement)}
+      ref={(ref) => ref && connectors?.connect?.(ref)}
       style={{
         backgroundColor: bgColor,
         color: textColor,
@@ -100,7 +110,7 @@ export const HeroMinimalistic = ({
     >
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='grid md:grid-cols-2 gap-8 items-center'>
-          <div className={`text-${titleAlignment}`}>
+          <div className='text-left' style={{ textAlign: titleAlignment }}>
             <h1
               className='text-4xl md:text-5xl font-bold mb-4 leading-tight'
               style={{ color: textColor }}
