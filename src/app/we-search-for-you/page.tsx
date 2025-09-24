@@ -16,10 +16,12 @@ import { supabase } from '@/lib/supabase';
 import { Brand, Model, LeadTypes } from '@/utils/types';
 import { sendEmail, createVehicleLeadEmailTemplate } from '@/lib/send-email';
 import SuccessModal from '@/components/ui/SuccessModal';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 const WeSearchForYouPage = () => {
   const { client } = useClientStore();
   const { initializeCustomer } = useCustomerStore();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
@@ -276,12 +278,10 @@ const WeSearchForYouPage = () => {
       {/* Hero Section */}
       <div className='text-center mb-16'>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl'>
-          Buscamos Tu Auto
+          {t('weSearchForYou.hero.title')}
         </h1>
         <p className='mt-4 text-xl text-gray-500 dark:text-gray-400'>
-          ¿No encuentras el auto que buscas? Nosotros lo buscamos por ti. Te
-          contactamos cuando encontremos opciones que se ajusten a tus
-          necesidades.
+          {t('weSearchForYou.hero.description')}
         </p>
       </div>
 
@@ -292,7 +292,7 @@ const WeSearchForYouPage = () => {
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <Input
                 type='text'
-                label='Nombre'
+                label={t('weSearchForYou.form.firstName')}
                 value={formData.first_name}
                 onValueChange={(value) => handleChange(value, 'first_name')}
                 isRequired
@@ -300,7 +300,7 @@ const WeSearchForYouPage = () => {
               />
               <Input
                 type='text'
-                label='Apellido'
+                label={t('weSearchForYou.form.lastName')}
                 value={formData.last_name}
                 onValueChange={(value) => handleChange(value, 'last_name')}
                 isRequired
@@ -310,7 +310,7 @@ const WeSearchForYouPage = () => {
 
             <Input
               type='email'
-              label='Email'
+              label={t('weSearchForYou.form.email')}
               value={formData.email}
               onValueChange={(value) => handleChange(value, 'email')}
               isRequired
@@ -319,7 +319,7 @@ const WeSearchForYouPage = () => {
 
             <Input
               type='tel'
-              label='Teléfono'
+              label={t('weSearchForYou.form.phone')}
               value={formData.phone}
               onValueChange={(value) => handleChange(value, 'phone')}
               isRequired
@@ -329,13 +329,13 @@ const WeSearchForYouPage = () => {
             {/* Vehicle Search Criteria */}
             <div className='border-t pt-6'>
               <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
-                Criterios de Búsqueda
+                {t('weSearchForYou.form.criteriaTitle')}
               </h3>
             </div>
 
             <Autocomplete
-              label='Marca'
-              placeholder='Selecciona una marca'
+              label={t('weSearchForYou.form.brand')}
+              placeholder={t('weSearchForYou.form.brandPlaceholder')}
               selectedKey={formData.brand_id}
               onSelectionChange={(key) =>
                 handleChange(key as string, 'brand_id')
@@ -351,8 +351,8 @@ const WeSearchForYouPage = () => {
             </Autocomplete>
 
             <Autocomplete
-              label='Modelo'
-              placeholder='Selecciona un modelo'
+              label={t('weSearchForYou.form.model')}
+              placeholder={t('weSearchForYou.form.modelPlaceholder')}
               selectedKey={formData.model_id}
               onSelectionChange={(key) =>
                 handleChange(key as string, 'model_id')
@@ -374,18 +374,18 @@ const WeSearchForYouPage = () => {
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <Input
                 type='number'
-                label='Año desde'
+                label={t('weSearchForYou.form.yearFrom')}
                 value={formData.year_from}
                 onValueChange={(value) => handleChange(value, 'year_from')}
-                placeholder='Ej: 2018'
+                placeholder={t('weSearchForYou.form.yearFromPlaceholder')}
                 variant='bordered'
               />
               <Input
                 type='number'
-                label='Año hasta'
+                label={t('weSearchForYou.form.yearTo')}
                 value={formData.year_to}
                 onValueChange={(value) => handleChange(value, 'year_to')}
-                placeholder='Ej: 2023'
+                placeholder={t('weSearchForYou.form.yearToPlaceholder')}
                 variant='bordered'
               />
             </div>
@@ -393,38 +393,38 @@ const WeSearchForYouPage = () => {
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <Input
                 type='number'
-                label='Kilometraje máximo'
+                label={t('weSearchForYou.form.maxMileage')}
                 value={formData.max_mileage}
                 onValueChange={(value) => handleChange(value, 'max_mileage')}
-                placeholder='Ej: 50000'
+                placeholder={t('weSearchForYou.form.maxMileagePlaceholder')}
                 variant='bordered'
               />
               <Input
                 type='number'
-                label='Máximo de dueños'
+                label={t('weSearchForYou.form.maxOwners')}
                 value={formData.max_owners}
                 onValueChange={(value) => handleChange(value, 'max_owners')}
-                placeholder='Ej: 2'
+                placeholder={t('weSearchForYou.form.maxOwnersPlaceholder')}
                 variant='bordered'
               />
             </div>
 
             <Input
               type='text'
-              label='Presupuesto'
+              label={t('weSearchForYou.form.budget')}
               value={formData.budget}
               onValueChange={(value) => handleChange(value, 'budget')}
               startContent='$'
-              placeholder='Ej: 15.000.000'
+              placeholder={t('weSearchForYou.form.budgetPlaceholder')}
               variant='bordered'
             />
 
             <Textarea
-              label='Detalles adicionales'
+              label={t('weSearchForYou.form.message')}
               value={formData.message}
               onValueChange={(value) => handleChange(value, 'message')}
               minRows={4}
-              placeholder='Cuéntanos más detalles sobre lo que buscas...'
+              placeholder={t('weSearchForYou.form.messagePlaceholder')}
               variant='bordered'
             />
 
@@ -435,7 +435,7 @@ const WeSearchForYouPage = () => {
               className='font-semibold bg-primary text-secondary hover:bg-primary/90 dark:bg-primary dark:text-secondary dark:hover:bg-primary/90'
               isLoading={loading}
             >
-              Solicitar Búsqueda
+              {t('weSearchForYou.form.submit')}
             </Button>
           </form>
         </div>
@@ -444,56 +444,54 @@ const WeSearchForYouPage = () => {
         <div className='bg-gray-50 dark:bg-dark-card rounded-xl p-8 border border-gray-200 dark:border-dark-border'>
           <div className='space-y-8'>
             <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
-              ¿Cómo Funciona Nuestro Servicio?
+              {t('weSearchForYou.info.howItWorksTitle')}
             </h2>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Nuestro proceso
+                {t('weSearchForYou.info.processTitle')}
               </h3>
               <ol className='mt-2 text-gray-600 dark:text-gray-400 space-y-2 list-decimal pl-5'>
-                <li>Envías tu solicitud con los criterios específicos</li>
-                <li>Recibimos tu requerimiento y lo registramos</li>
-                <li>Iniciamos la búsqueda activa en nuestro mercado</li>
-                <li>Te contactamos cuando encontremos opciones</li>
-                <li>Coordinas la visita y evaluación del vehículo</li>
-                <li>Realizas la compra si te convence</li>
+                <li>{t('weSearchForYou.info.processList.step1')}</li>
+                <li>{t('weSearchForYou.info.processList.step2')}</li>
+                <li>{t('weSearchForYou.info.processList.step3')}</li>
+                <li>{t('weSearchForYou.info.processList.step4')}</li>
+                <li>{t('weSearchForYou.info.processList.step5')}</li>
+                <li>{t('weSearchForYou.info.processList.step6')}</li>
               </ol>
             </div>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Ventajas del servicio
+                {t('weSearchForYou.info.advantagesTitle')}
               </h3>
               <ul className='mt-2 text-gray-600 dark:text-gray-400 space-y-2 list-disc pl-5'>
-                <li>Búsqueda personalizada según tus criterios</li>
-                <li>Acceso a vehículos no publicados</li>
-                <li>Evaluación previa de calidad</li>
-                <li>Negociación profesional</li>
-                <li>Sin costo adicional por el servicio</li>
-                <li>Asesoría especializada</li>
+                <li>{t('weSearchForYou.info.advantagesList.item1')}</li>
+                <li>{t('weSearchForYou.info.advantagesList.item2')}</li>
+                <li>{t('weSearchForYou.info.advantagesList.item3')}</li>
+                <li>{t('weSearchForYou.info.advantagesList.item4')}</li>
+                <li>{t('weSearchForYou.info.advantagesList.item5')}</li>
+                <li>{t('weSearchForYou.info.advantagesList.item6')}</li>
               </ul>
             </div>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Contacto Directo
+                {t('weSearchForYou.info.directContactTitle')}
               </h3>
               <p className='mt-2 text-gray-600 dark:text-gray-400'>
-                Email: {client?.contact?.email}
+                {t('weSearchForYou.info.emailLabel')}: {client?.contact?.email}
                 <br />
-                Teléfono: {client?.contact?.phone}
+                {t('weSearchForYou.info.phoneLabel')}: {client?.contact?.phone}
               </p>
             </div>
 
             <div className='bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg'>
               <h4 className='font-medium text-blue-900 dark:text-blue-100'>
-                💡 Tip importante
+                💡 {t('weSearchForYou.info.tipTitle')}
               </h4>
               <p className='text-sm text-blue-800 dark:text-blue-200 mt-1'>
-                Mientras más específicos sean tus criterios, mejor podremos
-                encontrar el vehículo ideal para ti. No dudes en agregar
-                detalles adicionales en el mensaje.
+                {t('weSearchForYou.info.tipText')}
               </p>
             </div>
           </div>
@@ -505,7 +503,7 @@ const WeSearchForYouPage = () => {
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
         leadType={LeadTypes.SEARCH_REQUEST}
-        customMessage='¡Solicitud de búsqueda enviada exitosamente! Te contactaremos pronto cuando tengamos opciones que se ajusten a tus criterios.'
+        customMessage={t('weSearchForYou.successMessage')}
       />
     </div>
   );

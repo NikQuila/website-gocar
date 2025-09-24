@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { getClient } from '../hooks/useClient';
 import { HeroUIProvider } from '@/providers/HeroUIProvider';
 import { ClientProvider } from '@/providers/ClientProvider';
+import { I18nProvider } from '@/providers/I18nProvider';
 import Navbar from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ThemeProvider } from '@/providers/ThemeProvider';
@@ -69,22 +70,24 @@ export default function RootLayout({
       <body className={`${poppins.variable} antialiased`}>
         <HeroUIProvider>
           <ClientProvider>
-            <ThemeProvider>
-              <div className='min-h-screen bg-white dark:bg-dark-bg transition-colors'>
-                <ToastContainer
-                  position='top-right'
-                  autoClose={2000}
-                  hideProgressBar={false}
-                  closeOnClick
-                  pauseOnHover
-                />
-                <VisitTracker />
-                <RoutePrefetcher routes={['/', '/contact', '/vehicles']} />
-                <Navbar />
-                {children}
-                <Footer />
-              </div>
-            </ThemeProvider>
+            <I18nProvider>
+              <ThemeProvider>
+                <div className='min-h-screen bg-white dark:bg-dark-bg transition-colors'>
+                  <ToastContainer
+                    position='top-right'
+                    autoClose={2000}
+                    hideProgressBar={false}
+                    closeOnClick
+                    pauseOnHover
+                  />
+                  <VisitTracker />
+                  <RoutePrefetcher routes={['/', '/contact', '/vehicles']} />
+                  <Navbar />
+                  {children}
+                  <Footer />
+                </div>
+              </ThemeProvider>
+            </I18nProvider>
           </ClientProvider>
         </HeroUIProvider>
       </body>

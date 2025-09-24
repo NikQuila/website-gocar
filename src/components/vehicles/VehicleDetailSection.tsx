@@ -23,6 +23,7 @@ import useThemeStore from '@/store/useThemeStore';
 import useCustomerStore from '@/store/useCustomerStore';
 import { supabase } from '@/lib/supabase';
 import { useCurrency } from '@/hooks/useCurrency';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 interface VehicleDetailSectionProps {
   vehicle: Vehicle | null;
@@ -66,6 +67,7 @@ export default function VehicleDetailSection({
   showLikeButton = true,
 }: VehicleDetailSectionProps) {
   const { formatPrice } = useCurrency();
+  const { t } = useTranslation();
   const [currentModalImage, setCurrentModalImage] = useState<string>('');
   const [isVerticalImage, setIsVerticalImage] = useState<boolean>(false);
   const [mainImageStyle, setMainImageStyle] = useState({});
@@ -308,14 +310,14 @@ export default function VehicleDetailSection({
             {isSold && (
               <div className='absolute top-0 right-0 h-[200px] w-[200px] overflow-hidden z-50 rotate-0'>
                 <div className='absolute top-[30px] right-[-50px] bg-sold text-white font-bold py-2 w-[250px] text-center transform rotate-45'>
-                  VENDIDO
+                  {t('vehicles.status.sold').toUpperCase()}
                 </div>
               </div>
             )}
             {isReserved && (
               <div className='absolute top-0 right-0 h-[200px] w-[200px] overflow-hidden z-50 rotate-0'>
                 <div className='absolute top-[30px] right-[-50px] bg-yellow-500 text-white font-bold py-2 w-[250px] text-center transform rotate-45'>
-                  RESERVADO
+                  {t('vehicles.status.reserved').toUpperCase()}
                 </div>
               </div>
             )}
@@ -517,7 +519,7 @@ export default function VehicleDetailSection({
                   }
                   onPress={handleShare}
                 >
-                  Compartir
+                  {t('common.actions.share')}
                 </Button>
               </div>
             </div>
@@ -532,7 +534,7 @@ export default function VehicleDetailSection({
               onPress={handleShare}
               className='text-primary'
             >
-              Compartir
+              {t('common.actions.share')}
             </Button>
           </div>
         </div>
@@ -541,13 +543,13 @@ export default function VehicleDetailSection({
         <div className='grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 place-items-center'>
           <DetailCard
             icon='mdi:speedometer'
-            label='Kilometraje'
-            value={`${vehicle.mileage.toLocaleString()} km`}
+            label={t('vehicles.card.mileage')}
+            value={`${vehicle.mileage.toLocaleString()} ${t('common.units.km')}`}
             className='w-full max-w-[170px]'
           />
           <DetailCard
             icon='mdi:gas-station'
-            label='Combustible'
+            label={t('vehicles.card.fuel')}
             value={
               vehicle.fuel_type?.name
                 ? vehicle.fuel_type.name.charAt(0).toUpperCase() +
@@ -558,13 +560,13 @@ export default function VehicleDetailSection({
           />
           <DetailCard
             icon='mdi:car-shift-pattern'
-            label='Transmisión'
+            label={t('vehicles.card.transmission')}
             value={mapTransmissionTypeToSpanish(vehicle.transmission)}
             className='w-full max-w-[170px]'
           />
           <DetailCard
             icon='mdi:palette'
-            label='Color'
+            label={t('vehicles.card.color')}
             value={
               vehicle.color?.name
                 ? vehicle.color.name.charAt(0).toUpperCase() +
@@ -605,7 +607,7 @@ export default function VehicleDetailSection({
                 }
                 onPress={() => handleLike(vehicle.id)}
               >
-                Guardar
+                {t('common.actions.save')}
               </Button>
               <Button
                 size='lg'
@@ -619,7 +621,7 @@ export default function VehicleDetailSection({
                 target='_blank'
                 className='bg-primary text-white dark:bg-primary dark:text-black hover:bg-primary/90 dark:hover:bg-primary/90'
               >
-                Contactar
+                {t('vehicles.card.contact')}
               </Button>
             </div>
           </div>
@@ -636,7 +638,7 @@ export default function VehicleDetailSection({
               }
               onPress={() => handleLike(vehicle.id)}
             >
-              Guardar
+              {t('common.actions.save')}
             </Button>
             <Button
               size='lg'
@@ -650,7 +652,7 @@ export default function VehicleDetailSection({
               )}
               target='_blank'
             >
-              Contactar
+              {t('vehicles.card.contact')}
             </Button>
           </div>
 
@@ -679,7 +681,7 @@ export default function VehicleDetailSection({
 
         <div>
           <h2 className='mb-3 text-xl font-semibold text-gray-900 dark:text-white'>
-            Descripción
+            {t('vehicles.details.description')}
           </h2>
           <p className='text-gray-600 dark:text-gray-400 whitespace-pre-wrap'>
             {vehicle.description}

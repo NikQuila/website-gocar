@@ -17,11 +17,13 @@ import { LeadTypes, Vehicle } from '@/utils/types';
 import { sendEmail, createFinancingLeadEmailTemplate } from '@/lib/send-email2';
 import SuccessModal from '@/components/ui/SuccessModal';
 import useVehiclesStore from '@/store/useVehiclesStore';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 const FinancingPage = () => {
   const { vehicles } = useVehiclesStore();
   const { client } = useClientStore();
   const { initializeCustomer } = useCustomerStore();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -264,12 +266,12 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
 
   // Helper para obtener las opciones de actividad laboral
   const employmentTypes = [
-    'Dependiente NO Profesional',
-    'Dependiente Profesional',
-    'Independiente NO Profesional',
-    'Independiente Profesional',
-    'Jubilado',
-    'Otros',
+    t('financing.employmentTypes.employeeNonProfessional'),
+    t('financing.employmentTypes.employeeProfessional'),
+    t('financing.employmentTypes.selfEmployedNonProfessional'),
+    t('financing.employmentTypes.selfEmployedProfessional'),
+    t('financing.employmentTypes.retired'),
+    t('financing.employmentTypes.other'),
   ];
 
   return (
@@ -277,11 +279,10 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
       {/* Hero Section */}
       <div className='text-center mb-16'>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl'>
-          Financiamiento
+          {t('financing.hero.title')}
         </h1>
         <p className='mt-4 text-xl text-gray-500 dark:text-gray-400'>
-          Completa el formulario para solicitar información sobre nuestras
-          opciones de financiamiento.
+          {t('financing.hero.description')}
         </p>
       </div>
 
@@ -292,7 +293,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <Input
                 type='text'
-                label='Nombre'
+                label={t('financing.form.firstName')}
                 value={formData.first_name}
                 onValueChange={(value) => handleChange(value, 'first_name')}
                 isRequired
@@ -300,7 +301,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
               />
               <Input
                 type='text'
-                label='Apellido'
+                label={t('financing.form.lastName')}
                 value={formData.last_name}
                 onValueChange={(value) => handleChange(value, 'last_name')}
                 isRequired
@@ -310,7 +311,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
 
             <Input
               type='email'
-              label='Email'
+              label={t('financing.form.email')}
               value={formData.email}
               onValueChange={(value) => handleChange(value, 'email')}
               isRequired
@@ -319,7 +320,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
 
             <Input
               type='tel'
-              label='Teléfono'
+              label={t('financing.form.phone')}
               value={formData.phone}
               onValueChange={(value) => handleChange(value, 'phone')}
               isRequired
@@ -328,7 +329,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
 
             <Input
               type='text'
-              label='RUT'
+              label={t('financing.form.rut')}
               value={formData.rut}
               onValueChange={(value) => handleChange(value, 'rut')}
               isRequired
@@ -337,7 +338,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
 
             <Input
               type='date'
-              label='Fecha de Nacimiento'
+              label={t('financing.form.birthDate')}
               value={formData.birth_date}
               onValueChange={(value) => handleChange(value, 'birth_date')}
               isRequired
@@ -347,7 +348,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
 
             {/* Actividad Laboral */}
             <Select
-              label='Actividad Laboral'
+              label={t('financing.form.employmentType')}
               selectedKeys={
                 formData.employment_type ? [formData.employment_type] : []
               }
@@ -365,7 +366,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
             {/* Renta Líquida Mensual */}
             <Input
               type='text'
-              label='Renta Líquida Mensual'
+              label={t('financing.form.monthlyIncome')}
               value={formData.monthly_income}
               onValueChange={(value) => handleChange(value, 'monthly_income')}
               startContent='$'
@@ -377,8 +378,8 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
             {vehicles.filter((v) => v?.status?.name === 'Publicado').length >
             0 ? (
               <Autocomplete
-                label='Vehículo de interés'
-                placeholder='Buscar vehículo'
+                label={t('financing.form.vehicleInterest')}
+                placeholder={t('financing.form.vehicleSearchPlaceholder')}
                 selectedKey={formData.vehicle_id}
                 onSelectionChange={(key) =>
                   handleChange(key as string, 'vehicle_id')
@@ -396,14 +397,14 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
               </Autocomplete>
             ) : (
               <div className='p-4 text-center text-gray-500 border border-gray-200 rounded-md'>
-                No hay vehículos disponibles actualmente
+                {t('financing.form.noVehiclesAvailable')}
               </div>
             )}
 
             {/* Monto Pie */}
             <Input
               type='text'
-              label='Monto Pie'
+              label={t('financing.form.downPayment')}
               value={formData.down_payment}
               onValueChange={(value) => handleChange(value, 'down_payment')}
               isRequired
@@ -412,7 +413,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
             />
 
             <Textarea
-              label='Mensaje o información adicional'
+              label={t('financing.form.message')}
               value={formData.message}
               onValueChange={(value) => handleChange(value, 'message')}
               minRows={4}
@@ -426,7 +427,7 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
               className='font-semibold bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90'
               isLoading={loading}
             >
-              Enviar Información
+              {t('financing.form.submit')}
             </Button>
           </form>
         </div>
@@ -435,41 +436,41 @@ ${formData.message ? `Mensaje del cliente:\n${formData.message}` : ''}`,
         <div className='bg-gray-50 dark:bg-dark-card rounded-xl p-8 border border-gray-200 dark:border-dark-border'>
           <div className='space-y-8'>
             <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
-              Opciones de Financiamiento
+              {t('financing.info.optionsTitle')}
             </h2>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Beneficios de nuestro financiamiento
+                {t('financing.info.benefitsTitle')}
               </h3>
               <ul className='mt-2 text-gray-600 dark:text-gray-400 space-y-2 list-disc pl-5'>
-                <li>Tasas de interés competitivas</li>
-                <li>Plazos flexibles de 12 a 60 meses</li>
-                <li>Aprobación rápida</li>
-                <li>Mínimos requisitos</li>
+                <li>{t('financing.info.benefitsList.item1')}</li>
+                <li>{t('financing.info.benefitsList.item2')}</li>
+                <li>{t('financing.info.benefitsList.item3')}</li>
+                <li>{t('financing.info.benefitsList.item4')}</li>
               </ul>
             </div>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Requisitos básicos
+                {t('financing.info.requirementsTitle')}
               </h3>
               <ul className='mt-2 text-gray-600 dark:text-gray-400 space-y-2 list-disc pl-5'>
-                <li>Identificación oficial vigente</li>
-                <li>Comprobante de domicilio</li>
-                <li>Comprobante de ingresos</li>
-                <li>Historial crediticio favorable</li>
+                <li>{t('financing.info.requirementsList.item1')}</li>
+                <li>{t('financing.info.requirementsList.item2')}</li>
+                <li>{t('financing.info.requirementsList.item3')}</li>
+                <li>{t('financing.info.requirementsList.item4')}</li>
               </ul>
             </div>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Contacto Directo
+                {t('financing.info.directContactTitle')}
               </h3>
               <p className='mt-2 text-gray-600 dark:text-gray-400'>
-                Email: {client?.contact?.email}
+                {t('financing.info.emailLabel')}: {client?.contact?.email}
                 <br />
-                Teléfono: {client?.contact?.phone}
+                {t('financing.info.phoneLabel')}: {client?.contact?.phone}
               </p>
             </div>
           </div>

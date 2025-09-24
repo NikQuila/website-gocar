@@ -38,93 +38,25 @@ import { formatWhatsAppNumber } from '@/utils/contact-utils';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
-const vehicleCategories = [
-  {
-    id: 'all',
-    name: 'Todos los Vehículos',
-    icon: 'mdi:car-multiple',
-    description: 'Explora todos nuestros vehículos disponibles',
-  },
-  {
-    id: 'SUV',
-    name: 'SUV',
-    icon: 'mdi:car-suv',
-    description: 'Vehículos espaciosos y versátiles',
-  },
-  {
-    id: 'Sedan',
-    name: 'Sedán',
-    icon: 'mdi:car',
-    description: 'Autos familiares cómodos',
-  },
-  {
-    id: 'Hatchback',
-    name: 'Hatchback',
-    icon: 'mdi:car-hatchback',
-    description: 'Compactos y eficientes',
-  },
-  {
-    id: 'Pickup',
-    name: 'Pickup',
-    icon: 'mdi:truck-pickup',
-    description: 'Vehículos de carga y trabajo',
-  },
-  {
-    id: 'Van',
-    name: 'Van',
-    icon: 'mdi:van-passenger',
-    description: 'Vehículos espaciosos para pasajeros',
-  },
-  {
-    id: 'Coupe',
-    name: 'Coupé',
-    icon: 'mdi:car-sports',
-    description: 'Elegantes y deportivos',
-  },
-  {
-    id: 'Wagon',
-    name: 'Wagon',
-    icon: 'mdi:car-estate',
-    description: 'Vehículos familiares versátiles',
-  },
-];
-
-const sortOptions = [
-  {
-    key: 'date_desc',
-    label: 'Recientes primero',
-    icon: 'mdi:clock-outline',
-  },
-  {
-    key: 'date_asc',
-    label: 'Antiguos primero',
-    icon: 'mdi:clock',
-  },
-  {
-    key: 'price_asc',
-    label: 'Precio: Menor a Mayor',
-    icon: 'mdi:sort-ascending',
-  },
-  {
-    key: 'price_desc',
-    label: 'Precio: Mayor a Menor',
-    icon: 'mdi:sort-descending',
-  },
-  { key: 'year_desc', label: 'Año: Más Reciente', icon: 'mdi:calendar' },
-  { key: 'year_asc', label: 'Año: Más Antiguo', icon: 'mdi:calendar-outline' },
-  {
-    key: 'mileage_asc',
-    label: 'Kilometraje: Menor a Mayor',
-    icon: 'mdi:speedometer-slow',
-  },
-];
+const CATEGORY_ICONS: Record<string, string> = {
+  all: 'mdi:car-multiple',
+  SUV: 'mdi:car-suv',
+  Sedan: 'mdi:car',
+  Hatchback: 'mdi:car-hatchback',
+  Pickup: 'mdi:truck-pickup',
+  Van: 'mdi:van-passenger',
+  Coupe: 'mdi:car-sports',
+  Wagon: 'mdi:car-estate',
+};
 
 const NewVehiclesSection = () => {
   const { theme } = useThemeStore();
   const { vehicles, isLoading } = useVehiclesStore();
   const { client } = useClientStore();
   const isMd = useMediaQuery('(min-width: 768px)');
+  const { t } = useTranslation();
 
   // Extract unique values for filters
 
@@ -159,6 +91,67 @@ const NewVehiclesSection = () => {
   const [showFilters, setShowFilters] = useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [activeView, setActiveView] = useState<'grid' | 'list'>('grid');
+  // Localized categories and sort options
+  const vehicleCategories = [
+    {
+      id: 'all',
+      name: t('vehicles.categories.all'),
+      icon: CATEGORY_ICONS.all,
+      description: t('vehicles.categoryDescriptions.all'),
+    },
+    {
+      id: 'SUV',
+      name: t('vehicles.categories.suv'),
+      icon: CATEGORY_ICONS.SUV,
+      description: t('vehicles.categoryDescriptions.suv'),
+    },
+    {
+      id: 'Sedan',
+      name: t('vehicles.categories.sedan'),
+      icon: CATEGORY_ICONS.Sedan,
+      description: t('vehicles.categoryDescriptions.sedan'),
+    },
+    {
+      id: 'Hatchback',
+      name: t('vehicles.categories.hatchback'),
+      icon: CATEGORY_ICONS.Hatchback,
+      description: t('vehicles.categoryDescriptions.hatchback'),
+    },
+    {
+      id: 'Pickup',
+      name: t('vehicles.categories.pickup'),
+      icon: CATEGORY_ICONS.Pickup,
+      description: t('vehicles.categoryDescriptions.pickup'),
+    },
+    {
+      id: 'Van',
+      name: t('vehicles.categories.van'),
+      icon: CATEGORY_ICONS.Van,
+      description: t('vehicles.categoryDescriptions.van'),
+    },
+    {
+      id: 'Coupe',
+      name: t('vehicles.categories.coupe'),
+      icon: CATEGORY_ICONS.Coupe,
+      description: t('vehicles.categoryDescriptions.coupe'),
+    },
+    {
+      id: 'Wagon',
+      name: t('vehicles.categories.wagon'),
+      icon: CATEGORY_ICONS.Wagon,
+      description: t('vehicles.categoryDescriptions.wagon'),
+    },
+  ];
+
+  const sortOptions = [
+    { key: 'date_desc', label: t('vehicles.sorting.dateDesc'), icon: 'mdi:clock-outline' },
+    { key: 'date_asc', label: t('vehicles.sorting.dateAsc'), icon: 'mdi:clock' },
+    { key: 'price_asc', label: t('vehicles.sorting.priceAsc'), icon: 'mdi:sort-ascending' },
+    { key: 'price_desc', label: t('vehicles.sorting.priceDesc'), icon: 'mdi:sort-descending' },
+    { key: 'year_desc', label: t('vehicles.sorting.yearDesc'), icon: 'mdi:calendar' },
+    { key: 'year_asc', label: t('vehicles.sorting.yearAsc'), icon: 'mdi:calendar-outline' },
+    { key: 'mileage_asc', label: t('vehicles.sorting.mileageAsc'), icon: 'mdi:speedometer-slow' },
+  ];
 
   const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
     setFilters({
@@ -368,7 +361,7 @@ const NewVehiclesSection = () => {
               <div className='flex items-center justify-between'>
                 <div>
                   <h1 className='text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2'>
-                    {selectedCategoryData?.name || 'Todos los Vehículos'}
+                    {selectedCategoryData?.name || t('vehicles.categories.all')}
 
                     <Chip size='sm' variant='flat' color='primary'>
                       {filteredVehicles.length}
@@ -376,8 +369,7 @@ const NewVehiclesSection = () => {
                   </h1>
 
                   <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                    {selectedCategoryData?.description ||
-                      'Explora nuestra selección de vehículos de calidad'}
+                    {selectedCategoryData?.description || t('home.featuredVehicles.subtitle')}
                   </p>
                 </div>
               </div>
@@ -426,7 +418,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
           />
           <Input
             type='text'
-            placeholder='Buscar por marca, modelo o año...'
+            placeholder={t('pages.vehicles.searchPlaceholder')}
             className='
               pl-12 pr-3 py-2 min-h-[36px]
               rounded-xl
@@ -452,8 +444,8 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                 startContent={<Icon icon='mdi:sort' className='text-base' />}
                 className='w-full flex items-center gap-x-1 px-3 py-2 min-h-[36px] text-sm shadow-none bg-transparent border-none hover:bg-gray-100 focus:bg-gray-100 transition-colors'
               >
-                {sortOptions.find((option) => option.key === sortOrder)
-                  ?.label || 'Ordenar por'}
+                {sortOptions.find((option) => option.key === sortOrder)?.label ||
+                  t('pages.vehicles.orderBy')}
               </Button>
             </DropdownTrigger>
             <DropdownMenu
@@ -509,7 +501,8 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   startContent={<Icon icon='mdi:filter' className='text-xl' />}
                   className='bg-white dark:bg-dark-card shadow-sm w-full'
                 >
-                  Filtros {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+                  {t('vehicles.filters.title')}{' '}
+                  {activeFiltersCount > 0 && `(${activeFiltersCount})`}
                 </Button>
               </div>
             </div>
@@ -550,11 +543,11 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                 />
 
                 <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>
-                  No se encontraron vehículos
+                  {t('pages.vehicles.noResults')}
                 </h3>
 
                 <p className='text-gray-500 dark:text-gray-400 mb-4'>
-                  Intenta ajustar los filtros o criterios de búsqueda
+                  {t('pages.vehicles.noResultsDescription')}
                 </p>
 
                 <Button
@@ -563,7 +556,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                   onClick={clearAllFilters}
                   startContent={<Icon icon='mdi:filter-off' />}
                 >
-                  Limpiar filtros
+                  {t('vehicles.filters.clearFilters')}
                 </Button>
               </div>
             )}
@@ -602,7 +595,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
           </DrawerBody>
           <DrawerFooter>
             <Button color='primary' onPress={onClose} className='w-full'>
-              Aplicar filtros
+              {t('vehicles.filters.applyFilters')}
             </Button>
           </DrawerFooter>
         </DrawerContent>

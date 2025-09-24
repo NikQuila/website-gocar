@@ -17,10 +17,12 @@ import { supabase } from '@/lib/supabase';
 import { LeadTypes, Brand, Model, Condition } from '@/utils/types';
 import { sendEmail, createVehicleLeadEmailTemplate } from '@/lib/send-email';
 import SuccessModal from '@/components/ui/SuccessModal';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 const ConsignmentsPage = () => {
   const { client } = useClientStore();
   const { initializeCustomer } = useCustomerStore();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
@@ -224,11 +226,10 @@ const ConsignmentsPage = () => {
       {/* Hero Section */}
       <div className='text-center mb-16'>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl'>
-          Consignaciones
+          {t('consignments.hero.title')}
         </h1>
         <p className='mt-4 text-xl text-gray-500 dark:text-gray-400'>
-          Consigna tu vehículo con nosotros y maximiza tu beneficio. Nos
-          encargamos de todo el proceso de venta.
+          {t('consignments.hero.description')}
         </p>
       </div>
 
@@ -240,7 +241,7 @@ const ConsignmentsPage = () => {
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <Input
                 type='text'
-                label='Nombre'
+                label={t('consignments.form.firstName')}
                 value={formData.first_name}
                 onValueChange={(value) => handleChange(value, 'first_name')}
                 isRequired
@@ -248,7 +249,7 @@ const ConsignmentsPage = () => {
               />
               <Input
                 type='text'
-                label='Apellido'
+                label={t('consignments.form.lastName')}
                 value={formData.last_name}
                 onValueChange={(value) => handleChange(value, 'last_name')}
                 isRequired
@@ -258,7 +259,7 @@ const ConsignmentsPage = () => {
 
             <Input
               type='email'
-              label='Email'
+              label={t('consignments.form.email')}
               value={formData.email}
               onValueChange={(value) => handleChange(value, 'email')}
               isRequired
@@ -267,7 +268,7 @@ const ConsignmentsPage = () => {
 
             <Input
               type='tel'
-              label='Teléfono'
+              label={t('consignments.form.phone')}
               value={formData.phone}
               onValueChange={(value) => handleChange(value, 'phone')}
               isRequired
@@ -276,8 +277,8 @@ const ConsignmentsPage = () => {
 
             {/* Vehicle Info */}
             <Autocomplete
-              label='Marca'
-              placeholder='Selecciona una marca'
+              label={t('consignments.form.brand')}
+              placeholder={t('consignments.form.brandPlaceholder')}
               selectedKey={formData.brand_id}
               onSelectionChange={(key) =>
                 handleChange(key as string, 'brand_id')
@@ -293,8 +294,8 @@ const ConsignmentsPage = () => {
             </Autocomplete>
 
             <Autocomplete
-              label='Modelo'
-              placeholder='Selecciona un modelo'
+              label={t('consignments.form.model')}
+              placeholder={t('consignments.form.modelPlaceholder')}
               selectedKey={formData.model_id}
               onSelectionChange={(key) =>
                 handleChange(key as string, 'model_id')
@@ -316,7 +317,7 @@ const ConsignmentsPage = () => {
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <Input
                 type='number'
-                label='Año'
+                label={t('consignments.form.year')}
                 value={formData.year}
                 onValueChange={(value) => handleChange(value, 'year')}
                 isRequired
@@ -324,7 +325,7 @@ const ConsignmentsPage = () => {
               />
               <Input
                 type='number'
-                label='Kilometraje'
+                label={t('consignments.form.mileage')}
                 value={formData.mileage}
                 onValueChange={(value) => handleChange(value, 'mileage')}
                 isRequired
@@ -333,7 +334,7 @@ const ConsignmentsPage = () => {
             </div>
 
             <Select
-              label='Condición del Vehículo'
+              label={t('consignments.form.condition')}
               value={formData.condition_id}
               onChange={(e) => handleChange(e.target.value, 'condition_id')}
               isRequired
@@ -350,7 +351,7 @@ const ConsignmentsPage = () => {
             </Select>
 
             <Textarea
-              label='Detalles adicionales'
+              label={t('consignments.form.message')}
               value={formData.message}
               onValueChange={(value) => handleChange(value, 'message')}
               minRows={4}
@@ -364,7 +365,7 @@ const ConsignmentsPage = () => {
               className='font-semibold bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90'
               isLoading={loading}
             >
-              Enviar Solicitud
+              {t('consignments.form.submit')}
             </Button>
           </form>
         </div>
@@ -373,42 +374,42 @@ const ConsignmentsPage = () => {
         <div className='bg-gray-50 dark:bg-dark-card rounded-xl p-8 border border-gray-200 dark:border-dark-border'>
           <div className='space-y-8'>
             <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
-              Ventajas de Consignar con Nosotros
+              {t('consignments.info.advantagesTitle')}
             </h2>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Beneficios de la consignación
+                {t('consignments.info.benefitsTitle')}
               </h3>
               <ul className='mt-2 text-gray-600 dark:text-gray-400 space-y-2 list-disc pl-5'>
-                <li>Maximiza el valor de venta de tu vehículo</li>
-                <li>No tienes que preocuparte por el proceso de venta</li>
-                <li>Amplia exposición a clientes potenciales</li>
-                <li>Evita trámites y gestiones complicadas</li>
+                <li>{t('consignments.info.benefitsList.item1')}</li>
+                <li>{t('consignments.info.benefitsList.item2')}</li>
+                <li>{t('consignments.info.benefitsList.item3')}</li>
+                <li>{t('consignments.info.benefitsList.item4')}</li>
               </ul>
             </div>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Proceso de consignación
+                {t('consignments.info.processTitle')}
               </h3>
               <ol className='mt-2 text-gray-600 dark:text-gray-400 space-y-2 list-decimal pl-5'>
-                <li>Evaluación y tasación del vehículo</li>
-                <li>Firma del contrato de consignación</li>
-                <li>Exhibición y promoción</li>
-                <li>Gestión de ofertas y negociaciones</li>
-                <li>Pago rápido una vez vendido</li>
+                <li>{t('consignments.info.processList.step1')}</li>
+                <li>{t('consignments.info.processList.step2')}</li>
+                <li>{t('consignments.info.processList.step3')}</li>
+                <li>{t('consignments.info.processList.step4')}</li>
+                <li>{t('consignments.info.processList.step5')}</li>
               </ol>
             </div>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Contacto Directo
+                {t('consignments.info.directContactTitle')}
               </h3>
               <p className='mt-2 text-gray-600 dark:text-gray-400'>
-                Email: {client?.contact?.email}
+                {t('consignments.info.emailLabel')}: {client?.contact?.email}
                 <br />
-                Teléfono: {client?.contact?.phone}
+                {t('consignments.info.phoneLabel')}: {client?.contact?.phone}
               </p>
             </div>
           </div>
