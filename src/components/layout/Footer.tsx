@@ -2,8 +2,11 @@
 
 import useClientStore from '@/store/useClientStore';
 import Link from 'next/link';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
+
 export function Footer() {
   const { client } = useClientStore();
+  const { t } = useTranslation();
 
   return (
     <footer className='bg-gray-50 dark:bg-dark-bg'>
@@ -24,26 +27,26 @@ export function Footer() {
           {/* Quick Links */}
           <div>
             <h3 className='text-gray-900 dark:text-dark-text font-semibold mb-4'>
-              Enlaces
+              {t('footer.titles.links')}
             </h3>
             <div className='space-y-2'>
               <Link
                 href='/vehicles'
                 className='block text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-dark-text transition-colors'
               >
-                Vehículos
+                {t('navigation.links.vehicles')}
               </Link>
               <Link
                 href='/about'
                 className='block text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-dark-text transition-colors'
               >
-                Nosotros
+                {t('footer.links.about')}
               </Link>
               <Link
                 href='/contact'
                 className='block text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-dark-text transition-colors'
               >
-                Contacto
+                {t('navigation.links.contact')}
               </Link>
             </div>
           </div>
@@ -51,7 +54,7 @@ export function Footer() {
           {/* Contact */}
           <div>
             <h3 className='text-gray-900 dark:text-dark-text font-semibold mb-4'>
-              Contacto
+              {t('footer.titles.contact')}
             </h3>
             <div className='space-y-2 text-gray-600 dark:text-gray-400'>
               <p>{client?.contact?.phone}</p>
@@ -62,8 +65,7 @@ export function Footer() {
 
         {/* Copyright */}
         <div className='border-t border-gray-200 dark:border-dark-border mt-8 pt-8 text-center text-gray-600 dark:text-gray-400 text-sm'>
-          © {new Date().getFullYear()} {client?.name}. Todos los derechos
-          reservados.
+          © {new Date().getFullYear()} {client?.name}. {t('footer.rights')}
         </div>
       </div>
     </footer>

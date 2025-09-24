@@ -14,6 +14,7 @@ import { Icon } from '@iconify/react';
 import { VehicleFilters as VehicleFiltersType } from '@/utils/types';
 import { useGeneralStore } from '@/store/useGeneralStore';
 import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 interface NewVehicleFiltersProps {
   filters: VehicleFiltersType;
@@ -53,6 +54,7 @@ const NewVehicleFilters = ({
   // Estados para manejar campos vacíos
   const [minPriceEmpty, setMinPriceEmpty] = useState(false);
   const [maxPriceEmpty, setMaxPriceEmpty] = useState(false);
+  const { t } = useTranslation();
 
   const activeFiltersCount =
     Object.keys(filters).length +
@@ -101,21 +103,32 @@ const NewVehicleFilters = ({
   const getFilterName = (key: keyof VehicleFiltersType, id: string) => {
     switch (key) {
       case 'brand':
-        return brands.find((b) => b.id.toString() === id)?.name || 'Marca';
+        return (
+          brands.find((b) => b.id.toString() === id)?.name ||
+          t('vehicles.filters.brand')
+        );
       case 'category':
-        return categories.find((c) => c.id.toString() === id)?.name || 'Tipo';
+        return (
+          categories.find((c) => c.id.toString() === id)?.name ||
+          t('vehicles.filters.category')
+        );
       case 'fuel_type':
         return (
-          fuelTypes.find((f) => f.id.toString() === id)?.name || 'Combustible'
+          fuelTypes.find((f) => f.id.toString() === id)?.name ||
+          t('vehicles.filters.fuelType')
         );
       case 'condition':
         return (
-          conditions.find((c) => c.id.toString() === id)?.name || 'Condición'
+          conditions.find((c) => c.id.toString() === id)?.name ||
+          t('vehicles.filters.condition')
         );
       case 'color':
-        return colors.find((c) => c.id.toString() === id)?.name || 'Color';
+        return (
+          colors.find((c) => c.id.toString() === id)?.name ||
+          t('vehicles.filters.color')
+        );
       default:
-        return 'Filtro';
+        return t('common.actions.filter');
     }
   };
 
@@ -125,7 +138,7 @@ const NewVehicleFilters = ({
         <div className='flex justify-between items-center'>
           <div>
             <h3 className='text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2 mt-4 sm:mt-0'>
-              Filtros
+              {t('vehicles.filters.title')}
               {activeFiltersCount > 0 && (
                 <Chip size='sm' color='primary' variant='flat'>
                   {activeFiltersCount}
@@ -145,7 +158,7 @@ const NewVehicleFilters = ({
                 icon='solar:filter-linear'
                 className='text-xs mr-1 rotate-180'
               />
-              Limpiar
+              {t('vehicles.filters.clearFilters')}
             </Button>
           )}
         </div>
@@ -161,13 +174,13 @@ const NewVehicleFilters = ({
       >
         <AccordionItem
           key='price'
-          aria-label='Rango de Precio'
+          aria-label={t('vehicles.filters.priceRange')}
           startContent={
             <Icon icon='mdi:cash' className='text-xl text-primary mr-1' />
           }
           title={
             <div className='flex flex-col items-start'>
-              <div>Rango de Precio</div>
+              <div>{t('vehicles.filters.priceRange')}</div>
               {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
                 <Chip
                   size='sm'
@@ -202,7 +215,7 @@ const NewVehicleFilters = ({
               <Input
                 type='text'
                 size='sm'
-                placeholder='Precio mínimo'
+                placeholder={t('vehicles.filters.minPrice')}
                 value={
                   minPriceEmpty
                     ? ''
@@ -260,7 +273,7 @@ const NewVehicleFilters = ({
               <Input
                 type='text'
                 size='sm'
-                placeholder='Precio máximo'
+                placeholder={t('vehicles.filters.maxPrice')}
                 value={
                   maxPriceEmpty
                     ? ''
@@ -343,13 +356,13 @@ const NewVehicleFilters = ({
 
         <AccordionItem
           key='brand'
-          aria-label='Marca'
+          aria-label={t('vehicles.filters.brand')}
           startContent={
             <Icon icon='mdi:car-estate' className='text-xl text-primary' />
           }
           title={
             <div className='flex items-center gap-2'>
-              Marca
+              {t('vehicles.filters.brand')}
               {filters.brand && (
                 <Chip
                   size='sm'
@@ -372,7 +385,7 @@ const NewVehicleFilters = ({
           }}
         >
           <Select
-            placeholder='Selecciona una marca'
+            placeholder={t('vehicles.filters.selectBrand')}
             selectedKeys={filters.brand ? [filters.brand] : []}
             onChange={(e) => setFilters({ ...filters, brand: e.target.value })}
             classNames={{
@@ -397,13 +410,13 @@ const NewVehicleFilters = ({
 
         <AccordionItem
           key='category'
-          aria-label='Tipo de Vehículo'
+          aria-label={t('vehicles.filters.category')}
           startContent={
             <Icon icon='mdi:car-side' className='text-xl text-primary' />
           }
           title={
             <div className='flex items-center gap-2'>
-              Tipo de Vehículo
+              {t('vehicles.filters.category')}
               {filters.category && (
                 <Chip
                   size='sm'
@@ -450,13 +463,13 @@ const NewVehicleFilters = ({
 
         <AccordionItem
           key='fuel'
-          aria-label='Combustible'
+          aria-label={t('vehicles.filters.fuelType')}
           startContent={
             <Icon icon='mdi:gas-station' className='text-xl text-primary' />
           }
           title={
             <div className='flex items-center gap-2'>
-              Combustible
+              {t('vehicles.filters.fuelType')}
               {filters.fuel_type && (
                 <Chip
                   size='sm'
@@ -501,16 +514,16 @@ const NewVehicleFilters = ({
           </div>
         </AccordionItem>
 
-        {/* Filtro de Año */}
+        {/* Year Filter */}
         <AccordionItem
           key='year'
-          aria-label='Año'
+          aria-label={t('vehicles.filters.year')}
           startContent={
             <Icon icon='mdi:calendar' className='text-xl text-primary' />
           }
           title={
             <div className='flex items-center gap-2'>
-              Año
+              {t('vehicles.filters.year')}
               {filters.year && (
                 <Chip
                   size='sm'
@@ -533,7 +546,7 @@ const NewVehicleFilters = ({
           }}
         >
           <Select
-            placeholder='Selecciona un año'
+            placeholder={t('vehicles.filters.year')}
             selectedKeys={filters.year ? [filters.year] : []}
             onChange={(e) => setFilters({ ...filters, year: e.target.value })}
             classNames={{
@@ -558,13 +571,13 @@ const NewVehicleFilters = ({
 
         <AccordionItem
           key='condition'
-          aria-label='Condición'
+          aria-label={t('vehicles.filters.condition')}
           startContent={
             <Icon icon='mdi:car-info' className='text-xl text-primary' />
           }
           title={
             <div className='flex items-center gap-2'>
-              Condición
+              {t('vehicles.filters.condition')}
               {filters.condition && (
                 <Chip
                   size='sm'
@@ -613,13 +626,13 @@ const NewVehicleFilters = ({
 
         <AccordionItem
           key='color'
-          aria-label='Color'
+          aria-label={t('vehicles.filters.color')}
           startContent={
             <Icon icon='mdi:palette' className='text-xl text-primary' />
           }
           title={
             <div className='flex items-center gap-2'>
-              Color
+              {t('vehicles.filters.color')}
               {filters.color && (
                 <Chip
                   size='sm'

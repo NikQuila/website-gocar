@@ -8,9 +8,11 @@ import useClientStore from '@/store/useClientStore';
 import useCustomerStore from '@/store/useCustomerStore';
 import { Client, Vehicle } from '@/utils/types';
 import { CustomerDataModal } from '@/components/customers/CustomerDataModal';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 import { getVehicleById, incrementVehicleViews } from '@/lib/vehicles';
 
 export default function VehicleDetailsPageClient() {
+  const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
   const { client } = useClientStore();
@@ -71,7 +73,7 @@ export default function VehicleDetailsPageClient() {
           className='flex items-center gap-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors'
         >
           <Icon icon='mdi:arrow-left' className='text-xl' />
-          <span>Volver</span>
+          <span>{t('pages.vehicleDetails.backToVehicles')}</span>
         </button>
       </div>
       <VehicleDetailSection

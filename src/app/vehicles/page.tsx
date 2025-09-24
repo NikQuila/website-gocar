@@ -22,6 +22,7 @@ import { useGeneralStore } from '@/store/useGeneralStore';
 import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
 
 import { Input } from '@/components/ui/input';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 // Wrapper para renderizar solo en cliente
 function ClientOnly({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ function ClientOnly({ children }: { children: React.ReactNode }) {
 }
 
 const VehiclesPage = () => {
+  const { t } = useTranslation();
   const { vehicles, isLoading } = useVehiclesStore();
   const {
     initializeStore,
@@ -80,33 +82,33 @@ const VehiclesPage = () => {
   const sortOptions = [
     {
       key: 'date_desc',
-      label: 'Recientes primero',
+      label: t('vehicles.sorting.dateDesc'),
       icon: 'mdi:clock-outline',
     },
     {
       key: 'date_asc',
-      label: 'Antiguos primero',
+      label: t('vehicles.sorting.dateAsc'),
       icon: 'mdi:clock',
     },
     {
       key: 'price_asc',
-      label: 'Precio: Menor a Mayor',
+      label: t('vehicles.sorting.priceAsc'),
       icon: 'mdi:sort-ascending',
     },
     {
       key: 'price_desc',
-      label: 'Precio: Mayor a Menor',
+      label: t('vehicles.sorting.priceDesc'),
       icon: 'mdi:sort-descending',
     },
-    { key: 'year_desc', label: 'Año: Más Reciente', icon: 'mdi:calendar' },
+    { key: 'year_desc', label: t('vehicles.sorting.yearDesc'), icon: 'mdi:calendar' },
     {
       key: 'year_asc',
-      label: 'Año: Más Antiguo',
+      label: t('vehicles.sorting.yearAsc'),
       icon: 'mdi:calendar-outline',
     },
     {
       key: 'mileage_asc',
-      label: 'Kilometraje: Menor a Mayor',
+      label: t('vehicles.sorting.mileageAsc'),
       icon: 'mdi:speedometer-slow',
     },
   ];
@@ -348,10 +350,10 @@ const VehiclesPage = () => {
                       <div className='flex items-center justify-between'>
                         <div>
                           <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
-                            Vehículos
+                            {t('pages.vehicles.title')}
                           </h2>
                           <p className='text-sm text-gray-600 dark:text-gray-400'>
-                            {filteredVehicles.length} vehículos encontrados
+                            {filteredVehicles.length} {t('pages.vehicles.found')}
                           </p>
                         </div>
                         <Button
@@ -367,7 +369,7 @@ const VehiclesPage = () => {
                             />
                           }
                         >
-                          Filtros
+                          {t('vehicles.filters.title')}
                         </Button>
                       </div>
                       <div className='flex flex-col sm:flex-row gap-4 mt-4 w-full'>
@@ -379,7 +381,7 @@ const VehiclesPage = () => {
                           />
                           <Input
                             type='text'
-                            placeholder='Buscar vehículos...'
+                            placeholder={t('pages.vehicles.searchPlaceholder')}
                             className='pl-12 pr-3 py-2 min-h-[36px] rounded-xl border border-gray-400 bg-gray-100 text-sm text-gray-700 shadow-md focus:border-primary focus:ring-2 focus:ring-primary transition-all w-full max-w-xxl'
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -397,7 +399,7 @@ const VehiclesPage = () => {
                               >
                                 {sortOptions.find(
                                   (option) => option.key === sortOrder
-                                )?.label || 'Ordenar por'}
+                                )?.label || t('pages.vehicles.orderBy')}
                               </Button>
                             </DropdownTrigger>
                             <DropdownMenu

@@ -17,14 +17,8 @@ import Link from 'next/link';
 import ThemeToggle from '../ThemeToggle';
 import useThemeStore from '@/store/useThemeStore';
 import { Client } from '@/utils/types';
-
-const navigation = [
-  { name: 'Inicio', href: '/' },
-  { name: 'Financiamiento', href: '/financing' },
-  { name: 'Consignaciones', href: '/consignments' },
-  { name: 'Compramos Tu Auto', href: '/buy-direct' },
-  { name: 'Buscamos Tu Auto', href: '/we-search-for-you' },
-];
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 const Navbar = () => {
   const { client } = useClientStore();
@@ -32,6 +26,15 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const { t } = useTranslation();
+
+  const navigation = [
+    { name: t('navigation.links.home'), href: '/' },
+    { name: t('navigation.links.financing'), href: '/financing' },
+    { name: t('navigation.links.consignments'), href: '/consignments' },
+    { name: t('navigation.links.buyDirect'), href: '/buy-direct' },
+    { name: t('navigation.links.weSearchForYou'), href: '/we-search-for-you' },
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -113,6 +116,9 @@ const Navbar = () => {
 
       {/* Right side - Contact & Theme Toggle */}
       <NavbarContent justify='end' className='gap-3'>
+        <NavbarItem className='hidden sm:flex'>
+          <LanguageSelector variant='minimal' className='rounded-full' />
+        </NavbarItem>
         {shouldShowThemeToggle && (
           <NavbarItem className='hidden sm:flex'>
             <ThemeToggle />
@@ -126,7 +132,7 @@ const Navbar = () => {
             className='bg-primary text-white dark:text-black hover:bg-primary/90 transition-colors rounded-md px-4'
             variant='solid'
           >
-            Contactar
+            {t('navigation.links.contact')}
           </Button>
         </NavbarItem>
         <NavbarMenuToggle
@@ -137,11 +143,10 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       <NavbarMenu className='bg-white/98 dark:bg-dark-bg/98 backdrop-blur-md pt-12 px-6'>
-        {shouldShowThemeToggle && (
-          <div className='absolute top-4 right-4'>
-            <ThemeToggle />
-          </div>
-        )}
+        <div className='absolute top-4 right-4 flex items-center gap-2'>
+          <LanguageSelector variant='minimal' className='rounded-full' />
+          {shouldShowThemeToggle && <ThemeToggle />}
+        </div>
         <div className='flex flex-col gap-4'>
           {navigation.map((item) => (
             <NavbarMenuItem key={item.name} className='p-0'>
@@ -165,7 +170,7 @@ const Navbar = () => {
               className='w-full bg-primary text-white dark:text-black hover:bg-primary/90 transition-colors'
               onClick={() => setIsMenuOpen(false)}
             >
-              Contactar
+              {t('navigation.links.contact')}
             </Button>
           </NavbarMenuItem>
         </div>

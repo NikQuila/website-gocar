@@ -9,6 +9,7 @@ import useClientStore from '@/store/useClientStore';
 import { Dealership, Location } from '@/utils/types';
 import { supabase } from '@/lib/supabase';
 import useThemeStore from '@/store/useThemeStore';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 interface HowToArriveProps {
   title?: string;
@@ -136,6 +137,7 @@ export default function HowToArrive({
 
   const { client } = useClientStore();
   const { theme } = useThemeStore();
+  const { t } = useTranslation();
 
   // Color primario por defecto (celestito claro)
   const primaryColor = '#60a5fa';
@@ -251,7 +253,7 @@ export default function HowToArrive({
               : 'text-left'
           }`}
         >
-          {title}
+          {title || t('home.howToArrive.title')}
         </h3>
         <p
           className={`mb-12 max-w-3xl mx-auto text-gray-700 dark:text-gray-300 ${
@@ -262,7 +264,7 @@ export default function HowToArrive({
               : 'text-left'
           }`}
         >
-          {subtitle}
+          {subtitle || t('home.howToArrive.subtitle')}
         </p>
 
         <div className='grid md:grid-cols-3 gap-8 items-start'>
@@ -309,7 +311,7 @@ export default function HowToArrive({
                   />
                   <div>
                     <h4 className='font-medium text-gray-900 dark:text-white'>
-                      Dirección
+                      {t('home.howToArrive.address')}
                     </h4>
                     <p className='text-gray-600 dark:text-gray-400 opacity-70'>
                       {selectedDealership.address}
@@ -325,7 +327,7 @@ export default function HowToArrive({
                   />
                   <div>
                     <h4 className='font-medium text-gray-900 dark:text-white'>
-                      Teléfono
+                      {t('home.howToArrive.phone')}
                     </h4>
                     <p className='text-gray-600 dark:text-gray-400 opacity-70'>
                       {selectedDealership.phone}
@@ -361,7 +363,7 @@ export default function HowToArrive({
                 selectedDealership && handleMarkerClick(selectedDealership)
               }
             >
-              {buttonLabel}
+              {buttonLabel || t('home.howToArrive.button')}
             </Button>
           </div>
 

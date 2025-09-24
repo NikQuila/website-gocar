@@ -16,10 +16,12 @@ import { supabase } from '@/lib/supabase';
 import { LeadTypes, Brand, Model, Condition, Vehicle } from '@/utils/types';
 import { sendEmail, createVehicleLeadEmailTemplate } from '@/lib/send-email';
 import SuccessModal from '@/components/ui/SuccessModal';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 const CompramosTuAutoPage = () => {
   const { client } = useClientStore();
   const { initializeCustomer } = useCustomerStore();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
@@ -249,11 +251,10 @@ const CompramosTuAutoPage = () => {
       {/* Hero Section */}
       <div className='text-center mb-16'>
         <h1 className='text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl'>
-          Compramos Tu Auto
+          {t('buyDirect.hero.title')}
         </h1>
         <p className='mt-4 text-xl text-gray-500 dark:text-gray-400'>
-          Vende tu vehículo de forma rápida, segura y al mejor precio.
-          Evaluación justa y pago inmediato.
+          {t('buyDirect.hero.description')}
         </p>
       </div>
 
@@ -264,7 +265,7 @@ const CompramosTuAutoPage = () => {
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <Input
                 type='text'
-                label='Nombre'
+                label={t('buyDirect.form.firstName')}
                 value={formData.first_name}
                 onValueChange={(value) => handleChange(value, 'first_name')}
                 isRequired
@@ -272,7 +273,7 @@ const CompramosTuAutoPage = () => {
               />
               <Input
                 type='text'
-                label='Apellido'
+                label={t('buyDirect.form.lastName')}
                 value={formData.last_name}
                 onValueChange={(value) => handleChange(value, 'last_name')}
                 isRequired
@@ -282,7 +283,7 @@ const CompramosTuAutoPage = () => {
 
             <Input
               type='email'
-              label='Email'
+              label={t('buyDirect.form.email')}
               value={formData.email}
               onValueChange={(value) => handleChange(value, 'email')}
               isRequired
@@ -291,7 +292,7 @@ const CompramosTuAutoPage = () => {
 
             <Input
               type='tel'
-              label='Teléfono'
+              label={t('buyDirect.form.phone')}
               value={formData.phone}
               onValueChange={(value) => handleChange(value, 'phone')}
               isRequired
@@ -300,8 +301,8 @@ const CompramosTuAutoPage = () => {
 
             {/* Vehicle Info */}
             <Autocomplete
-              label='Marca'
-              placeholder='Selecciona una marca'
+              label={t('buyDirect.form.brand')}
+              placeholder={t('buyDirect.form.brandPlaceholder')}
               selectedKey={formData.brand_id}
               onSelectionChange={(key) =>
                 handleChange(key as string, 'brand_id')
@@ -317,8 +318,8 @@ const CompramosTuAutoPage = () => {
             </Autocomplete>
 
             <Autocomplete
-              label='Modelo'
-              placeholder='Selecciona un modelo'
+              label={t('buyDirect.form.model')}
+              placeholder={t('buyDirect.form.modelPlaceholder')}
               selectedKey={formData.model_id}
               onSelectionChange={(key) =>
                 handleChange(key as string, 'model_id')
@@ -340,7 +341,7 @@ const CompramosTuAutoPage = () => {
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <Input
                 type='text'
-                label='Año'
+                label={t('buyDirect.form.year')}
                 value={formData.vehicle_year}
                 onValueChange={(value) => handleChange(value, 'vehicle_year')}
                 isRequired
@@ -348,7 +349,7 @@ const CompramosTuAutoPage = () => {
               />
               <Input
                 type='text'
-                label='Kilometraje'
+                label={t('buyDirect.form.mileage')}
                 value={formData.vehicle_mileage}
                 onValueChange={(value) =>
                   handleChange(value, 'vehicle_mileage')
@@ -359,7 +360,7 @@ const CompramosTuAutoPage = () => {
             </div>
 
             <Select
-              label='Condición del Vehículo'
+              label={t('buyDirect.form.condition')}
               selectedKeys={
                 formData.condition_id ? [formData.condition_id] : []
               }
@@ -379,7 +380,7 @@ const CompramosTuAutoPage = () => {
 
             <Input
               type='text'
-              label='Precio solicitado'
+              label={t('buyDirect.form.askingPrice')}
               value={formData.asking_price}
               onValueChange={(value) => handleChange(value, 'asking_price')}
               startContent='$'
@@ -388,7 +389,7 @@ const CompramosTuAutoPage = () => {
             />
 
             <Textarea
-              label='Detalles adicionales'
+              label={t('buyDirect.form.message')}
               value={formData.message}
               onValueChange={(value) => handleChange(value, 'message')}
               minRows={4}
@@ -402,7 +403,7 @@ const CompramosTuAutoPage = () => {
               className='font-semibold bg-primary text-secondary hover:bg-primary/90 dark:bg-primary dark:text-secondary dark:hover:bg-primary/90'
               isLoading={loading}
             >
-              Solicitar Tasación
+              {t('buyDirect.form.submit')}
             </Button>
           </form>
         </div>
@@ -411,43 +412,43 @@ const CompramosTuAutoPage = () => {
         <div className='bg-gray-50 dark:bg-dark-card rounded-xl p-8 border border-gray-200 dark:border-dark-border'>
           <div className='space-y-8'>
             <h2 className='text-2xl font-bold text-gray-900 dark:text-white'>
-              Por Qué Vendernos Tu Auto
+              {t('buyDirect.info.advantagesTitle')}
             </h2>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Nuestras ventajas
+                {t('buyDirect.info.benefitsTitle')}
               </h3>
               <ul className='mt-2 text-gray-600 dark:text-gray-400 space-y-2 list-disc pl-5'>
-                <li>Tasación justa basada en el valor real de mercado</li>
-                <li>Pago inmediato garantizado</li>
-                <li>Nos encargamos de toda la documentación</li>
-                <li>Sin costos ocultos ni comisiones</li>
-                <li>Proceso rápido y seguro</li>
+                <li>{t('buyDirect.info.benefitsList.item1')}</li>
+                <li>{t('buyDirect.info.benefitsList.item2')}</li>
+                <li>{t('buyDirect.info.benefitsList.item3')}</li>
+                <li>{t('buyDirect.info.benefitsList.item4')}</li>
+                <li>{t('buyDirect.info.benefitsList.item5')}</li>
               </ul>
             </div>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Proceso de venta
+                {t('buyDirect.info.processTitle')}
               </h3>
               <ol className='mt-2 text-gray-600 dark:text-gray-400 space-y-2 list-decimal pl-5'>
-                <li>Envío de información básica del vehículo</li>
-                <li>Evaluación técnica y tasación</li>
-                <li>Oferta formal de compra</li>
-                <li>Firma de documentos y traspaso</li>
-                <li>Pago inmediato</li>
+                <li>{t('buyDirect.info.processList.step1')}</li>
+                <li>{t('buyDirect.info.processList.step2')}</li>
+                <li>{t('buyDirect.info.processList.step3')}</li>
+                <li>{t('buyDirect.info.processList.step4')}</li>
+                <li>{t('buyDirect.info.processList.step5')}</li>
               </ol>
             </div>
 
             <div>
               <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
-                Contacto Directo
+                {t('buyDirect.info.directContactTitle')}
               </h3>
               <p className='mt-2 text-gray-600 dark:text-gray-400'>
-                Email: {client?.contact?.email}
+                {t('buyDirect.info.emailLabel')}: {client?.contact?.email}
                 <br />
-                Teléfono: {client?.contact?.phone}
+                {t('buyDirect.info.phoneLabel')}: {client?.contact?.phone}
               </p>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useWebsiteConfig } from '@/providers/ClientWebsiteConfigProvider';
 import useClientStore from '@/store/useClientStore';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 interface WhyUsItem {
   id: string;
@@ -44,6 +45,7 @@ const WhyUs = () => {
   const { websiteConfig, isLoading: isConfigLoading } = useWebsiteConfig();
   const [config, setConfig] = useState<WhyUsConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (isConfigLoading) return;
@@ -58,7 +60,7 @@ const WhyUs = () => {
 
         // Get section title from config or use default
         const sectionTitle =
-          websiteConfig.content?.why_us_title || '¿Por qué elegirnos?';
+          websiteConfig.content?.why_us_title || t('home.whyUs.title');
         const sectionSubtitle = websiteConfig.content?.why_us_subtitle;
 
         if (
@@ -93,22 +95,42 @@ const WhyUs = () => {
     }
 
     setIsLoading(false);
-  }, [websiteConfig, isConfigLoading]);
+  }, [websiteConfig, isConfigLoading, t]);
 
   // If there's no configuration or it's loading, show the default design
   if (isLoading || !config) {
+    const translatedDefaultItems = [
+      {
+        id: '1',
+        title: t('home.whyUs.defaultFeatures.quality.title'),
+        description: t('home.whyUs.defaultFeatures.quality.description'),
+        icon: 'mdi:shield-check',
+      },
+      {
+        id: '2',
+        title: t('home.whyUs.defaultFeatures.experience.title'),
+        description: t('home.whyUs.defaultFeatures.experience.description'),
+        icon: 'mdi:cash-multiple',
+      },
+      {
+        id: '3',
+        title: t('home.whyUs.defaultFeatures.service.title'),
+        description: t('home.whyUs.defaultFeatures.service.description'),
+        icon: 'mdi:certificate',
+      },
+    ];
     return (
       <section className='bg-gray-50 dark:bg-dark-bg py-16'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <h2 className='text-3xl font-bold text-gray-900 dark:text-dark-text text-center mb-4'>
-            ¿Por qué elegirnos?
+            {t('home.whyUs.title')}
           </h2>
           {/* Default subtitle placeholder */}
           <p className='text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto'>
-            Descubre por qué nuestros clientes confían en nosotros
+            {t('home.whyUs.subtitle')}
           </p>
           <div className='grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3'>
-            {defaultItems.map((feature, i) => (
+            {translatedDefaultItems.map((feature, i) => (
               <div
                 key={i}
                 className='text-center p-6 bg-white dark:bg-dark-card rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 dark:border dark:border-dark-border dark:hover:border-primary/30'
