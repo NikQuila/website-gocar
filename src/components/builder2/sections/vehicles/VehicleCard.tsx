@@ -25,6 +25,7 @@ export interface VehicleCardProps {
   detailsButtonText?: string;
   bannerPosition?: 'left' | 'right';
   newBadgeText?: string; // New prop for the "Recién publicado" badge text
+  pricePosition?: 'overlay' | 'below-title';
   featuresConfig?: {
     feature1: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
     feature2: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
@@ -45,6 +46,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   detailsButtonText = 'Ver detalles',
   bannerPosition = 'right',
   newBadgeText = 'Nuevo', // Default text
+  pricePosition = 'overlay',
   featuresConfig = {
     feature1: 'category',
     feature2: 'year',
@@ -53,6 +55,49 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   },
 }) => {
   const { formatPrice } = useCurrency();
+
+  // Función para obtener el color del año según la posición del precio
+  const getYearColor = (position: 'overlay' | 'below-title') => {
+    return position === 'overlay' ? '#ffffff' : '#374151';
+  };
+
+  // Función para renderizar el precio con colores dinámicos
+  const renderPrice = () => {
+    const priceColor = pricePosition === 'overlay' ? '#ffffff' : '#374151';
+
+    if (price && displayDiscountedPrice && displayDiscountedPrice < price) {
+      return (
+        <>
+          <span
+            className='font-bold text-xl'
+            style={{
+              background:
+                pricePosition === 'overlay'
+                  ? 'linear-gradient(to right, #FDBA74, #EA580C)'
+                  : 'linear-gradient(to right, #FDBA74, #EA580C)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              display: 'inline-block',
+            }}
+          >
+            {formatPrice(displayDiscountedPrice)}
+          </span>
+          <span
+            className='ml-2 text-sm line-through'
+            style={{ color: priceColor, opacity: '0.7' }}
+          >
+            {formatPrice(price)}
+          </span>
+        </>
+      );
+    } else {
+      return (
+        <span className='font-bold text-xl' style={{ color: priceColor }}>
+          {price ? formatPrice(price) : 'Consultar'}
+        </span>
+      );
+    }
+  };
 
   // Detectar si estamos en modo editor (solo disponible en contexto CraftJS)
   let enabled = false;
@@ -237,48 +282,19 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
           </div>
         )}
 
-        <div className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 transition-opacity'>
-          <div className='flex justify-between items-center'>
-            <div>
-              {price &&
-              displayDiscountedPrice &&
-              displayDiscountedPrice < price ? (
-                <>
-                  <span
-                    className='font-bold text-xl'
-                    style={{
-                      background: 'linear-gradient(to right, #FDBA74, #EA580C)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      display: 'inline-block',
-                    }}
-                  >
-                    {formatPrice(displayDiscountedPrice)}
-                  </span>
-                  <span
-                    className='ml-2 text-sm line-through'
-                    style={{ color: cardPriceColor, opacity: '0.7' }}
-                  >
-                    {formatPrice(price)}
-                  </span>
-                </>
-              ) : (
-                <span
-                  className='font-bold text-xl'
-                  style={{ color: cardPriceColor }}
-                >
-                  {price ? formatPrice(price) : 'Consultar'}
-                </span>
-              )}
-            </div>
-            <div
-              className='text-xs'
-              style={{ color: cardPriceColor, opacity: '0.8' }}
-            >
-              {year}
+        {pricePosition === 'overlay' && (
+          <div className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 transition-opacity'>
+            <div className='flex justify-between items-center'>
+              <div>{renderPrice()}</div>
+              <div
+                className='text-xs'
+                style={{ color: getYearColor(pricePosition), opacity: '0.8' }}
+              >
+                {year}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className={`p-4 ${isNotAvailable ? 'pointer-events-none' : ''}`}>
@@ -288,6 +304,10 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
         >
           {brand?.name} {model?.name}
         </h3>
+
+        {pricePosition === 'below-title' && (
+          <div className='mb-3'>{renderPrice()}</div>
+        )}
 
         {!compact && (
           <div className='mt-3 grid grid-cols-2 gap-2'>
