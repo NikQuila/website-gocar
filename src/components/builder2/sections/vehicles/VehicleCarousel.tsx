@@ -43,6 +43,7 @@ interface VehicleCarouselProps {
     cardButtonTextColor: string;
     detailsButtonText: string;
     bannerPosition: 'left' | 'right';
+    pricePosition: 'overlay' | 'below-title';
     featuresConfig?: {
       feature1: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
       feature2: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
@@ -77,6 +78,7 @@ export const VehicleCarousel = ({
       cardButtonTextColor: '#ffffff',
       detailsButtonText: 'Ver detalles',
       bannerPosition: 'right',
+      pricePosition: 'overlay',
       featuresConfig: {
         feature1: 'category',
         feature2: 'year',
@@ -405,6 +407,7 @@ export const VehicleCarousel = ({
                     cardButtonTextColor={cardSettings[0]?.cardButtonTextColor}
                     detailsButtonText={cardSettings[0]?.detailsButtonText}
                     bannerPosition={cardSettings[0]?.bannerPosition}
+                    pricePosition={cardSettings[0]?.pricePosition}
                     featuresConfig={cardSettings[0]?.featuresConfig}
                     newBadgeText={newBadgeText}
                   />
@@ -445,6 +448,7 @@ VehicleCarousel.craft = {
         cardButtonTextColor: '#ffffff',
         detailsButtonText: 'Ver detalles',
         bannerPosition: 'right',
+        pricePosition: 'overlay',
         featuresConfig: {
           feature1: 'category',
           feature2: 'year',

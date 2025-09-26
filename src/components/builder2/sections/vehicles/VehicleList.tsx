@@ -53,6 +53,7 @@ interface VehicleListProps {
     cardButtonTextColor: string;
     detailsButtonText: string;
     bannerPosition: 'left' | 'right';
+    pricePosition: 'overlay' | 'below-title';
     featuresConfig?: {
       feature1: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
       feature2: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
@@ -159,7 +160,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
             <Button
               variant='outline'
               size='sm'
-              className='flex items-center gap-1 text-xs'
+              className='flex items-center gap-1 text-xs border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900'
             >
               <span>
                 {sortOptions.find((option) => option.key === sortOrder)
@@ -174,7 +175,9 @@ export const VehicleList: React.FC<VehicleListProps> = ({
                 key={option.key}
                 onSelect={() => setSortOrder(option.key as any)}
                 className={
-                  sortOrder === option.key ? 'font-bold bg-gray-100' : ''
+                  sortOrder === option.key
+                    ? 'font-bold bg-gray-100 text-black'
+                    : ''
                 }
               >
                 <Icon icon={option.icon} className='text-sm mr-2' />
@@ -206,6 +209,7 @@ export const VehicleList: React.FC<VehicleListProps> = ({
               cardButtonTextColor={cardSettings?.[0]?.cardButtonTextColor}
               detailsButtonText={cardSettings?.[0]?.detailsButtonText}
               bannerPosition={cardSettings?.[0]?.bannerPosition}
+              pricePosition={cardSettings?.[0]?.pricePosition}
               featuresConfig={cardSettings?.[0]?.featuresConfig}
               newBadgeText={newBadgeText}
             />

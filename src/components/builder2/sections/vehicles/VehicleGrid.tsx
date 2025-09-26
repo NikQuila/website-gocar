@@ -61,6 +61,7 @@ interface VehicleGridProps {
     cardButtonTextColor: string;
     detailsButtonText: string;
     bannerPosition: 'left' | 'right';
+    pricePosition: 'overlay' | 'below-title';
     featuresConfig?: {
       feature1: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
       feature2: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
@@ -99,6 +100,7 @@ export const VehicleGrid = ({
       cardButtonTextColor: '#ffffff', // Color del fondo del botón
       detailsButtonText: 'Ver detalles',
       bannerPosition: 'right',
+      pricePosition: 'overlay',
       featuresConfig: {
         feature1: 'category',
         feature2: 'year',
@@ -721,12 +723,12 @@ export const VehicleGrid = ({
                   <SheetTrigger asChild>
                     <Button
                       variant='outline'
-                      className='flex items-center gap-2 md:hidden border border-gray-200'
+                      className='flex items-center gap-2 md:hidden border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900 transition-all duration-200 ease-in-out transform hover:scale-105'
                     >
                       <Filter size={16} />
                       <span>Filtros</span>
                       {hasActiveFilters && (
-                        <span className='bg-blue-100 text-blue-800 text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center'>
+                        <span className='bg-black text-white dark:bg-white dark:text-black text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center'>
                           !
                         </span>
                       )}
@@ -799,7 +801,7 @@ export const VehicleGrid = ({
                 {showFilters && (
                   <Button
                     variant='outline'
-                    className='hidden md:flex items-center gap-2 border border-gray-200'
+                    className='hidden md:flex items-center gap-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900 transition-all duration-200 ease-in-out transform hover:scale-105'
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
                   >
                     {isFilterOpen ? (
@@ -811,7 +813,7 @@ export const VehicleGrid = ({
                       {isFilterOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
                     </span>
                     {hasActiveFilters && !isFilterOpen && (
-                      <span className='bg-blue-100 text-blue-800 text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center'>
+                      <span className='bg-black text-white dark:bg-white dark:text-black text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center'>
                         !
                       </span>
                     )}
@@ -820,8 +822,8 @@ export const VehicleGrid = ({
 
                 {hasActiveFilters && (
                   <Button
-                    variant='ghost'
-                    className='text-sm text-blue-600'
+                    variant='outline'
+                    className='text-sm text-black border border-black bg-white hover:bg-black hover:text-white transition-all duration-200 ease-in-out transform hover:scale-105'
                     onClick={resetAllFilters}
                   >
                     <RotateCcw size={14} className='mr-1' />
@@ -949,6 +951,7 @@ VehicleGrid.craft = {
         cardButtonTextColor: '#ffffff', // Color del fondo del botón
         detailsButtonText: 'Ver detalles',
         bannerPosition: 'right',
+        pricePosition: 'overlay',
         featuresConfig: {
           feature1: 'category',
           feature2: 'year',
