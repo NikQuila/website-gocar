@@ -188,7 +188,9 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
         return fuel_type?.name ? (
           <div className='flex items-center text-xs' style={textStyle}>
             <Tag {...iconProps} />
-            <span>{fuel_type.name}</span>
+            <span>
+              {fuel_type.name.charAt(0).toUpperCase() + fuel_type.name.slice(1)}
+            </span>
           </div>
         ) : null;
 
