@@ -24,6 +24,7 @@ import { Image } from '@/components/builder2/userComponents/Image';
 import {
   HeroBasic,
   HeroWithBackground,
+  HeroWithLogo,
 } from '@/components/builder2/sections/initialfold';
 import { VehicleGrid } from '@/components/builder2/sections/vehicles';
 import { HeroMinimalistic } from '@/components/builder2/sections/initialfold/HeroMinimalistic';
@@ -80,6 +81,7 @@ function CraftJSContent() {
     Image,
     HeroBasic,
     HeroWithBackground,
+    HeroWithLogo,
     VehicleGrid,
     HeroMinimalistic,
     Testimonials,
