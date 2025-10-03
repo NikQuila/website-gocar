@@ -14,11 +14,14 @@ import { Image } from '@/components/builder2/userComponents/Image';
 import {
   HeroBasic,
   HeroWithBackground,
+  HeroWithLogo,
 } from '@/components/builder2/sections/initialfold';
 import { VehicleGrid } from '@/components/builder2/sections/vehicles';
 import { HeroMinimalistic } from '@/components/builder2/sections/initialfold/HeroMinimalistic';
 import { Testimonials } from '@/components/builder2/sections/testimonials';
 import { FAQ, WhyChooseUs } from '@/components/builder2/sections/features';
+import { VehicleCarousel } from '@/components/builder2/sections/vehicles/VehicleCarousel';
+import { VideoEmbed } from '@/components/builder2/sections/videos/VideoEmbed';
 import HowToArrive from '@/sections/home/HowToArrive';
 
 export default function WebsitePage() {
@@ -36,11 +39,14 @@ export default function WebsitePage() {
     Image,
     HeroBasic,
     HeroWithBackground,
+    HeroWithLogo,
     VehicleGrid,
     HeroMinimalistic,
     Testimonials,
     FAQ,
     WhyChooseUs,
+    VehicleCarousel,
+    VideoEmbed,
     HowToArrive,
     Unknown,
   } as const;

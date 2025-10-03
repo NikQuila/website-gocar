@@ -130,7 +130,7 @@ export const HeroWithBackground = ({
         height,
         position: 'relative',
         color: textColor,
-        border: selected ? '1px dashed #1e88e5' : '1px solid transparent',
+        border: selected ? '1px dashed #1e88e5' : 'none',
       }}
       className='w-full flex items-center'
     >
@@ -138,9 +138,9 @@ export const HeroWithBackground = ({
       <div style={overlayStyle} className='absolute inset-0 z-0' />
 
       {/* Content */}
-      <div className='container mx-auto px-4 z-10 relative'>
+      <div className='w-full z-10 relative'>
         <div
-          className={`max-w-3xl mx-auto text-${textAlignment}`}
+          className={`w-full text-${textAlignment}`}
           style={{ margin: textAlignment === 'center' ? '0 auto' : '0' }}
         >
           <h1

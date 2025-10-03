@@ -364,6 +364,7 @@ export interface ClientWebsiteConfig {
 
   is_enabled: boolean;
   color_scheme: 'LIGHT' | 'DARK';
+  elements_structure?: string; // Columna para el contenido del builder
   created_at: string;
   updated_at: string;
 }
