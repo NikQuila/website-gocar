@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNode, useEditor } from '@craftjs/core';
 import { Button } from '@/components/ui/button';
 import { ImageIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 // DeleteButton component not available
 
 interface HeroWithLogoProps {
@@ -35,7 +36,7 @@ export const HeroWithLogo = ({
   logoText = 'Automotora',
   logoScale = 1,
   buttonText = 'Ver Stock Completo',
-  buttonLink = '#vehicles',
+  buttonLink = '/vehicles',
   buttonBgColor = '#e05d31',
   buttonTextColor = '#ffffff',
   buttonBorderColor = '#000000',
@@ -56,6 +57,9 @@ export const HeroWithLogo = ({
   const { isEnabled } = useEditor((state) => ({
     isEnabled: state.options.enabled,
   }));
+
+  // Router para navegación
+  const router = useRouter();
 
   // Estado para el carrusel de imágenes
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -132,13 +136,22 @@ export const HeroWithLogo = ({
     opacity: overlayOpacity,
   };
 
-  // Function to scroll to vehicles section - solo se ejecuta fuera del editor
-  const scrollToVehicles = () => {
-    if (isEnabled) return; // No hacer scroll en modo editor
+  // Function to navigate to vehicles page - solo se ejecuta fuera del editor
+  const navigateToVehicles = () => {
+    if (isEnabled) return; // No navegar en modo editor
 
-    const vehiclesSection = document.getElementById('vehicles');
-    if (vehiclesSection) {
-      vehiclesSection.scrollIntoView({ behavior: 'smooth' });
+    // Si el botón tiene un link personalizado, usarlo; sino usar /vehicles por defecto
+    const targetUrl = buttonLink || '/vehicles';
+
+    // Si es un hash (#), hacer scroll; si es una ruta (/), navegar
+    if (targetUrl.startsWith('#')) {
+      const elementId = targetUrl.substring(1);
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      router.push(targetUrl);
     }
   };
 
@@ -149,7 +162,7 @@ export const HeroWithLogo = ({
         height,
         position: 'relative',
         overflow: 'hidden',
-        border: selected ? '2px dashed #1e88e5' : '2px solid transparent',
+        border: selected ? '2px dashed #1e88e5' : 'none',
       }}
       className='w-full flex items-center justify-center'
     >
@@ -179,7 +192,7 @@ export const HeroWithLogo = ({
       <div style={overlayStyle} className='absolute inset-0 z-0' />
 
       {/* Content */}
-      <div className='container mx-auto px-4 z-10 relative flex flex-col items-center justify-center h-full'>
+      <div className='w-full z-10 relative flex flex-col items-center justify-center h-full'>
         <div className='text-center'>
           {/* Logo */}
           <div className='mb-8'>
@@ -223,7 +236,7 @@ export const HeroWithLogo = ({
                     ? '50%'
                     : `${buttonBorderRadius}px`,
               }}
-              onClick={scrollToVehicles}
+              onClick={navigateToVehicles}
             >
               {buttonText}
             </Button>
@@ -651,7 +664,7 @@ HeroWithLogo.craft = {
     logoText: 'Automotora',
     logoScale: 1,
     buttonText: 'Ver Stock Completo',
-    buttonLink: '#vehicles',
+    buttonLink: '/vehicles',
     buttonBgColor: '#e05d31',
     buttonTextColor: '#ffffff',
     buttonBorderColor: '#000000',

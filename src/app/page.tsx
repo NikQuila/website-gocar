@@ -207,7 +207,7 @@ function CraftJSContent() {
   return (
     <div className='min-h-screen '>
       {json && (
-        <div style={{ margin: '0 auto', padding: '0px' }}>
+        <div style={{}}>
           <Editor resolver={resolver} enabled={false}>
             <Frame data={json} />
           </Editor>

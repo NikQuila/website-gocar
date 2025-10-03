@@ -104,7 +104,7 @@ export const HeroMinimalistic = ({
       style={{
         backgroundColor: bgColor,
         color: textColor,
-        border: selected ? '1px dashed #1e88e5' : '1px solid transparent',
+        border: selected ? '1px dashed #1e88e5' : 'none',
       }}
       className='w-full py-12 md:py-16 overflow-hidden '
     >

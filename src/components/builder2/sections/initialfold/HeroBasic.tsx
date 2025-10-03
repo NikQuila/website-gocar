@@ -91,11 +91,11 @@ const HeroBasicComponent = forwardRef<HTMLDivElement, HeroBasicProps>(
           color: textColor,
           padding: '50px 0',
           position: 'relative',
-          border: selected ? '1px dashed #1e88e5' : '1px solid transparent',
+          border: selected ? '1px dashed #1e88e5' : 'none',
         }}
         className='w-full'
       >
-        <div className={`max-w-5xl mx-auto ${textAlignClass}`}>
+        <div className={`w-full ${textAlignClass}`}>
           <h1
             style={{ color: textColor }}
             className='text-4xl md:text-5xl font-bold mb-6'
