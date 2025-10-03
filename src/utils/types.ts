@@ -51,6 +51,7 @@ export interface Client {
     finance_emails?: string[];
     consignments_emails?: string[];
     buy_emails?: string[];
+    search_emails?: string[];
   };
   location: {
     lat: number | string;
@@ -59,6 +60,7 @@ export interface Client {
   dealerships: Dealership[];
   has_dark_mode: boolean;
   client_website_config: ClientWebsiteConfig;
+  currency: 'CLP' | 'USD';
 }
 
 export interface Vehicle {
@@ -211,6 +213,9 @@ export enum LeadTypes {
   SELL_FINANCING = 'sell-financing',
   SELL_TRANSFER = 'sell-transfer',
 
+  // Búsqueda de vehículos
+  SEARCH_REQUEST = 'search-request',
+
   // Otros
   CONTACT_GENERAL = 'contact-general',
 }
@@ -359,6 +364,7 @@ export interface ClientWebsiteConfig {
 
   is_enabled: boolean;
   color_scheme: 'LIGHT' | 'DARK';
+  elements_structure?: string; // Columna para el contenido del builder
   created_at: string;
   updated_at: string;
 }
