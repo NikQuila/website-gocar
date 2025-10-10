@@ -22,6 +22,7 @@ import { Testimonials } from '@/components/builder2/sections/testimonials';
 import { FAQ, WhyChooseUs } from '@/components/builder2/sections/features';
 import { VehicleCarousel } from '@/components/builder2/sections/vehicles/VehicleCarousel';
 import { VideoEmbed } from '@/components/builder2/sections/videos/VideoEmbed';
+import { VehicleCatalogRetro } from '@/components/builder2/sections/vehicle';
 import HowToArrive from '@/sections/home/HowToArrive';
 
 export default function WebsitePage() {
@@ -47,6 +48,7 @@ export default function WebsitePage() {
     WhyChooseUs,
     VehicleCarousel,
     VideoEmbed,
+    VehicleCatalogRetro,
     HowToArrive,
     Unknown,
   } as const;

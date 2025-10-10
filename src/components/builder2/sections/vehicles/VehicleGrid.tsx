@@ -326,21 +326,38 @@ export const VehicleGrid = ({
               showStatuses.includes(vehicle.status.name as any)
           );
 
-          // Sort vehicles to show "Publicado" status first, then by newest
+          // Sort vehicles with custom ordering: Publicado → Reservado → Vendido, with newest first
           const sortedVehicles = [...filteredByStatus].sort((a, b) => {
-            if (
-              a.status.name === 'Publicado' &&
-              b.status.name !== 'Publicado'
-            ) {
-              return -1;
+            // Define status priority
+            const getStatusPriority = (statusName: string) => {
+              switch (statusName) {
+                case 'Publicado':
+                  return 1;
+                case 'Reservado':
+                  return 2;
+                case 'Vendido':
+                  return 3;
+                default:
+                  return 4;
+              }
+            };
+
+            const priorityA = getStatusPriority(a.status.name);
+            const priorityB = getStatusPriority(b.status.name);
+
+            // First sort by status priority
+            if (priorityA !== priorityB) {
+              return priorityA - priorityB;
             }
-            if (
-              a.status.name !== 'Publicado' &&
-              b.status.name === 'Publicado'
-            ) {
-              return 1;
+
+            // Then sort by year (newest first)
+            const yearA = a.year || 0;
+            const yearB = b.year || 0;
+            if (yearA !== yearB) {
+              return yearB - yearA;
             }
-            // If statuses are the same, sort by created_at (newest first)
+
+            // Finally sort by created_at (newest first)
             if (a.created_at && b.created_at) {
               const dateA = new Date(a.created_at).getTime();
               const dateB = new Date(b.created_at).getTime();

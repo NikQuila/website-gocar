@@ -280,6 +280,7 @@ export interface Lead {
 export interface Category {
   id: number;
   name: string;
+  UrlPhotos?: string; // Correct column name from database
   created_at: string;
 }
 
