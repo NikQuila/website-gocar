@@ -219,7 +219,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
   };
 
   return (
-    <div className='w-full md:w-full lg:w-80'>
+    <div className='w-full md:w-full lg:w-80 '>
       {/* Advanced Filters */}
       <div className='bg-white rounded-lg shadow-sm border border-gray-100 p-4 sticky top-4'>
         <div className='flex justify-between items-center mb-4'>

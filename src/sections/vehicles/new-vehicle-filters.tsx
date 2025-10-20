@@ -1,708 +1,639 @@
 'use client';
-import { useState, useEffect } from 'react';
+
+import { useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Chip,
   Input,
-  Select,
-  SelectItem,
   Slider,
   Accordion,
   AccordionItem,
+  CheckboxGroup,
+  Checkbox,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { VehicleFilters as VehicleFiltersType } from '@/utils/types';
-import { useGeneralStore } from '@/store/useGeneralStore';
 import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
 
-interface NewVehicleFiltersProps {
-  filters: VehicleFiltersType;
-  priceRange: number[];
-  brands: any[];
-  onFilterChange: (key: keyof VehicleFiltersType, value: any) => void;
-  onPriceRangeChange: (value: number[]) => void;
-  onClearFilters: () => void;
-  initialOpenAccordion?: string;
-  availableYears?: string[];
-  sortBy?: string;
-  searchQuery?: string;
+// -------- Traducción con fallback humano --------
+function useTx() {
+  const { t } = useTranslation();
+  const tx = (key: string, fallback: string) => {
+    const val = t?.(key) ?? '';
+    if (!val || val === key) return fallback;
+    return val;
+  };
+  return { tx };
+}
+
+// --- helpers de seguridad para listas / strings / números ---
+const safeList = <T,>(val: T[] | undefined | null): T[] => (Array.isArray(val) ? val : []);
+const safeStr = (s: any) => (typeof s === 'string' ? s : '');
+const isFiniteNum = (n: any) => typeof n === 'number' && Number.isFinite(n);
+
+type IdName = {
+  id: number | string;
+  name: string;
+  hex?: string;
+  brand_id?: string | number;
+  brand?: { id: any };
+};
+
+interface Props {
+  brands?: IdName[];
+  models?: IdName[];
+  categories?: IdName[];
+  fuelTypes?: IdName[];
+  conditions?: IdName[];
+  colors?: IdName[];
+  availableYears?: (string | number)[];
   maxPrice?: number;
+  initialOpenAccordion?: string;
+  /** Color CTA hex o css-var (p.ej. "#FF5C00" o "var(--brand-color)") */
+  ctaColor?: string;
 }
 
 const NewVehicleFilters = ({
   brands,
+  models,
+  categories,
+  fuelTypes,
+  conditions,
+  colors,
+  availableYears = [],
+  maxPrice = 1_000_000_000,
   initialOpenAccordion,
-  availableYears,
-  maxPrice = 1000000000,
-}: any) => {
-  const { colors, categories, fuelTypes, conditions } = useGeneralStore();
+  ctaColor,
+}: Props) => {
+  const { tx } = useTx();
   const {
     filters,
-    priceRange,
     setFilters,
+    priceRange,
     setPriceRange,
     clearFilters,
     sortOrder,
     searchQuery,
   } = useVehicleFiltersStore();
-  // Estado para controlar qué acordeón está abierto (solo uno a la vez o ninguno)
-  const [openAccordion, setOpenAccordion] = useState<string | null>(
-    initialOpenAccordion || null
-  );
 
-  // Estados para manejar campos vacíos
-  const [minPriceEmpty, setMinPriceEmpty] = useState(false);
-  const [maxPriceEmpty, setMaxPriceEmpty] = useState(false);
-  const { t } = useTranslation();
+  // ===== LISTAS SEGURAS (evita undefined en plantillas "apagadas") =====
+  const BRANDS = safeList(brands);
+  const MODELS = safeList(models);
+  const CATEGORIES = safeList(categories);
+  const FUELTYPES = safeList(fuelTypes);
+  const CONDITIONS = safeList(conditions);
+  const COLORS = safeList(colors);
+  const YEARS = safeList(availableYears as any[]);
 
-  const activeFiltersCount =
-    Object.keys(filters).length +
-    (priceRange[0] > 0 || priceRange[1] < maxPrice ? 1 : 0) +
-    (sortOrder !== 'date_desc' ? 1 : 0) +
-    (searchQuery.trim() !== '' ? 1 : 0);
+  // ===== Textos =====
+  const filtersTitle = tx('vehicles.filters.title', 'Filtros');
+  const clearFiltersText = tx('vehicles.filters.clearFilters', 'Limpiar filtros');
+  const priceLabel = tx('vehicles.filters.priceRange', 'Rango de precio');
+  const minPriceText = tx('vehicles.filters.minPrice', 'Mínimo');
+  const maxPriceText = tx('vehicles.filters.maxPrice', 'Máximo');
 
-  // Función para manejar la apertura/cierre de acordeones
-  const handleAccordionSelection = (key: string) => {
-    setOpenAccordion(openAccordion === key ? null : key);
+  const brandText = tx('vehicles.filters.brand', 'Marca');
+  const modelText = tx('vehicles.filters.model', 'Modelo');
+  const categoryText = tx('vehicles.filters.category', 'Categoría');
+  const fuelText = tx('vehicles.filters.fuelType', 'Combustible');
+  const conditionText = tx('vehicles.filters.condition', 'Condición');
+  const colorText = tx('vehicles.filters.color', 'Color');
+  const yearText = tx('vehicles.filters.year', 'Año');
+
+  // -------- helpers base --------
+  const asArray = (v?: string | string[]) => (Array.isArray(v) ? v : v ? [v] : []);
+  const setMulti = (key: keyof VehicleFiltersType, next: string[]) => {
+    const nf: VehicleFiltersType = { ...filters };
+    if (!next.length) delete (nf as any)[key];
+    else (nf as any)[key] = next;
+    setFilters(nf);
   };
+  const toggle = (arr: string[], id: string) =>
+    arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id];
+  const getName = (list: IdName[], id: string) =>
+    list.find((i) => String(i?.id) === String(id))?.name || String(id);
 
-  // Función para eliminar un filtro individual
-  const handleRemoveFilter = (key: keyof VehicleFiltersType) => {
-    const newFilters = { ...filters };
-    delete newFilters[key];
-    setFilters(newFilters);
+  const [openAccordion, setOpenAccordion] = useState<string | null>(initialOpenAccordion || null);
+
+  // ====== priceRange seguro (por si llega undefined / NaN) ======
+  const PR: [number, number] = useMemo(() => {
+    const a = Array.isArray(priceRange) ? priceRange : [0, maxPrice];
+    const min = isFiniteNum(a[0]) ? a[0] : 0;
+    const max = isFiniteNum(a[1]) ? a[1] : maxPrice;
+    const clampedMin = Math.max(0, Math.min(min, max));
+    const clampedMax = Math.min(Math.max(max, clampedMin), maxPrice);
+    return [clampedMin, clampedMax];
+  }, [priceRange, maxPrice]);
+
+  // input precio controlado
+  const [minInput, setMinInput] = useState<string>('0');
+  const [maxInput, setMaxInput] = useState<string>(`${maxPrice}`);
+  useEffect(() => {
+    setMinInput(String(PR[0] || 0));
+    setMaxInput(String(PR[1] || maxPrice));
+  }, [PR, maxPrice]);
+
+  const formatCLP = (n: number) =>
+    new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      maximumFractionDigits: 0,
+    }).format(isFinite(n) ? n : 0);
+  const parseNumber = (s: string) => Number((s || '0').replace(/\D/g, '')) || 0;
+
+  const commitMin = () => {
+    const v = parseNumber(minInput);
+    const clamped = Math.max(0, Math.min(v, PR[1]));
+    setPriceRange([clamped, PR[1]]);
+    setMinInput(String(clamped));
   };
-
-  // Función para resetear el rango de precios
-  const handleResetPriceRange = () => {
+  const commitMax = () => {
+    const v = parseNumber(maxInput || `${maxPrice}`);
+    const clamped = Math.min(Math.max(v, PR[0]), maxPrice);
+    setPriceRange([PR[0], clamped]);
+    setMaxInput(String(clamped));
+  };
+  const resetPrice = () => {
     setPriceRange([0, maxPrice]);
+    setMinInput('0');
+    setMaxInput(`${maxPrice}`);
   };
 
-  const formatPrice = (price: number) => {
-    // Verificar si el precio es un número válido
-    if (
-      isNaN(price) ||
-      !isFinite(price) ||
-      price === undefined ||
-      price === null
-    ) {
-      return '$0';
-    }
-    try {
-      return new Intl.NumberFormat('es-CL', {
-        style: 'currency',
-        currency: 'CLP',
-        maximumFractionDigits: 0,
-      }).format(price);
-    } catch (error) {
-      return '$0';
-    }
-  };
+  // modelos dependientes de marca si hay relación brand_id o model.brand.id
+  const selectedBrandIds = asArray(filters.brand);
+  const filteredModels: IdName[] = useMemo(() => {
+    if (!selectedBrandIds.length) return MODELS;
+    const set = new Set(selectedBrandIds.map(String));
+    return MODELS.filter((m: any) => {
+      const byField = m?.brand_id?.toString && set.has(String(m.brand_id));
+      const byObj = m?.brand?.id?.toString && set.has(String(m.brand.id));
+      return byField || byObj;
+    });
+  }, [MODELS, selectedBrandIds]);
 
-  const getFilterName = (key: keyof VehicleFiltersType, id: string) => {
-    switch (key) {
-      case 'brand':
-        return (
-          brands.find((b) => b.id.toString() === id)?.name ||
-          t('vehicles.filters.brand')
-        );
-      case 'category':
-        return (
-          categories.find((c) => c.id.toString() === id)?.name ||
-          t('vehicles.filters.category')
-        );
-      case 'fuel_type':
-        return (
-          fuelTypes.find((f) => f.id.toString() === id)?.name ||
-          t('vehicles.filters.fuelType')
-        );
-      case 'condition':
-        return (
-          conditions.find((c) => c.id.toString() === id)?.name ||
-          t('vehicles.filters.condition')
-        );
-      case 'color':
-        return (
-          colors.find((c) => c.id.toString() === id)?.name ||
-          t('vehicles.filters.color')
-        );
-      default:
-        return t('common.actions.filter');
-    }
-  };
+  // contador filtros activos
+  const activeFiltersCount =
+    Object.values(filters).reduce((acc, v) => acc + (Array.isArray(v) ? v.length : v ? 1 : 0), 0) +
+    (PR[0] > 0 || PR[1] < maxPrice ? 1 : 0) +
+    (sortOrder !== 'date_desc' ? 1 : 0) +
+    (safeStr(searchQuery).trim() !== '' ? 1 : 0);
+
+  // presets precio (por si los usas después)
+  const pricePresets: { label: string; range: [number, number] }[] = [
+    { label: '≤ $10M', range: [0, Math.min(10_000_000, maxPrice)] },
+    { label: '≤ $20M', range: [0, Math.min(20_000_000, maxPrice)] },
+    { label: '$20M–$35M', range: [20_000_000, Math.min(35_000_000, maxPrice)] },
+  ];
+
+  // búsquedas locales para listas largas
+  const [brandQuery, setBrandQuery] = useState('');
+  const [modelQuery, setModelQuery] = useState('');
+
+  const CTA = ctaColor || undefined;
 
   return (
-    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-full transition-opacity duration-300'>
-      <div className='p-4 border-b border-gray-200 dark:border-dark-border'>
-        <div className='flex justify-between items-center'>
-          <div>
-            <h3 className='text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2 mt-4 sm:mt-0'>
-              {t('vehicles.filters.title')}
-              {activeFiltersCount > 0 && (
-                <Chip size='sm' color='primary' variant='flat'>
-                  {activeFiltersCount}
-                </Chip>
-              )}
-            </h3>
+    <div
+      className="rounded-2xl w-full bg-white/80 dark:bg-[#0F0F14]/80   transition-all 0  dark:border-white/10 overflow-hidden"
+      style={{ contain: 'content' }}
+    >
+      {/* HEADER sticky */}
+      <div className="p-4 border-b border-gray-200 dark:border-white/10 sticky top-0 z-20 bg-white/80 dark:bg-[#0F0F14]/80 backdrop-blur-xl rounded-t-2xl">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Icon icon="solar:filter-linear" className="text-xl" style={CTA ? { color: CTA } : undefined} />
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white">{filtersTitle}</h3>
+            {activeFiltersCount > 0 && (
+              <Chip size="sm" color="primary" variant="flat">
+                {activeFiltersCount}
+              </Chip>
+            )}
           </div>
+
           {activeFiltersCount > 0 && (
             <Button
-              size='sm'
-              variant='light'
-              color='danger'
-              onClick={() => clearFilters(maxPrice)}
-              className='text-[13px] py-0 px-0 font-normal bg-transparent min-w-0 flex items-center mx-auto mt-4 sm:mt-0 sm:mx-0'
+              size="sm"
+              variant="light"
+              color="danger"
+              onPress={() => clearFilters(maxPrice)}
+              className="text-[13px] h-7 px-2"
+              startContent={<Icon icon="mdi:filter-remove-outline" className="text-base" />}
             >
-              <Icon
-                icon='solar:filter-linear'
-                className='text-xs mr-1 rotate-180'
-              />
-              {t('vehicles.filters.clearFilters')}
+              {clearFiltersText}
             </Button>
           )}
         </div>
       </div>
 
-      <Accordion
-        selectionMode='single'
-        selectedKeys={openAccordion ? [openAccordion] : []}
-        onSelectionChange={(keys) => {
-          const selectedKey = Array.from(keys)[0]?.toString() || null;
-          setOpenAccordion(selectedKey);
-        }}
-      >
-        <AccordionItem
-          key='price'
-          aria-label={t('vehicles.filters.priceRange')}
-          startContent={
-            <Icon icon='mdi:cash' className='text-xl text-primary mr-1' />
-          }
-          title={
-            <div className='flex flex-col items-start'>
-              <div>{t('vehicles.filters.priceRange')}</div>
-              {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
-                <Chip
-                  size='sm'
-                  color='primary'
-                  variant='flat'
-                  className='text-xs py-0 h-5 mt-1 ml-0 pl-0'
-                  classNames={{
-                    content: 'pl-1 text-[10px]',
-                    base: 'ml-8 pl-0',
-                  }}
-                  onClose={() => handleResetPriceRange()}
-                >
-                  {`${formatPrice(priceRange[0])} - ${formatPrice(
-                    priceRange[1]
-                  )}`}
-                </Chip>
-              )}
-            </div>
-          }
-          classNames={{
-            base: 'group-[.is-splitted]:ps-0 py-0 w-full',
-            heading:
-              'px-1 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
-            trigger: 'px-0 flex items-center w-full',
-            content: 'px-2 py-2',
-            title: 'flex-1',
-            indicator: 'ml-0',
+      {/* CONTENIDO con altura máxima + scroll interno */}
+      <div className="max-h-[78vh] overflow-y-auto px-1 pb-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+        <Accordion
+          selectionMode="single"
+          selectedKeys={openAccordion ? [openAccordion] : []}
+          onSelectionChange={(keys) => {
+            const selectedKey = Array.from(keys)[0]?.toString() || null;
+            setOpenAccordion(selectedKey);
           }}
         >
-          <div className='space-y-4'>
-            <div className='flex justify-between items-center gap-2'>
-              <Input
-                type='text'
-                size='sm'
-                placeholder={t('vehicles.filters.minPrice')}
-                value={
-                  minPriceEmpty
-                    ? ''
-                    : formatPrice(priceRange[0]).replace('$', '').trim()
-                }
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '');
-                  if (value === '') {
-                    setMinPriceEmpty(true);
-                    return;
-                  }
-                  setMinPriceEmpty(false);
-                  const numValue = Number(value);
-                  if (!isNaN(numValue) && isFinite(numValue)) {
-                    setPriceRange([numValue, priceRange[1]]);
-                  }
-                }}
-                onFocus={() => {
-                  // No vaciar automáticamente, solo permitir edición del valor actual
-                  setMinPriceEmpty(false);
-                }}
-                onBlur={(e) => {
-                  const value = e.target.value.replace(/\D/g, '');
-                  const numValue = value ? Number(value) : 0;
-                  setMinPriceEmpty(false);
-                  if (!isNaN(numValue) && isFinite(numValue)) {
-                    setPriceRange([numValue, priceRange[1]]);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const value = (e.target as HTMLInputElement).value.replace(
-                      /\D/g,
-                      ''
-                    );
-                    const numValue = value ? Number(value) : 0;
-                    setMinPriceEmpty(false);
-                    if (!isNaN(numValue) && isFinite(numValue)) {
-                      setPriceRange([numValue, priceRange[1]]);
-                    }
-                  }
-                }}
-                startContent={
-                  <span className='text-gray-500 dark:text-gray-400 text-xs'>
-                    $
-                  </span>
-                }
-                className='w-full text-xs'
-                classNames={{
-                  input: 'text-xs',
-                  inputWrapper: 'h-8',
-                }}
-              />
-              <span className='text-gray-400 text-xs'>-</span>
-              <Input
-                type='text'
-                size='sm'
-                placeholder={t('vehicles.filters.maxPrice')}
-                value={
-                  maxPriceEmpty
-                    ? ''
-                    : formatPrice(priceRange[1]).replace('$', '').trim()
-                }
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '');
-                  if (value === '') {
-                    setMaxPriceEmpty(true);
-                    return;
-                  }
-                  setMaxPriceEmpty(false);
-                  const numValue = Number(value);
-                  if (!isNaN(numValue) && isFinite(numValue)) {
-                    setPriceRange([priceRange[0], numValue]);
-                  }
-                }}
-                onFocus={() => {
-                  // No vaciar automáticamente, solo permitir edición del valor actual
-                  setMaxPriceEmpty(false);
-                }}
-                onBlur={(e) => {
-                  const value = e.target.value.replace(/\D/g, '');
-                  const numValue = value ? Number(value) : maxPrice;
-                  setMaxPriceEmpty(false);
-                  if (!isNaN(numValue) && isFinite(numValue)) {
-                    setPriceRange([priceRange[0], numValue]);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const value = (e.target as HTMLInputElement).value.replace(
-                      /\D/g,
-                      ''
-                    );
-                    const numValue = value ? Number(value) : maxPrice;
-                    setMaxPriceEmpty(false);
-                    if (!isNaN(numValue) && isFinite(numValue)) {
-                      setPriceRange([priceRange[0], numValue]);
-                    }
-                  }
-                }}
-                startContent={
-                  <span className='text-gray-500 dark:text-gray-400 text-xs'>
-                    $
-                  </span>
-                }
-                className='w-full text-xs'
-                classNames={{
-                  input: 'text-xs',
-                  inputWrapper: 'h-8',
-                }}
-              />
-            </div>
-            <div className='px-1'>
-              <Slider
-                value={priceRange}
-                onChange={(value) => setPriceRange(value as number[])}
-                minValue={0}
-                maxValue={maxPrice}
-                step={1000000}
-                className='max-w-full'
-                size='sm'
-                classNames={{
-                  base: 'dark:bg-dark-card',
-                  track: 'dark:bg-dark-border',
-                  filler: 'dark:bg-primary',
-                  thumb: 'dark:bg-primary dark:border-dark-border h-3 w-3',
-                  label: 'dark:text-white',
-                }}
-                aria-label='Rango de precio'
-              />
-              <div className='flex justify-between mt-1 text-[10px] text-gray-500'>
-                <span>{formatPrice(priceRange[0])}</span>
-                <span>{formatPrice(priceRange[1])}</span>
+          {/* PRECIO */}
+          <AccordionItem
+            key="price"
+            aria-label={priceLabel}
+            startContent={<Icon icon="mdi:cash" className="text-xl" style={CTA ? { color: CTA } : undefined} />}
+            title={
+              <div className="flex flex-col items-start">
+                <div className="font-medium">{priceLabel}</div>
+                {(PR[0] > 0 || PR[1] < maxPrice) && (
+                  <Chip size="sm" color="primary" variant="flat" className="h-5 mt-1" onClose={resetPrice}>
+                    {`${formatCLP(PR[0])} – ${formatCLP(PR[1])}`}
+                  </Chip>
+                )}
+              </div>
+            }
+            classNames={{
+              heading: 'px-2 py-2 hover:bg-white/50 dark:hover:bg-white/5',
+              content: 'px-3 py-3',
+            }}
+          >
+            <div className="space-y-3">
+              <div className="flex justify-between items-center gap-2">
+                <Input
+                  type="text"
+                  size="sm"
+                  inputMode="numeric"
+                  placeholder={minPriceText}
+                  value={minInput}
+                  onChange={(e) => setMinInput(e.target.value.replace(/\D/g, ''))}
+                  onBlur={commitMin}
+                  onKeyDown={(e) => e.key === 'Enter' && commitMin()}
+                  startContent={<span className="text-gray-500 dark:text-gray-400 text-xs">$</span>}
+                  className="w-full text-xs"
+                  classNames={{ input: 'text-xs', inputWrapper: 'h-9' }}
+                />
+                <span className="text-gray-400 text-xs">–</span>
+                <Input
+                  type="text"
+                  size="sm"
+                  inputMode="numeric"
+                  placeholder={maxPriceText}
+                  value={maxInput}
+                  onChange={(e) => setMaxInput(e.target.value.replace(/\D/g, ''))}
+                  onBlur={commitMax}
+                  onKeyDown={(e) => e.key === 'Enter' && commitMax()}
+                  startContent={<span className="text-gray-500 dark:text-gray-400 text-xs">$</span>}
+                  className="w-full text-xs"
+                  classNames={{ input: 'text-xs', inputWrapper: 'h-9' }}
+                />
+              </div>
+
+              <div className="px-1">
+                <Slider
+                  value={[PR[0], PR[1]] as [number, number]}
+                  onChange={(value) => {
+                    const [min, max] = value as [number, number];
+                    // Clamp contra maxPrice por si el sitio trae valores out-of-range al reactivarse
+                    const nextMin = Math.max(0, Math.min(min, max, maxPrice));
+                    const nextMax = Math.max(nextMin, Math.min(max, maxPrice));
+                    setPriceRange([nextMin, nextMax]);
+                    setMinInput(String(nextMin));
+                    setMaxInput(String(nextMax));
+                  }}
+                  minValue={0}
+                  maxValue={maxPrice}
+                  step={1_000_000}
+                  size="sm"
+                  className="max-w-full"
+                  classNames={{
+                    track: 'dark:bg-white/10',
+                    thumb: 'dark:border-white/10 h-3 w-3',
+                  }}
+                  style={CTA ? ({ '--slider-filler-bg': CTA } as React.CSSProperties) : undefined}
+                  aria-label="Rango de precio"
+                />
+                <div className="flex justify-between mt-1 text-[10px] text-gray-500">
+                  <span>{formatCLP(PR[0])}</span>
+                  <span>{formatCLP(PR[1])}</span>
+                </div>
               </div>
             </div>
-          </div>
-        </AccordionItem>
+          </AccordionItem>
 
-        <AccordionItem
-          key='brand'
-          aria-label={t('vehicles.filters.brand')}
-          startContent={
-            <Icon icon='mdi:car-estate' className='text-xl text-primary' />
-          }
-          title={
-            <div className='flex items-center gap-2'>
-              {t('vehicles.filters.brand')}
-              {filters.brand && (
-                <Chip
-                  size='sm'
-                  color='primary'
-                  variant='flat'
-                  className='text-xs py-0 h-5'
-                  onClose={() => handleRemoveFilter('brand')}
-                >
-                  {getFilterName('brand', filters.brand)}
-                </Chip>
-              )}
-            </div>
-          }
-          classNames={{
-            base: 'group-[.is-splitted]:ps-0 py-0',
-            heading:
-              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
-            trigger: 'px-0',
-            content: 'px-2 py-2',
-          }}
-        >
-          <Select
-            placeholder={t('vehicles.filters.selectBrand')}
-            selectedKeys={filters.brand ? [filters.brand] : []}
-            onChange={(e) => setFilters({ ...filters, brand: e.target.value })}
-            classNames={{
-              base: 'dark:bg-dark-card',
-              trigger:
-                'dark:bg-dark-card dark:text-white dark:border-dark-border',
-              listbox: 'dark:bg-dark-card dark:text-white',
-              popoverContent: 'dark:bg-dark-card dark:border-dark-border',
-              value: 'dark:text-white',
-              label: 'dark:text-gray-400',
-            }}
+          {/* MARCA (checkbox + buscador) */}
+          <AccordionItem
+            key="brand"
+            aria-label={brandText}
+            startContent={<Icon icon="mdi:car-estate" className="text-xl" style={CTA ? { color: CTA } : undefined} />}
+            title={<div className="flex items-center gap-2">{brandText}</div>}
+            classNames={{ heading: 'px-2 py-2 text-nowrap hover:bg-white/50 dark:hover:bg-white/5', content: 'px-3 py-3' }}
           >
-            {[
-              ...new Map(brands.map((brand) => [brand.id, brand])).values(),
-            ].map((brand) => (
-              <SelectItem key={brand.id} value={brand.id}>
-                {brand.name}
-              </SelectItem>
-            ))}
-          </Select>
-        </AccordionItem>
+            <Input
+              aria-label="Buscar marca"
+              placeholder="Buscar marca…"
+              size="sm"
+              value={brandQuery}
+              onChange={(e) => setBrandQuery(e.target.value)}
+              className="mb-2"
+            />
+            <CheckboxGroup
+              value={asArray(filters.brand)}
+              onChange={(val) => setMulti('brand', (val as string[]) ?? [])}
+              className="grid grid-cols-1 gap-1.5"
+            >
+              {BRANDS
+                .filter((b) => safeStr(b?.name).toLowerCase().includes(brandQuery.toLowerCase()))
+                .map((b) => {
+                  const id = String(b.id);
+                  return (
+                    <Checkbox
+                      key={`brand-${id}`}
+                      value={id}
+                      classNames={{
+                        wrapper: 'rounded-md',
+                        label: 'text-sm',
+                      }}
+                    >
+                      {b?.name ?? id}
+                    </Checkbox>
+                  );
+                })}
+            </CheckboxGroup>
 
-        <AccordionItem
-          key='category'
-          aria-label={t('vehicles.filters.category')}
-          startContent={
-            <Icon icon='mdi:car-side' className='text-xl text-primary' />
-          }
-          title={
-            <div className='flex items-center gap-2'>
-              {t('vehicles.filters.category')}
-              {filters.category && (
-                <Chip
-                  size='sm'
-                  color='primary'
-                  variant='flat'
-                  className='text-xs py-0 h-5'
-                  onClose={() => handleRemoveFilter('category')}
-                >
-                  {getFilterName('category', filters.category)}
-                </Chip>
-              )}
-            </div>
-          }
-          classNames={{
-            base: 'group-[.is-splitted]:ps-0 py-0',
-            heading:
-              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
-            trigger: 'px-0',
-            content: 'px-2 py-2',
-          }}
-        >
-          <div className='grid grid-cols-2 sm:flex sm:flex-wrap gap-2'>
-            {categories.map((category) => (
-              <Chip
-                key={category.id}
-                onClick={() =>
-                  setFilters({ ...filters, category: category.id.toString() })
-                }
-                className=' capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
-                color={
-                  filters.category === category.id.toString()
-                    ? 'primary'
-                    : 'default'
-                }
-                variant={
-                  filters.category === category.id.toString() ? 'solid' : 'flat'
-                }
-              >
-                {category.name}
-              </Chip>
-            ))}
-          </div>
-        </AccordionItem>
+            {asArray(filters.brand).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {asArray(filters.brand).map((id) => (
+                  <Chip
+                    key={`brand-chip-${id}`}
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    onClose={() => setMulti('brand', asArray(filters.brand).filter((x) => x !== String(id)))}
+                  >
+                    {getName(BRANDS, String(id))}
+                  </Chip>
+                ))}
+              </div>
+            )}
+          </AccordionItem>
 
-        <AccordionItem
-          key='fuel'
-          aria-label={t('vehicles.filters.fuelType')}
-          startContent={
-            <Icon icon='mdi:gas-station' className='text-xl text-primary' />
-          }
-          title={
-            <div className='flex items-center gap-2'>
-              {t('vehicles.filters.fuelType')}
-              {filters.fuel_type && (
-                <Chip
-                  size='sm'
-                  color='primary'
-                  variant='flat'
-                  className='text-xs py-0 h-5'
-                  onClose={() => handleRemoveFilter('fuel_type')}
-                >
-                  {getFilterName('fuel_type', filters.fuel_type)}
-                </Chip>
-              )}
-            </div>
-          }
-          classNames={{
-            base: 'group-[.is-splitted]:ps-0 py-0',
-            heading:
-              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
-            trigger: 'px-0',
-            content: 'px-2 py-2',
-          }}
-        >
-          <div className='grid grid-cols-2 sm:flex sm:flex-wrap gap-2'>
-            {fuelTypes.map((type) => (
-              <Chip
-                key={type.id}
-                onClick={() =>
-                  setFilters({ ...filters, fuel_type: type.id.toString() })
-                }
-                className=' capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
-                color={
-                  filters.fuel_type === type.id.toString()
-                    ? 'primary'
-                    : 'default'
-                }
-                variant={
-                  filters.fuel_type === type.id.toString() ? 'solid' : 'flat'
-                }
-              >
-                {type.name}
-              </Chip>
-            ))}
-          </div>
-        </AccordionItem>
-
-        {/* Year Filter */}
-        <AccordionItem
-          key='year'
-          aria-label={t('vehicles.filters.year')}
-          startContent={
-            <Icon icon='mdi:calendar' className='text-xl text-primary' />
-          }
-          title={
-            <div className='flex items-center gap-2'>
-              {t('vehicles.filters.year')}
-              {filters.year && (
-                <Chip
-                  size='sm'
-                  color='primary'
-                  variant='flat'
-                  className='text-xs py-0 h-5'
-                  onClose={() => handleRemoveFilter('year')}
-                >
-                  {filters.year}
-                </Chip>
-              )}
-            </div>
-          }
-          classNames={{
-            base: 'group-[.is-splitted]:ps-0 py-0',
-            heading:
-              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
-            trigger: 'px-0',
-            content: 'px-2 py-2',
-          }}
-        >
-          <Select
-            placeholder={t('vehicles.filters.year')}
-            selectedKeys={filters.year ? [filters.year] : []}
-            onChange={(e) => setFilters({ ...filters, year: e.target.value })}
-            classNames={{
-              base: 'dark:bg-dark-card',
-              trigger:
-                'dark:bg-dark-card dark:text-white dark:border-dark-border',
-              listbox: 'dark:bg-dark-card dark:text-white',
-              popoverContent: 'dark:bg-dark-card dark:border-dark-border',
-              value: 'dark:text-white',
-              label: 'dark:text-gray-400',
-            }}
+          {/* MODELO (checkbox + buscador, dependiente de marca) */}
+          <AccordionItem
+            key="model"
+            aria-label={modelText}
+            startContent={<Icon icon="mdi:clipboard-text-outline" className="text-xl" style={CTA ? { color: CTA } : undefined} />}
+            title={<div className="flex text-nowrap items-center gap-2">{modelText}</div>}
+            classNames={{ heading: 'px-2 py-2 hover:bg-white/50 dark:hover:bg-white/5', content: 'px-3 py-3' }}
           >
-            {availableYears &&
-              availableYears.length > 0 &&
-              availableYears.map((year) => (
-                <SelectItem key={year} value={year}>
-                  {year}
-                </SelectItem>
-              ))}
-          </Select>
-        </AccordionItem>
+            <Input
+              aria-label="Buscar modelo"
+              placeholder="Buscar modelo…"
+              size="sm"
+              value={modelQuery}
+              onChange={(e) => setModelQuery(e.target.value)}
+              className="mb-2"
+            />
+            <CheckboxGroup
+              value={asArray(filters.model)}
+              onChange={(val) => setMulti('model', (val as string[]) ?? [])}
+              className="grid grid-cols-1 gap-1.5"
+            >
+              {filteredModels
+                .filter((m) => safeStr(m?.name).toLowerCase().includes(modelQuery.toLowerCase()))
+                .map((m) => {
+                  const id = String(m.id);
+                  return (
+                    <Checkbox key={`model-${id}`} value={id} classNames={{ wrapper: 'rounded-md', label: 'text-sm' }}>
+                      {m?.name ?? id}
+                    </Checkbox>
+                  );
+                })}
+            </CheckboxGroup>
 
-        <AccordionItem
-          key='condition'
-          aria-label={t('vehicles.filters.condition')}
-          startContent={
-            <Icon icon='mdi:car-info' className='text-xl text-primary' />
-          }
-          title={
-            <div className='flex items-center gap-2'>
-              {t('vehicles.filters.condition')}
-              {filters.condition && (
-                <Chip
-                  size='sm'
-                  color='primary'
-                  variant='flat'
-                  className='text-xs py-0 h-5'
-                  onClose={() => handleRemoveFilter('condition')}
-                >
-                  {getFilterName('condition', filters.condition)}
-                </Chip>
-              )}
-            </div>
-          }
-          classNames={{
-            base: 'group-[.is-splitted]:ps-0 py-0',
-            heading:
-              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
-            trigger: 'px-0',
-            content: 'px-2 py-2',
-          }}
-        >
-          <div className='grid grid-cols-2 sm:flex sm:flex-wrap gap-2'>
-            {conditions.map((condition) => (
-              <Chip
-                key={condition.id}
-                onClick={() =>
-                  setFilters({ ...filters, condition: condition.id.toString() })
-                }
-                className=' capitalize cursor-pointer hover:-translate-y-0.5 transition-transform w-full sm:w-auto justify-center'
-                color={
-                  filters.condition === condition.id.toString()
-                    ? 'primary'
-                    : 'default'
-                }
-                variant={
-                  filters.condition === condition.id.toString()
-                    ? 'solid'
-                    : 'flat'
-                }
-              >
-                {condition.name}
-              </Chip>
-            ))}
-          </div>
-        </AccordionItem>
+            {asArray(filters.model).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {asArray(filters.model).map((id) => (
+                  <Chip
+                    key={`model-chip-${id}`}
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    onClose={() => setMulti('model', asArray(filters.model).filter((x) => x !== String(id)))}
+                  >
+                    {getName(MODELS, String(id))}
+                  </Chip>
+                ))}
+              </div>
+            )}
+          </AccordionItem>
 
-        <AccordionItem
-          key='color'
-          aria-label={t('vehicles.filters.color')}
-          startContent={
-            <Icon icon='mdi:palette' className='text-xl text-primary' />
-          }
-          title={
-            <div className='flex items-center gap-2'>
-              {t('vehicles.filters.color')}
-              {filters.color && (
-                <Chip
-                  size='sm'
-                  color='primary'
-                  variant='flat'
-                  className='text-xs py-0 h-5'
-                  onClose={() => handleRemoveFilter('color')}
-                >
-                  {getFilterName('color', filters.color)}
-                </Chip>
-              )}
-            </div>
-          }
-          classNames={{
-            base: 'group-[.is-splitted]:ps-0 py-0',
-            heading:
-              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
-            trigger: 'px-0',
-            content: 'px-2 py-2',
-          }}
-        >
-          <div className='grid grid-cols-2 gap-2 pb-2 mb-4'>
-            {colors.map((color) => (
-              <button
-                key={color.id}
-                onClick={() =>
-                  setFilters({ ...filters, color: color.id.toString() })
-                }
-                className={`capitalize w-full flex items-center gap-2 px-2 py-1 rounded-lg border transition-all
-                  ${
-                    filters.color === color.id.toString()
-                      ? 'border-primary bg-primary/5 dark:bg-primary/10'
-                      : 'border-gray-200 dark:border-dark-border bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-border/50'
-                  }
-                `}
-              >
-                <div
-                  className={`w-3.5 h-3.5 rounded-full border
-                    ${
-                      filters.color === color.id.toString()
-                        ? 'border-primary'
-                        : 'border-gray-200 dark:border-dark-border'
-                    }
-                  `}
-                  style={{
-                    backgroundColor: color.hex,
-                  }}
-                />
-                <span
-                  className={`text-xs
-                  ${
-                    filters.color === color.id.toString()
-                      ? 'text-primary font-medium'
-                      : 'text-gray-700 dark:text-gray-300'
-                  }
-                `}
-                >
-                  {color.name}
-                </span>
-                {filters.color === color.id.toString() && (
-                  <Icon
-                    icon='mdi:check'
-                    className='ml-auto text-primary text-lg'
-                  />
-                )}
-              </button>
-            ))}
-          </div>
-        </AccordionItem>
-      </Accordion>
+          {/* CATEGORÍA (checkbox grid) */}
+          <AccordionItem
+            key="category"
+            aria-label={categoryText}
+            startContent={<Icon icon="mdi:car-side" className="text-xl" style={CTA ? { color: CTA } : undefined} />}
+            title={<div className="flex  items-center gap-2">{categoryText}</div>}
+            classNames={{ heading: 'px-2 py-2 hover:bg-white/50 dark:hover:bg-white/5', content: 'px-3 py-3 text-nowrap' }}
+          >
+            <CheckboxGroup
+              value={asArray(filters.category)}
+              onChange={(val) => setMulti('category', (val as string[]) ?? [])}
+              className="grid grid-cols-2 gap-1.5"
+            >
+              {CATEGORIES.map((c) => {
+                const id = String(c.id);
+                return (
+                  <Checkbox key={`cat-${id}`} value={id} classNames={{ wrapper: 'rounded-md', label: 'text-sm' }}>
+                    {c?.name ?? id}
+                  </Checkbox>
+                );
+              })}
+            </CheckboxGroup>
+
+            {asArray(filters.category).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {asArray(filters.category).map((id) => (
+                  <Chip
+                    key={`cat-chip-${id}`}
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    onClose={() => setMulti('category', asArray(filters.category).filter((x) => x !== String(id)))}
+                  >
+                    {getName(CATEGORIES, String(id))}
+                  </Chip>
+                ))}
+              </div>
+            )}
+          </AccordionItem>
+
+          {/* COMBUSTIBLE (checkbox grid) */}
+          <AccordionItem
+            key="fuel_type"
+            aria-label={fuelText}
+            startContent={<Icon icon="mdi:gas-station" className="text-xl" style={CTA ? { color: CTA } : undefined} />}
+            title={<div className="flex items-center gap-2">{fuelText}</div>}
+            classNames={{ heading: 'px-2 py-2 hover:bg-white/50 dark:hover:bg-white/5', content: 'px-3 py-3' }}
+          >
+            <CheckboxGroup
+              value={asArray(filters.fuel_type)}
+              onChange={(val) => setMulti('fuel_type', (val as string[]) ?? [])}
+              className="grid grid-cols-2 gap-1.5"
+            >
+              {FUELTYPES.map((f) => {
+                const id = String(f.id);
+                return (
+                  <Checkbox key={`fuel-${id}`} value={id} classNames={{ wrapper: 'rounded-md', label: 'text-sm' }}>
+                    {f?.name ?? id}
+                  </Checkbox>
+                );
+              })}
+            </CheckboxGroup>
+
+            {asArray(filters.fuel_type).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {asArray(filters.fuel_type).map((id) => (
+                  <Chip
+                    key={`fuel-chip-${id}`}
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    onClose={() => setMulti('fuel_type', asArray(filters.fuel_type).filter((x) => x !== String(id)))}
+                  >
+                    {getName(FUELTYPES, String(id))}
+                  </Chip>
+                ))}
+              </div>
+            )}
+          </AccordionItem>
+
+          {/* AÑO (checkbox grid) */}
+          <AccordionItem
+            key="year"
+            aria-label={yearText}
+            startContent={<Icon icon="mdi:calendar" className="text-xl" style={CTA ? { color: CTA } : undefined} />}
+            title={<div className="flex items-center gap-2">{yearText}</div>}
+            classNames={{ heading: 'px-2 py-2 hover:bg-white/50 dark:hover:bg-white/5', content: 'px-3 py-3' }}
+          >
+            <CheckboxGroup
+              value={asArray(filters.year)}
+              onChange={(val) => setMulti('year', (val as string[]) ?? [])}
+              className="grid grid-cols-3 gap-1.5"
+            >
+              {YEARS.map((y) => {
+                const id = String(y);
+                return (
+                  <Checkbox key={`year-${id}`} value={id} classNames={{ wrapper: 'rounded-md', label: 'text-sm' }}>
+                    {id}
+                  </Checkbox>
+                );
+              })}
+            </CheckboxGroup>
+
+            {asArray(filters.year).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {asArray(filters.year).map((id) => (
+                  <Chip
+                    key={`year-chip-${id}`}
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    onClose={() => setMulti('year', asArray(filters.year).filter((x) => x !== String(id)))}
+                  >
+                    {String(id)}
+                  </Chip>
+                ))}
+              </div>
+            )}
+          </AccordionItem>
+
+          {/* CONDICIÓN (checkbox grid) */}
+          <AccordionItem
+            key="condition"
+            aria-label={conditionText}
+            startContent={<Icon icon="mdi:car-info" className="text-xl" style={CTA ? { color: CTA } : undefined} />}
+            title={<div className="flex items-center gap-2">{conditionText}</div>}
+            classNames={{ heading: 'px-2 py-2 hover:bg-white/50 dark:hover:bg-white/5', content: 'px-3 py-3 text-nowrap' }}
+          >
+            <CheckboxGroup
+              value={asArray(filters.condition)}
+              onChange={(val) => setMulti('condition', (val as string[]) ?? [])}
+              className="grid grid-cols-2 gap-1.5"
+            >
+              {CONDITIONS.map((c) => {
+                const id = String(c.id);
+                return (
+                  <Checkbox key={`cond-${id}`} value={id} classNames={{ wrapper: 'rounded-md', label: 'text-sm' }}>
+                    {c?.name ?? id}
+                  </Checkbox>
+                );
+              })}
+            </CheckboxGroup>
+
+            {asArray(filters.condition).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {asArray(filters.condition).map((id) => (
+                  <Chip
+                    key={`cond-chip-${id}`}
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    onClose={() => setMulti('condition', asArray(filters.condition).filter((x) => x !== String(id)))}
+                  >
+                    {getName(CONDITIONS, String(id))}
+                  </Chip>
+                ))}
+              </div>
+            )}
+          </AccordionItem>
+
+          {/* COLOR (checkbox con swatch) */}
+          <AccordionItem
+            key="color"
+            aria-label={colorText}
+            startContent={<Icon icon="mdi:palette" className="text-xl" style={CTA ? { color: CTA } : undefined} />}
+            title={<div className="flex items-center gap-2">{colorText}</div>}
+            classNames={{ heading: 'px-2 py-2 hover:bg-white/50 dark:hover:bg-white/5', content: 'px-3 py-3 ' }}
+          >
+            <CheckboxGroup
+              value={asArray(filters.color)}
+              onChange={(val) => setMulti('color', (val as string[]) ?? [])}
+              className="grid grid-cols-2 gap-1.5"
+            >
+              {COLORS.map((c) => {
+                const id = String(c.id);
+                return (
+                  <Checkbox
+                    key={`color-${id}`}
+                    value={id}
+                    classNames={{ wrapper: 'rounded-md', label: 'text-sm flex items-center gap-2' }}
+                  >
+                    <span
+                      className="inline-block w-3.5 h-3.5 rounded-full border border-white/20"
+                      style={{ backgroundColor: c?.hex }}
+                    />
+                    {c?.name ?? id}
+                  </Checkbox>
+                );
+              })}
+            </CheckboxGroup>
+
+            {asArray(filters.color).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {asArray(filters.color).map((id) => (
+                  <Chip
+                    key={`color-chip-${id}`}
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    onClose={() => setMulti('color', asArray(filters.color).filter((x) => x !== String(id)))}
+                  >
+                    {getName(COLORS, String(id))}
+                  </Chip>
+                ))}
+              </div>
+            )}
+          </AccordionItem>
+        </Accordion>
+      </div>
     </div>
   );
 };

@@ -10,22 +10,21 @@ import WelcomeSection from '@/sections/home/WelcomeSection';
 import WelcomeSectionSkeleton from '@/sections/home/WelcomeSectionSkeleton';
 import WhyUs from '@/sections/home/WhyUs';
 import NewVehiclesSection from '@/sections/vehicles/new-vehicles-section';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Editor, Frame } from '@craftjs/core';
 import lz from 'lzutf8';
 import { supabase } from '@/lib/supabase';
 import useClientStore from '@/store/useClientStore';
+
 export const runtime = 'nodejs';
 
-// Importa todos los componentes del builder
+// =====================
+// Componentes del builder
+// =====================
 import { Container } from '@/components/builder2/userComponents/Container';
 import { Text } from '@/components/builder2/userComponents/Text';
 import { Image } from '@/components/builder2/userComponents/Image';
-import {
-  HeroBasic,
-  HeroWithBackground,
-  HeroWithLogo,
-} from '@/components/builder2/sections/initialfold';
+import { HeroBasic, HeroWithBackground, HeroWithLogo } from '@/components/builder2/sections/initialfold';
 import { VehicleGrid } from '@/components/builder2/sections/vehicles';
 import { HeroMinimalistic } from '@/components/builder2/sections/initialfold/HeroMinimalistic';
 import { Testimonials } from '@/components/builder2/sections/testimonials';
@@ -33,127 +32,197 @@ import { FAQ, WhyChooseUs } from '@/components/builder2/sections/features';
 import { VehicleCarousel } from '@/components/builder2/sections/vehicles/VehicleCarousel';
 import { VideoEmbed } from '@/components/builder2/sections/videos/VideoEmbed';
 import HowToArrive from '@/sections/home/HowToArrive';
+// 👇 añade el nuevo
+import { VehicleGrid2 } from '@/components/builder2/sections/vehicles/VehicleGrid2';
 
-// Generic Skeleton loader component
+// =====================
+// Skeletons
+// =====================
 function GenericSkeleton() {
   return (
-    <div className='animate-pulse space-y-8 pt-16'>
-      {/* Hero section skeleton */}
-      <div className='mx-auto max-w-7xl px-4'>
-        <div className='h-96 w-full rounded-lg bg-gray-200'></div>
-        <div className='mt-6 h-10 w-1/3 rounded bg-gray-200'></div>
-        <div className='mt-4 h-6 w-1/2 rounded bg-gray-200'></div>
+    <div className="animate-pulse space-y-8 pt-16">
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="h-96 w-full rounded-lg bg-gray-200"></div>
+        <div className="mt-6 h-10 w-1/3 rounded bg-gray-200"></div>
+        <div className="mt-4 h-6 w-1/2 rounded bg-gray-200"></div>
       </div>
-
-      {/* Content sections skeletons */}
-      <div className='mx-auto max-w-7xl px-4'>
-        <div className='h-8 w-1/4 rounded bg-gray-200'></div>
-        <div className='mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="h-8 w-1/4 rounded bg-gray-200"></div>
+        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className='h-64 rounded-lg bg-gray-200'></div>
+            <div key={i} className="h-64 rounded-lg bg-gray-200"></div>
           ))}
         </div>
       </div>
-
-      {/* Additional section skeleton */}
-      <div className='mx-auto max-w-7xl px-4'>
-        <div className='h-8 w-1/4 rounded bg-gray-200'></div>
-        <div className='mt-6 h-64 w-full rounded-lg bg-gray-200'></div>
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="h-8 w-1/4 rounded bg-gray-200"></div>
+        <div className="mt-6 h-64 w-full rounded-lg bg-gray-200"></div>
       </div>
     </div>
   );
 }
 
-// Componente para renderizar el contenido de CraftJS
-function CraftJSContent() {
-  const { client, isLoading: isClientLoading } = useClientStore();
-  const [json, setJson] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// =====================
+// Fallback seguro
+// =====================
+const Unknown: React.FC<React.PropsWithChildren<{}>> = ({ children }) => (
+  <div style={{ display: 'contents' }}>{children}</div>
+);
+// @ts-ignore
+(Unknown as any).craft = {
+  displayName: 'Unknown',
+  isCanvas: true,
+  rules: {},
+  props: {},
+};
 
-  // Fallback component for unknown CraftJS nodes
-  const Unknown: React.FC = () => null;
+// =====================
+// Resolver con Proxy
+// =====================
+const baseResolver: Record<string, any> = {
+  Container,
+  Text,
+  Image,
+  HeroBasic,
+  HeroWithBackground,
+  HeroWithLogo,
+  VehicleGrid,
+  VehicleGrid2,
+  HeroMinimalistic,
+  Testimonials,
+  FAQ,
+  WhyChooseUs,
+  VehicleCarousel,
+  VideoEmbed,
+  HowToArrive,
 
-  // Centralized resolver including fallback
-  const resolver = {
-    Container,
-    Text,
-    Image,
-    HeroBasic,
-    HeroWithBackground,
-    HeroWithLogo,
-    VehicleGrid,
-    HeroMinimalistic,
-    Testimonials,
-    FAQ,
-    WhyChooseUs,
-    VehicleCarousel,
-    VideoEmbed,
-    HowToArrive,
-    Unknown,
-  } as const;
+  // etiquetas sueltas que pueden venir en el JSON
+  div: Unknown,
+  p: Unknown,
+  span: Unknown,
+  img: Unknown,
 
-  // Sanitize CraftJS state to avoid undefined types
-  function sanitizeCraftState(state: any) {
-    if (!state || typeof state !== 'object') {
-      return state;
+  Unknown,
+};
+
+const resolver = new Proxy(baseResolver, {
+  get(target, prop: string) {
+    return prop in target ? (target as any)[prop] : Unknown;
+  },
+});
+
+// =====================
+// Normalizador TOTAL de Craft state
+// =====================
+function normalizeCraftTree(raw: any) {
+  if (!raw || typeof raw !== 'object') return raw;
+
+  let nodes: Record<string, any> | null = null;
+
+  if (raw.nodes && typeof raw.nodes === 'object') {
+    nodes = { ...raw.nodes };
+  } else {
+    const keys = Object.keys(raw).filter((k) => k === 'ROOT' || k.startsWith('node'));
+    if (keys.length) {
+      nodes = {};
+      for (const k of keys) nodes[k] = { ...(raw as any)[k] };
     }
+  }
 
-    const ensureType = (node: any) => {
-      if (!node) return node;
-      const resolvedName = node?.type?.resolvedName;
-      if (!resolvedName || !(resolvedName in resolver)) {
+  if (!nodes) return raw;
+
+  const ensureTypeObj = (node: any) => {
+    if (!node) return node;
+
+    const t = node.type;
+    if (typeof t === 'string') {
+      node.type = { resolvedName: t };
+      node.displayName = t;
+    } else if (typeof t === 'object' && t !== null) {
+      const rn = t.resolvedName;
+      if (!rn || typeof rn !== 'string') {
         node.type = { resolvedName: 'Unknown' };
         node.displayName = 'Unknown';
+      } else {
+        node.displayName = node.displayName || rn;
       }
-      return node;
-    };
-
-    // CraftJS serialized formats can vary; handle both shapes
-    if (state.nodes && typeof state.nodes === 'object') {
-      // Newer shape: { nodes: { id: node } }
-      const originalNodes = state.nodes as Record<string, any>;
-      const validIds = Object.keys(originalNodes).filter((id) => {
-        const n = originalNodes[id];
-        return n && typeof n === 'object';
-      });
-
-      const sanitizedMap: Record<string, any> = {};
-      for (const id of validIds) {
-        sanitizedMap[id] = ensureType({ ...originalNodes[id] });
-      }
-
-      // Filter child references to only existing nodes
-      for (const id of Object.keys(sanitizedMap)) {
-        const node = sanitizedMap[id];
-        if (Array.isArray(node.nodes)) {
-          node.nodes = node.nodes.filter((childId: string) =>
-            validIds.includes(childId)
-          );
-        }
-        if (node.linkedNodes && typeof node.linkedNodes === 'object') {
-          const ln: Record<string, string> = node.linkedNodes;
-          for (const key of Object.keys(ln)) {
-            if (!validIds.includes(ln[key])) {
-              delete ln[key];
-            }
-          }
-          node.linkedNodes = ln;
-        }
-      }
-
-      return { ...state, nodes: sanitizedMap };
+    } else {
+      node.type = { resolvedName: 'Unknown' };
+      node.displayName = 'Unknown';
     }
 
-    // Older shape: top-level keys for ROOT and others
-    const next: any = { ...state };
-    for (const key of Object.keys(next)) {
-      if (key === 'ROOT' || key.startsWith('node')) {
-        next[key] = ensureType({ ...next[key] });
-      }
+    const rn = node.type?.resolvedName;
+    if (!rn || !(rn in resolver)) {
+      node.type = { resolvedName: 'Unknown' };
+      node.displayName = 'Unknown';
     }
-    return next;
+
+    if (!Array.isArray(node.nodes)) node.nodes = [];
+    if (!node.linkedNodes || typeof node.linkedNodes !== 'object') node.linkedNodes = {};
+
+    return node;
+  };
+
+  // limpiar nulos y normalizar
+  const validIds = Object.keys(nodes).filter((id) => nodes![id] && typeof nodes![id] === 'object');
+  const map: Record<string, any> = {};
+  for (const id of validIds) {
+    map[id] = ensureTypeObj({ ...nodes[id] });
   }
+
+  // limpiar referencias a hijos inexistentes
+  const idSet = new Set(Object.keys(map));
+  for (const id of Object.keys(map)) {
+    const node = map[id];
+    node.nodes = Array.isArray(node.nodes) ? node.nodes.filter((c: string) => idSet.has(c)) : [];
+    if (node.linkedNodes && typeof node.linkedNodes === 'object') {
+      const ln = { ...node.linkedNodes };
+      Object.keys(ln).forEach((slot) => {
+        if (!idSet.has(ln[slot])) delete ln[slot];
+      });
+      node.linkedNodes = ln;
+    } else {
+      node.linkedNodes = {};
+    }
+  }
+
+  // garantizar ROOT válido
+  if (!map.ROOT) {
+    const referenced = new Set<string>();
+    for (const id of Object.keys(map)) {
+      for (const c of map[id].nodes || []) referenced.add(c);
+      Object.values(map[id].linkedNodes || {}).forEach((v: any) => referenced.add(v));
+    }
+    const candidates = Object.keys(map).filter((id) => !referenced.has(id));
+    const rootId = candidates[0] || Object.keys(map)[0];
+    map.ROOT = {
+      type: { resolvedName: 'Unknown' },
+      displayName: 'ROOT',
+      isCanvas: true,
+      nodes: rootId && rootId !== 'ROOT' ? [rootId] : [],
+      linkedNodes: {},
+      props: {},
+      custom: {},
+      parent: null,
+    };
+  } else {
+    map.ROOT = ensureTypeObj({ ...map.ROOT });
+    map.ROOT.isCanvas = true;
+    map.ROOT.nodes = Array.isArray(map.ROOT.nodes) ? map.ROOT.nodes : [];
+    map.ROOT.linkedNodes = map.ROOT.linkedNodes || {};
+  }
+
+  return { nodes: map };
+}
+
+// =====================
+// CraftJSContent (usa normalizador)
+// =====================
+function CraftJSContent() {
+  const { client, isLoading: isClientLoading } = useClientStore();
+  const [safeData, setSafeData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchState = async () => {
@@ -169,17 +238,16 @@ function CraftJSContent() {
         if (error) throw error;
         if (!data?.elements_structure) {
           setError('No hay estado guardado para este cliente.');
-        } else {
-          const decompressed = JSON.parse(
-            lz.decompress(lz.decodeBase64(data.elements_structure))
-          );
-
-          // Validar que los datos descomprimidos sean válidos
-          const sanitized = sanitizeCraftState(decompressed);
-          setJson(sanitized);
+          setSafeData(null);
+          return;
         }
+
+        const decompressed = JSON.parse(lz.decompress(lz.decodeBase64(data.elements_structure)));
+        const normalized = normalizeCraftTree(decompressed);
+        setSafeData(normalized);
       } catch (err: any) {
         setError(err.message || 'Error al cargar el estado');
+        setSafeData(null);
       } finally {
         setIsLoading(false);
       }
@@ -192,43 +260,28 @@ function CraftJSContent() {
     }
   }, [client?.id, isClientLoading]);
 
-  if (isLoading) {
-    return <GenericSkeleton />;
-  }
-
-  if (error) {
-    return <div className='p-8 text-center text-red-600'>Error: {error}</div>;
-  }
-
-  if (!json) {
-    return <TraditionalContent />;
-  }
+  if (isLoading) return <GenericSkeleton />;
+  if (error) return <div className="p-8 text-center text-red-600">Error: {error}</div>;
+  if (!safeData) return <TraditionalContent />;
 
   return (
-    <div className='min-h-screen '>
-      {json && (
-        <div style={{}}>
-          <Editor resolver={resolver} enabled={false}>
-            <Frame data={json} />
-          </Editor>
-        </div>
-      )}
+    <div className="min-h-screen">
+      <Editor resolver={resolver} enabled={false}>
+        <Frame data={safeData} />
+      </Editor>
     </div>
   );
 }
 
-// Componente para renderizar las secciones tradicionales
+// =====================
+// Contenido tradicional
+// =====================
 function TraditionalContent() {
   const { websiteConfig, isLoading } = useWebsiteConfig();
+  if (isLoading) return <GenericSkeleton />;
 
-  // Si todavía está cargando, mostramos el skeleton
-  if (isLoading) {
-    return <GenericSkeleton />;
-  }
-
-  // Renderizar todas las secciones tradicionales
   return (
-    <div className='pt-16'>
+    <div className="pt-16">
       <Suspense fallback={<GenericSkeleton />}>
         <WelcomeSection />
       </Suspense>
@@ -248,7 +301,9 @@ function TraditionalContent() {
   );
 }
 
-// Componente para decidir qué contenido mostrar basado en is_enabled
+// =====================
+// Selector de contenido (is_enabled)
+// =====================
 function WebsiteContent() {
   const { client } = useClientStore();
   const [isEnabled, setIsEnabled] = useState<boolean>(false);
@@ -260,14 +315,12 @@ function WebsiteContent() {
         setIsConfigLoading(false);
         return;
       }
-
       try {
         const { data, error } = await supabase
           .from('client_website_config')
           .select('is_enabled')
           .eq('client_id', client.id)
           .single();
-
         if (error) throw error;
         setIsEnabled(!!data?.is_enabled);
       } catch (err) {
@@ -277,34 +330,25 @@ function WebsiteContent() {
         setIsConfigLoading(false);
       }
     };
-
     checkWebsiteConfig();
   }, [client?.id]);
 
-  if (isConfigLoading) {
-    return <GenericSkeleton />;
-  }
-
-  // Verificar si está habilitado el website customizado con craftjs
-  if (isEnabled) {
-    return (
-      <div className='mt-[6vh]'>
-        <CraftJSContent />
-      </div>
-    );
-  }
-
-  // Si no está habilitado, mostrar el contenido tradicional
-  return <TraditionalContent />;
+  if (isConfigLoading) return <GenericSkeleton />;
+  return isEnabled ? (
+    <div className="mt-[6vh]">
+      <CraftJSContent />
+    </div>
+  ) : (
+    <TraditionalContent />
+  );
 }
 
-// Componente principal exportado
+// =====================
+// Export principal
+// =====================
 export default function Home() {
-  const { client, isLoading: isClientLoading } = useClientStore();
-
-  if (isClientLoading) {
-    return <GenericSkeleton />;
-  }
+  const { isLoading: isClientLoading } = useClientStore();
+  if (isClientLoading) return <GenericSkeleton />;
 
   return (
     <ClientWebsiteConfigProvider>
