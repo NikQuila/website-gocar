@@ -13,6 +13,8 @@ import { useEditor } from '@craftjs/core';
 import { SimpleVehicle } from './VehicleCarousel';
 import { useCurrency } from '@/hooks/useCurrency';
 
+type FeatureKey = 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+
 export interface VehicleCardProps {
   vehicle: SimpleVehicle; // Expect the whole vehicle object
   compact?: boolean;
@@ -26,11 +28,12 @@ export interface VehicleCardProps {
   bannerPosition?: 'left' | 'right';
   newBadgeText?: string; // New prop for the "Recién publicado" badge text
   pricePosition?: 'overlay' | 'below-title';
+  // 🔧 AQUI EL CAMBIO: las 4 keys pasan a ser OPCIONALES para aceptar objetos parciales
   featuresConfig?: {
-    feature1: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
-    feature2: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
-    feature3: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
-    feature4: 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
+    feature1?: FeatureKey;
+    feature2?: FeatureKey;
+    feature3?: FeatureKey;
+    feature4?: FeatureKey;
   };
 }
 
@@ -47,6 +50,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   bannerPosition = 'right',
   newBadgeText = 'Nuevo', // Default text
   pricePosition = 'overlay',
+  // 🔧 Fallback por defecto (se mantiene)
   featuresConfig = {
     feature1: 'category',
     feature2: 'year',
@@ -61,7 +65,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     return position === 'overlay' ? '#ffffff' : '#374151';
   };
 
-  // Función para renderizar el precio con colores dinámicos
   const renderPrice = () => {
     const priceColor = pricePosition === 'overlay' ? '#ffffff' : '#374151';
 
@@ -101,14 +104,12 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
 
   // Detectar si estamos en modo editor (solo disponible en contexto CraftJS)
   let enabled = false;
-
   try {
     const editorData = useEditor((state) => ({
       enabled: state.options.enabled,
     }));
     enabled = editorData.enabled;
-  } catch (error) {
-    // useEditor no está disponible (contexto tradicional), usar valor por defecto
+  } catch {
     enabled = false;
   }
 
@@ -130,8 +131,8 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     label,
   } = vehicle;
 
-  // Calculate discounted_price for display
-  let displayDiscountedPrice;
+  // 🔧 TIPADO EXPLÍCITO (evita implicit any)
+  let displayDiscountedPrice: number | undefined;
   if (price && discount_percentage && discount_percentage > 0) {
     displayDiscountedPrice = price * (1 - discount_percentage / 100);
   }
@@ -159,7 +160,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   };
 
   // Función para renderizar una característica específica
-  const renderFeature = (featureType: string) => {
+  const renderFeature = (featureType: FeatureKey | string) => {
     const iconProps = {
       size: 14,
       className: 'mr-1',
@@ -203,7 +204,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
         ) : null;
 
       case 'transmission':
-        // Validación robusta para transmission (es un string directo, no un objeto)
         return transmission && transmission.trim() !== '' ? (
           <div className='flex items-center text-xs' style={textStyle}>
             <Settings {...iconProps} />
@@ -235,7 +235,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
         cursor: !enabled && !isNotAvailable ? 'pointer' : 'default',
       }}
       onClick={() => {
-        // Solo navegar si no estamos en modo editor y el vehículo está disponible
         if (!enabled && !isNotAvailable) {
           window.location.href = `/vehicles/${id}`;
         }
@@ -243,9 +242,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     >
       {/* Imagen */}
       <div
-        className={`relative ${
-          compact ? 'h-48' : 'h-64'
-        } overflow-hidden bg-gray-100`}
+        className={`relative ${compact ? 'h-48' : 'h-64'} overflow-hidden bg-gray-100`}
       >
         {main_image ? (
           <img
@@ -261,16 +258,8 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
         )}
 
         {isNotAvailable && status?.name && (
-          <div
-            className={`absolute top-0 ${
-              bannerPosition === 'left' ? 'left-0' : 'right-0'
-            } overflow-hidden w-36 h-36 z-20`}
-          >
-            <div
-              className={`${getStatusColor(
-                status.name
-              )} ${bannerBaseClasses} ${bannerPositionClasses}`}
-            >
+          <div className={`absolute top-0 ${bannerPosition === 'left' ? 'left-0' : 'right-0'} overflow-hidden w-36 h-36 z-20`}>
+            <div className={`${getStatusColor(status.name)} ${bannerBaseClasses} ${bannerPositionClasses}`}>
               {status.name}
             </div>
           </div>
@@ -288,10 +277,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
           <div className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 transition-opacity'>
             <div className='flex justify-between items-center'>
               <div>{renderPrice()}</div>
-              <div
-                className='text-xs'
-                style={{ color: getYearColor(pricePosition), opacity: '0.8' }}
-              >
+              <div className='text-xs' style={{ color: getYearColor(pricePosition), opacity: '0.8' }}>
                 {year}
               </div>
             </div>
@@ -300,33 +286,19 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
       </div>
 
       <div className={`p-4 ${isNotAvailable ? 'pointer-events-none' : ''}`}>
-        <h3
-          className='text-lg font-semibold mb-1'
-          style={{ color: cardTextColor }}
-        >
+        <h3 className='text-lg font-semibold mb-1' style={{ color: cardTextColor }}>
           {brand?.name} {model?.name}
         </h3>
 
-        {pricePosition === 'below-title' && (
-          <div className='mb-3'>{renderPrice()}</div>
-        )}
+        {pricePosition === 'below-title' && <div className='mb-3'>{renderPrice()}</div>}
 
         {!compact && (
           <div className='mt-3 grid grid-cols-2 gap-2'>
-            {/* Renderizar características en el orden especificado por featuresConfig */}
-            {/* Fallback: si featuresConfig no está definido, usar valores por defecto */}
-            {featuresConfig?.feature1
-              ? renderFeature(featuresConfig.feature1)
-              : renderFeature('category')}
-            {featuresConfig?.feature2
-              ? renderFeature(featuresConfig.feature2)
-              : renderFeature('year')}
-            {featuresConfig?.feature3
-              ? renderFeature(featuresConfig.feature3)
-              : renderFeature('fuel')}
-            {featuresConfig?.feature4
-              ? renderFeature(featuresConfig.feature4)
-              : renderFeature('mileage')}
+            {/* Renderizar en el orden especificado (con fallback si faltan claves) */}
+            {featuresConfig?.feature1 ? renderFeature(featuresConfig.feature1) : renderFeature('category')}
+            {featuresConfig?.feature2 ? renderFeature(featuresConfig.feature2) : renderFeature('year')}
+            {featuresConfig?.feature3 ? renderFeature(featuresConfig.feature3) : renderFeature('fuel')}
+            {featuresConfig?.feature4 ? renderFeature(featuresConfig.feature4) : renderFeature('mileage')}
           </div>
         )}
 
@@ -339,17 +311,15 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
             }`}
             style={{
               borderColor: cardButtonColor,
-              backgroundColor: cardButtonTextColor, // Fondo del botón usa cardButtonTextColor
-              color: cardButtonColor, // Texto del botón usa cardButtonColor
+              backgroundColor: cardButtonTextColor,
+              color: cardButtonColor,
             }}
             onClick={(e) => {
-              // En modo editor o si no está disponible, prevenir la navegación
               if (enabled || isNotAvailable) {
                 e.preventDefault();
                 e.stopPropagation();
                 return;
               }
-              // En modo normal, navegar a la página del vehículo
               window.location.href = `/vehicles/${id}`;
             }}
             disabled={!!(enabled || isNotAvailable)}

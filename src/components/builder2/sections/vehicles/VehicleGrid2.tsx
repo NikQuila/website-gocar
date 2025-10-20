@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNode, useEditor } from '@craftjs/core';
+import { useNode } from '@craftjs/core';
 import { supabase } from '@/lib/supabase';
 import useClientStore from '@/store/useClientStore';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,9 @@ type CraftComponent<P = {}> = React.FC<P> & { craft?: any };
 
 type StatusName = 'Publicado' | 'Vendido' | 'Reservado';
 type VehicleRel = { id?: number; name?: string };
+
+// 🔸 Literal permitido por VehicleList
+type FeatureKey = 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
 
 type VehicleRow = {
   id: number;
@@ -51,10 +54,10 @@ interface Props {
     bannerPosition: 'left' | 'right';
     pricePosition: 'overlay' | 'below-title';
     featuresConfig?: {
-      feature1?: string;
-      feature2?: string;
-      feature3?: string;
-      feature4?: string;
+      feature1?: FeatureKey;
+      feature2?: FeatureKey;
+      feature3?: FeatureKey;
+      feature4?: FeatureKey;
     };
   }[];
   newBadgeText?: string;
@@ -85,20 +88,15 @@ export const VehicleGrid2: CraftComponent<Props> = ({
   newBadgeText = 'Recién publicado',
   children,
 }) => {
-  // craft
-  let selected = false;
+  // ===== Craft: adaptador de ref seguro =====
+  let connectRef: (el: HTMLElement | null) => void = () => {};
   try {
-    const n = useNode((s) => ({ selected: s.events.selected }));
-    selected = n.selected;
+    const { connectors } = useNode();
+    connectRef = (el) => {
+      if (el) connectors.connect(el);
+    };
   } catch {
-    selected = false;
-  }
-  let connect: ((dom: HTMLElement | null) => void) | undefined;
-  try {
-    const ed = useEditor((s) => s);
-    connect = ed.connectors?.connect;
-  } catch {
-    connect = undefined;
+    connectRef = () => {};
   }
 
   const { client } = useClientStore();
@@ -163,8 +161,8 @@ export const VehicleGrid2: CraftComponent<Props> = ({
             vehicles_reservations!vehicle_id(*)
           `)
           .eq('client_id', +client.id)
-          .order('created_at', { ascending: false })
-          .limit(50);
+          .order('created_at', { ascending: false });
+          // 👆 sin .limit(50)
 
         if (error) throw error;
 
@@ -235,6 +233,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
 
     let f = [...vehicles];
 
+    // Reservado/Vendido solo últimos 3 días (igual que en VehicleGrid)
     f = f.filter((v) => {
       const s = v.status?.name;
       if (s === 'Vendido' || s === 'Reservado') {
@@ -249,7 +248,8 @@ export const VehicleGrid2: CraftComponent<Props> = ({
     if (transSel !== 'Todas') f = f.filter((v) => (v.transmission || '') === transSel);
     if (fuelSel !== 'Todos') f = f.filter((v) => v.fuel_type?.name === fuelSel);
 
-    f = f.filter((v) => (v.price ?? 0) >= priceMin && (v.price ?? 0) <= priceMax);
+    // 🔧 Igualado al VehicleGrid: exige price definido
+    f = f.filter((v) => v.price !== undefined && v.price >= priceMin && v.price <= priceMax);
     f = f.filter((v) => (v.year ?? 0) >= yearMin && (v.year ?? 0) <= yearMax);
 
     const effectivePrice = (v: VehicleRow) => {
@@ -282,9 +282,26 @@ export const VehicleGrid2: CraftComponent<Props> = ({
     setFiltered(f);
   }, [vehicles, typeSel, brandSel, transSel, fuelSel, priceMin, priceMax, yearMin, yearMax, sortOrder]);
 
-  const refHandler = (el: HTMLDivElement | null) => {
-    if (el && connect) connect(el);
+  // 🔸 Normalizador de features (por si llega string libre desde CMS)
+  const normalizeFeature = (v: string | undefined): FeatureKey | undefined => {
+    const allowed: FeatureKey[] = ['category', 'year', 'fuel', 'mileage', 'transmission'];
+    return v && (allowed as string[]).includes(v) ? (v as FeatureKey) : undefined;
   };
+
+  // mapea cardSettings a la forma segura que espera VehicleList
+  const safeCardSettings = useMemo(
+    () =>
+      cardSettings?.map((cs) => ({
+        ...cs,
+        featuresConfig: cs.featuresConfig && {
+          feature1: normalizeFeature(cs.featuresConfig.feature1),
+          feature2: normalizeFeature(cs.featuresConfig.feature2),
+          feature3: normalizeFeature(cs.featuresConfig.feature3),
+          feature4: normalizeFeature(cs.featuresConfig.feature4),
+        },
+      })),
+    [cardSettings]
+  );
 
   const typeIcons: Record<string, string> = {
     CAMIONETA: 'https://sarret.cl/wp-content/uploads/2024/06/04.webp',
@@ -347,7 +364,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
 
   return (
     <section
-      ref={refHandler}
+      ref={connectRef}
       className="w-full"
       style={{ background: bgColor, color: textColor }}
       data-section="vehicles"
@@ -356,10 +373,8 @@ export const VehicleGrid2: CraftComponent<Props> = ({
       {/* CONTENEDOR CENTRAL */}
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
         {/* ===== FULL-BLEED HEADER + FILTROS ===== */}
-        {/* Evita desbordes horizontales en móvil */}
         <div className="relative left-1/2 right-1/2 -mx-[50vw] w-[100vw] max-w-[100vw] overflow-hidden">
           <section className="bg-gradient-to-br from-black via-neutral-900 to-neutral-700 text-white">
-            {/* contenido centrado */}
             <div className="max-w-[1200px] mx-auto">
               {/* Título */}
               <div className="text-center mb-5 pt-6 sm:pt-8">
@@ -367,7 +382,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
                 {subtitle ? <p className="text-white/80 mt-2 text-sm sm:text-base">{subtitle}</p> : null}
               </div>
 
-              {/* Categorías – mobile (scroll-snap) */}
+              {/* Categorías – mobile */}
               <div className="md:hidden mb-5 -mx-4 px-4">
                 <div
                   className="flex gap-4 items-center overflow-x-auto snap-x snap-mandatory scroll-px-4 pb-1
@@ -456,7 +471,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
                 })}
               </div>
 
-              {/* Barra de filtros – en móvil 2 por fila */}
+              {/* Barra de filtros */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 place-items-center px-4">
                 <div className="w-full max-w-[240px]">
                   <label className="text-[11px] sm:text-sm text-white/90 block mb-1 text-center">Tipo de auto</label>
@@ -518,7 +533,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
                 </div>
               </div>
 
-              {/* Sliders – compactos en móvil */}
+              {/* Sliders */}
               <div className="mt-7 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 place-items-center px-4 pb-8 md:pb-10">
                 <div className="w-full max-w-[520px]">
                   <div className="flex items-center justify-between">
@@ -577,7 +592,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
         </div>
         {/* ===== /FULL-BLEED ===== */}
 
-        {/* RESULTADOS (centrado) */}
+        {/* RESULTADOS */}
         <div className="mt-8 sm:mt-10">
           {loading ? (
             <div className="flex justify-center items-center h-60">
@@ -596,7 +611,6 @@ export const VehicleGrid2: CraftComponent<Props> = ({
                     setTransSel('Todas');
                     setFuelSel('Todos');
                     setPriceMin(minMaxPrice.min);
-                    setPriceMax(maxMaxPrice => maxMaxPrice); // noop para TS hints, no afecta
                     setPriceMax(minMaxPrice.max);
                     setYearMin(minMaxYear.min);
                     setYearMax(minMaxYear.max);
@@ -621,7 +635,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
                   getStatusColor={(s: string) => getStatusColor(s)}
                   sortOrder={sortOrder}
                   setSortOrder={setSortOrder}
-                  cardSettings={cardSettings}
+                  cardSettings={safeCardSettings}
                   newBadgeText={newBadgeText}
                   source="grid2"
                 />

@@ -142,16 +142,14 @@ export const VehicleGrid = ({
 
   const { client } = useClientStore();
   const [vehicles, setVehicles] = useState<ExtendedVehicle[]>([]);
-  const [filteredVehicles, setFilteredVehicles] = useState<ExtendedVehicle[]>(
-    []
-  );
+  const [filteredVehicles, setFilteredVehicles] = useState<ExtendedVehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeVehicleType, setActiveVehicleType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Obtén los filtros y setters del store
+  // Filtros del store
   const {
     selectedBrands,
     setSelectedBrands,
@@ -166,7 +164,7 @@ export const VehicleGrid = ({
     selectedColors,
     setSelectedColors,
     priceRange,
-    setPriceRange,
+    setPriceRange, // <- del store: (range) => void
     minMaxPrice,
     setMinMaxPrice,
     availableBrands,
@@ -182,9 +180,50 @@ export const VehicleGrid = ({
     availableYears,
     setAvailableYears,
     clearFilters,
-    sortOrder,
-    setSortOrder,
+    sortOrder, // del store: 'price_asc' | 'price_desc' | 'date_asc' | 'date_desc'
+    setSortOrder, // <- del store: (order) => void
   } = useActiveBuilderFilter();
+
+  // === Adaptador para setPriceRange: cumple con Dispatch<SetStateAction<PriceRange>> ===
+  const setPriceRangeDispatch: React.Dispatch<React.SetStateAction<PriceRange>> = (next) => {
+    if (typeof next === 'function') {
+      // Ejecutamos la función con el estado actual local (priceRange) y enviamos el resultado como objeto
+      const computed = (next as (prev: PriceRange) => PriceRange)(priceRange);
+      setPriceRange({ min: computed.min, max: computed.max });
+    } else {
+      setPriceRange({ min: next.min, max: next.max });
+    }
+  };
+
+  // === Adaptador para setSortOrder: acepta union amplia y mapea a las soportadas por el store ===
+  type FullSort =
+    | 'price_asc'
+    | 'price_desc'
+    | 'date_asc'
+    | 'date_desc'
+    | 'year_desc'
+    | 'year_asc'
+    | 'mileage_asc';
+
+  const setSortOrderDispatch: React.Dispatch<React.SetStateAction<FullSort>> = (value) => {
+    const incoming = typeof value === 'function' ? (value as (prev: FullSort) => FullSort)(sortOrder as FullSort) : value;
+
+    // Si tu store NO soporta year_* ni mileage_asc, mapeamos a lo más parecido o lo ignoramos.
+    // Aquí elegimos mapear:
+    // - year_desc/year_asc -> date_desc (más reciente primero) / date_asc (más antiguo primero)
+    // - mileage_asc -> price_asc (por tener “ascendente” como criterio similar)
+    let mapped: 'price_asc' | 'price_desc' | 'date_asc' | 'date_desc' = 'date_desc';
+    if (incoming === 'price_asc' || incoming === 'price_desc' || incoming === 'date_asc' || incoming === 'date_desc') {
+      mapped = incoming;
+    } else if (incoming === 'year_desc') {
+      mapped = 'date_desc';
+    } else if (incoming === 'year_asc') {
+      mapped = 'date_asc';
+    } else if (incoming === 'mileage_asc') {
+      mapped = 'price_asc';
+    }
+    setSortOrder(mapped);
+  };
 
   // Check if any filters are active
   const hasActiveFilters =
@@ -273,47 +312,22 @@ export const VehicleGrid = ({
           const processedData = typedData.map((vehicle) => {
             let event_date: string | undefined;
             if (vehicle.status?.name === 'Vendido' && vehicle.vehicles_sales) {
-              if (
-                Array.isArray(vehicle.vehicles_sales) &&
-                vehicle.vehicles_sales.length > 0
-              ) {
+              if (Array.isArray(vehicle.vehicles_sales) && vehicle.vehicles_sales.length > 0) {
                 const sortedSales = [...vehicle.vehicles_sales].sort(
-                  (a, b) =>
-                    new Date(b.created_at).getTime() -
-                    new Date(a.created_at).getTime()
+                  (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
                 );
                 event_date = sortedSales[0].created_at;
-              } else if (
-                !Array.isArray(vehicle.vehicles_sales) &&
-                (vehicle.vehicles_sales as { created_at: string }).created_at
-              ) {
-                event_date = (vehicle.vehicles_sales as { created_at: string })
-                  .created_at;
+              } else if (!Array.isArray(vehicle.vehicles_sales) && (vehicle.vehicles_sales as { created_at: string }).created_at) {
+                event_date = (vehicle.vehicles_sales as { created_at: string }).created_at;
               }
-            } else if (
-              vehicle.status?.name === 'Reservado' &&
-              vehicle.vehicles_reservations
-            ) {
-              if (
-                Array.isArray(vehicle.vehicles_reservations) &&
-                vehicle.vehicles_reservations.length > 0
-              ) {
-                const sortedReservations = [
-                  ...vehicle.vehicles_reservations,
-                ].sort(
-                  (a, b) =>
-                    new Date(b.created_at).getTime() -
-                    new Date(a.created_at).getTime()
+            } else if (vehicle.status?.name === 'Reservado' && vehicle.vehicles_reservations) {
+              if (Array.isArray(vehicle.vehicles_reservations) && vehicle.vehicles_reservations.length > 0) {
+                const sortedReservations = [...vehicle.vehicles_reservations].sort(
+                  (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
                 );
                 event_date = sortedReservations[0].created_at;
-              } else if (
-                !Array.isArray(vehicle.vehicles_reservations) &&
-                (vehicle.vehicles_reservations as { created_at: string })
-                  .created_at
-              ) {
-                event_date = (
-                  vehicle.vehicles_reservations as { created_at: string }
-                ).created_at;
+              } else if (!Array.isArray(vehicle.vehicles_reservations) && (vehicle.vehicles_reservations as { created_at: string }).created_at) {
+                event_date = (vehicle.vehicles_reservations as { created_at: string }).created_at;
               }
             }
             return { ...vehicle, event_date }; // Add event_date to the vehicle object
@@ -321,23 +335,15 @@ export const VehicleGrid = ({
 
           // Filter vehicles by status names (applied to data that now includes event_date)
           const filteredByStatus = processedData.filter(
-            (vehicle) =>
-              vehicle.status &&
-              showStatuses.includes(vehicle.status.name as any)
+            (vehicle) => vehicle.status && showStatuses.includes(vehicle.status.name as any)
           );
 
           // Sort vehicles to show "Publicado" status first, then by newest
           const sortedVehicles = [...filteredByStatus].sort((a, b) => {
-            if (
-              a.status.name === 'Publicado' &&
-              b.status.name !== 'Publicado'
-            ) {
+            if (a.status.name === 'Publicado' && b.status.name !== 'Publicado') {
               return -1;
             }
-            if (
-              a.status.name !== 'Publicado' &&
-              b.status.name === 'Publicado'
-            ) {
+            if (a.status.name !== 'Publicado' && b.status.name === 'Publicado') {
               return 1;
             }
             // If statuses are the same, sort by created_at (newest first)
@@ -356,43 +362,17 @@ export const VehicleGrid = ({
           setFilteredVehicles(vehiclesData);
 
           // Extract available filter options
-          const brands = [
-            ...new Set(vehiclesData.map((v) => v.brand?.name).filter(Boolean)),
-          ];
-          const years = [
-            ...new Set(vehiclesData.map((v) => v.year).filter(Boolean)),
-          ]
-            .map(String)
-            .sort((a, b) => b.localeCompare(a));
-          const types = [
-            ...new Set(
-              vehiclesData.map((v) => v.category?.name).filter(Boolean)
-            ),
-          ];
-          const fuels = [
-            ...new Set(
-              vehiclesData.map((v) => v.fuel_type?.name).filter(Boolean)
-            ),
-          ];
-          const conditions = [
-            ...new Set(
-              vehiclesData.map((v) => v.condition?.name).filter(Boolean)
-            ),
-          ];
-          const colors = [
-            ...new Set(vehiclesData.map((v) => v.color?.name).filter(Boolean)),
-          ];
+          const brands = [...new Set(vehiclesData.map((v) => v.brand?.name).filter(Boolean))];
+          const years = [...new Set(vehiclesData.map((v) => v.year).filter(Boolean))].map(String).sort((a, b) => b.localeCompare(a));
+          const types = [...new Set(vehiclesData.map((v) => v.category?.name).filter(Boolean))];
+          const fuels = [...new Set(vehiclesData.map((v) => v.fuel_type?.name).filter(Boolean))];
+          const conditions = [...new Set(vehiclesData.map((v) => v.condition?.name).filter(Boolean))];
+          const colors = [...new Set(vehiclesData.map((v) => v.color?.name).filter(Boolean))];
 
           // Calcular el precio máximo real de los vehículos disponibles
-          const availableVehicles = vehiclesData.filter(
-            (v) =>
-              v.status?.name !== 'Vendido' && v.status?.name !== 'Reservado'
-          );
+          const availableVehicles = vehiclesData.filter((v) => v.status?.name !== 'Vendido' && v.status?.name !== 'Reservado');
           const minPrice = 0;
-          const maxPrice =
-            availableVehicles.length > 0
-              ? Math.max(...availableVehicles.map((v) => v.price || 0))
-              : 1000000000; // valor por defecto si no hay vehículos disponibles
+          const maxPrice = availableVehicles.length > 0 ? Math.max(...availableVehicles.map((v) => v.price || 0)) : 1000000000;
 
           setAvailableBrands(brands as string[]);
           setAvailableYears(years as string[]);
@@ -414,11 +394,7 @@ export const VehicleGrid = ({
 
   // Inicializa el rango de precio SOLO si está en valores por defecto y hay un valor real nuevo
   useEffect(() => {
-    if (
-      priceRange.min === 0 &&
-      priceRange.max === 1000000000 &&
-      minMaxPrice.max !== 1000000000 // hay un valor real
-    ) {
+    if (priceRange.min === 0 && priceRange.max === 1000000000 && minMaxPrice.max !== 1000000000) {
       setPriceRange({ min: minMaxPrice.min, max: minMaxPrice.max });
     }
   }, [minMaxPrice]);
@@ -460,51 +436,31 @@ export const VehicleGrid = ({
     }
 
     // Filter by price range
-    filtered = filtered.filter(
-      (v) =>
-        v.price !== undefined &&
-        v.price >= priceRange.min &&
-        v.price <= priceRange.max
-    );
+    filtered = filtered.filter((v) => v.price !== undefined && v.price >= priceRange.min && v.price <= priceRange.max);
 
     // Filter by brand
     if (selectedBrands.length > 0) {
-      filtered = filtered.filter(
-        (v) => v.brand?.name && selectedBrands.includes(v.brand.name as string)
-      );
+      filtered = filtered.filter((v) => v.brand?.name && selectedBrands.includes(v.brand.name as string));
     }
 
     // Filter by type (category)
     if (selectedTypes.length > 0) {
-      filtered = filtered.filter(
-        (v) =>
-          v.category?.name && selectedTypes.includes(v.category.name as string)
-      );
+      filtered = filtered.filter((v) => v.category?.name && selectedTypes.includes(v.category.name as string));
     }
 
     // Filter by fuel type
     if (selectedFuels.length > 0) {
-      filtered = filtered.filter(
-        (v) =>
-          v.fuel_type?.name &&
-          selectedFuels.includes(v.fuel_type.name as string)
-      );
+      filtered = filtered.filter((v) => v.fuel_type?.name && selectedFuels.includes(v.fuel_type.name as string));
     }
 
     // Filter by condition
     if (selectedConditions.length > 0) {
-      filtered = filtered.filter(
-        (v) =>
-          v.condition?.name &&
-          selectedConditions.includes(v.condition.name as string)
-      );
+      filtered = filtered.filter((v) => v.condition?.name && selectedConditions.includes(v.condition.name as string));
     }
 
     // Filter by color
     if (selectedColors.length > 0) {
-      filtered = filtered.filter(
-        (v) => v.color?.name && selectedColors.includes(v.color.name as string)
-      );
+      filtered = filtered.filter((v) => v.color?.name && selectedColors.includes(v.color.name as string));
     }
 
     // Apply 3-day recency filter for "Vendido" / "Reservado" statuses
@@ -513,10 +469,7 @@ export const VehicleGrid = ({
     threeDaysAgo.setHours(0, 0, 0, 0);
 
     filtered = filtered.filter((vehicle) => {
-      if (
-        vehicle.status?.name === 'Vendido' ||
-        vehicle.status?.name === 'Reservado'
-      ) {
+      if (vehicle.status?.name === 'Vendido' || vehicle.status?.name === 'Reservado') {
         if (vehicle.event_date) {
           const eventDate = new Date(vehicle.event_date);
           return eventDate >= threeDaysAgo;
@@ -527,41 +480,29 @@ export const VehicleGrid = ({
     });
 
     // Actualizar los años disponibles basados en los vehículos filtrados
-    const availableYearsFromFiltered = [
-      ...new Set(filtered.map((v) => v.year).filter(Boolean)),
-    ]
+    const availableYearsFromFiltered = [...new Set(filtered.map((v) => v.year).filter(Boolean))]
       .map(String)
       .sort((a, b) => b.localeCompare(a));
     setAvailableYears(availableYearsFromFiltered);
 
     // Volver a filtrar por año si hay años seleccionados
     if (selectedYears.length > 0) {
-      filtered = filtered.filter(
-        (v) => v.year && selectedYears.includes(String(v.year))
-      );
+      filtered = filtered.filter((v) => v.year && selectedYears.includes(String(v.year)));
     }
 
     // Aplicar ordenamiento
     filtered.sort((a, b) => {
       if (sortOrder === 'price_asc') {
         const priceA =
-          a.price && a.discount_percentage && a.discount_percentage > 0
-            ? a.price * (1 - a.discount_percentage / 100)
-            : a.price;
+          a.price && a.discount_percentage && a.discount_percentage > 0 ? a.price * (1 - a.discount_percentage / 100) : a.price;
         const priceB =
-          b.price && b.discount_percentage && b.discount_percentage > 0
-            ? b.price * (1 - b.discount_percentage / 100)
-            : b.price;
+          b.price && b.discount_percentage && b.discount_percentage > 0 ? b.price * (1 - b.discount_percentage / 100) : b.price;
         return (priceA ?? Infinity) - (priceB ?? Infinity);
       } else if (sortOrder === 'price_desc') {
         const priceA =
-          a.price && a.discount_percentage && a.discount_percentage > 0
-            ? a.price * (1 - a.discount_percentage / 100)
-            : a.price;
+          a.price && a.discount_percentage && a.discount_percentage > 0 ? a.price * (1 - a.discount_percentage / 100) : a.price;
         const priceB =
-          b.price && b.discount_percentage && b.discount_percentage > 0
-            ? b.price * (1 - b.discount_percentage / 100)
-            : b.price;
+          b.price && b.discount_percentage && b.discount_percentage > 0 ? b.price * (1 - b.discount_percentage / 100) : b.price;
         return (priceB ?? Infinity) - (priceA ?? Infinity);
       } else if (sortOrder === 'date_desc') {
         const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
@@ -610,53 +551,29 @@ export const VehicleGrid = ({
   ) => {
     switch (type) {
       case 'brand':
-        setSelectedBrands((prev) =>
-          prev.includes(filter)
-            ? prev.filter((b) => b !== filter)
-            : [...prev, filter]
-        );
+        setSelectedBrands((prev) => (prev.includes(filter) ? prev.filter((b) => b !== filter) : [...prev, filter]));
         break;
       case 'year':
-        setSelectedYears((prev) =>
-          prev.includes(filter)
-            ? prev.filter((y) => y !== filter)
-            : [...prev, filter]
-        );
+        setSelectedYears((prev) => (prev.includes(filter) ? prev.filter((y) => y !== filter) : [...prev, filter]));
         break;
       case 'type':
-        setSelectedTypes((prev) =>
-          prev.includes(filter)
-            ? prev.filter((t) => t !== filter)
-            : [...prev, filter]
-        );
+        setSelectedTypes((prev) => (prev.includes(filter) ? prev.filter((t) => t !== filter) : [...prev, filter]));
         break;
       case 'fuel':
-        setSelectedFuels((prev) =>
-          prev.includes(filter)
-            ? prev.filter((f) => f !== filter)
-            : [...prev, filter]
-        );
+        setSelectedFuels((prev) => (prev.includes(filter) ? prev.filter((f) => f !== filter) : [...prev, filter]));
         break;
       case 'condition':
-        setSelectedConditions((prev) =>
-          prev.includes(filter)
-            ? prev.filter((c) => c !== filter)
-            : [...prev, filter]
-        );
+        setSelectedConditions((prev) => (prev.includes(filter) ? prev.filter((c) => c !== filter) : [...prev, filter]));
         break;
       case 'color':
-        setSelectedColors((prev) =>
-          prev.includes(filter)
-            ? prev.filter((c) => c !== filter)
-            : [...prev, filter]
-        );
+        setSelectedColors((prev) => (prev.includes(filter) ? prev.filter((c) => c !== filter) : [...prev, filter]));
         break;
     }
   };
 
   // Create a ref handler that returns void to match expected type
   const refHandler = (element: HTMLDivElement | null) => {
-    if (element && connectors.connect) {
+    if (element && connectors?.connect) {
       connectors.connect(element);
     }
   };
@@ -678,16 +595,10 @@ export const VehicleGrid = ({
       <div className='max-w-7xl mx-auto px-4 sm:px-6'>
         {/* Header Section */}
         <div className='text-center mb-8'>
-          <h2
-            style={{ color: textColor }}
-            className='text-3xl font-bold mb-3 text-center'
-          >
+          <h2 style={{ color: textColor }} className='text-3xl font-bold mb-3 text-center'>
             {title}
           </h2>
-          <p
-            style={{ color: textColor }}
-            className='text-base text-gray-600 mb-6 text-center max-w-2xl mx-auto'
-          >
+          <p style={{ color: textColor }} className='text-base text-gray-600 mb-6 text-center max-w-2xl mx-auto'>
             {subtitle}
           </p>
         </div>
@@ -701,10 +612,7 @@ export const VehicleGrid = ({
             {/* Search and Filter Bar */}
             <div className='mb-6 flex flex-col sm:flex-row gap-4'>
               <div className='relative flex-grow'>
-                <Search
-                  className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400'
-                  size={18}
-                />
+                <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400' size={18} />
                 <Input
                   type='text'
                   placeholder='Buscar por marca, modelo o año...'
@@ -716,10 +624,7 @@ export const VehicleGrid = ({
 
               <div className='flex gap-3'>
                 {/* Filter button for mobile */}
-                <Sheet
-                  open={isMobileFilterOpen}
-                  onOpenChange={setIsMobileFilterOpen}
-                >
+                <Sheet open={isMobileFilterOpen} onOpenChange={setIsMobileFilterOpen}>
                   <SheetTrigger asChild>
                     <Button
                       variant='outline'
@@ -734,10 +639,7 @@ export const VehicleGrid = ({
                       )}
                     </Button>
                   </SheetTrigger>
-                  <SheetContent
-                    side='right'
-                    className='w-[85vw] sm:max-w-md p-0 overflow-auto'
-                  >
+                  <SheetContent side='right' className='w-[85vw] sm:max-w-md p-0 overflow-auto'>
                     <SheetHeader className='px-4 py-3 border-b border-gray-100 sticky top-0 bg-white z-10'>
                       <div className='flex justify-between items-center'>
                         <SheetTitle className='text-left'>Filtros</SheetTitle>
@@ -769,7 +671,7 @@ export const VehicleGrid = ({
                     <div className='p-4'>
                       <VehicleFilters
                         priceRange={priceRange}
-                        setPriceRange={setPriceRange}
+                        setPriceRange={setPriceRangeDispatch}
                         minMaxPrice={minMaxPrice}
                         selectedBrands={selectedBrands}
                         setSelectedBrands={setSelectedBrands}
@@ -804,14 +706,8 @@ export const VehicleGrid = ({
                     className='hidden md:flex items-center gap-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900 transition-all duration-200 ease-in-out transform hover:scale-105'
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
                   >
-                    {isFilterOpen ? (
-                      <SlidersHorizontal size={16} />
-                    ) : (
-                      <Filter size={16} />
-                    )}
-                    <span>
-                      {isFilterOpen ? 'Ocultar filtros' : 'Mostrar filtros'}
-                    </span>
+                    {isFilterOpen ? <SlidersHorizontal size={16} /> : <Filter size={16} />}
+                    <span>{isFilterOpen ? 'Ocultar filtros' : 'Mostrar filtros'}</span>
                     {hasActiveFilters && !isFilterOpen && (
                       <span className='bg-black text-white dark:bg-white dark:text-black text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center'>
                         !
@@ -848,7 +744,7 @@ export const VehicleGrid = ({
                 <div className='hidden md:block'>
                   <VehicleFilters
                     priceRange={priceRange}
-                    setPriceRange={setPriceRange}
+                    setPriceRange={setPriceRangeDispatch}
                     minMaxPrice={minMaxPrice}
                     selectedBrands={selectedBrands}
                     setSelectedBrands={setSelectedBrands}
@@ -877,23 +773,15 @@ export const VehicleGrid = ({
 
               {/* Results Section */}
               <div
-                className={`flex-1 ${
-                  filteredVehicles.length === 0
-                    ? 'flex justify-center items-center min-h-[300px]'
-                    : ''
-                }`}
+                className={`flex-1 ${filteredVehicles.length === 0 ? 'flex justify-center items-center min-h-[300px]' : ''}`}
               >
                 {filteredVehicles.length === 0 ? (
                   <div className='text-center p-8 bg-gray-50 rounded-xl'>
                     <div className='text-gray-400 mb-3'>
                       <Search size={48} className='mx-auto opacity-50' />
                     </div>
-                    <h3 className='text-lg font-medium text-gray-700 mb-2'>
-                      No se encontraron vehículos
-                    </h3>
-                    <p className='text-gray-500 mb-4'>
-                      Intenta ajustar los filtros o buscar otra cosa
-                    </p>
+                    <h3 className='text-lg font-medium text-gray-700 mb-2'>No se encontraron vehículos</h3>
+                    <p className='text-gray-500 mb-4'>Intenta ajustar los filtros o buscar otra cosa</p>
                     <Button variant='outline' onClick={resetAllFilters}>
                       Quitar todos los filtros
                     </Button>
@@ -902,9 +790,7 @@ export const VehicleGrid = ({
                   <>
                     <div className='mb-4 flex justify-between items-center'>
                       <p className='text-sm text-gray-500'>
-                        <span className='font-medium text-gray-700'>
-                          {filteredVehicles.length}
-                        </span>{' '}
+                        <span className='font-medium text-gray-700'>{filteredVehicles.length}</span>{' '}
                         vehículos encontrados
                       </p>
                     </div>
@@ -913,8 +799,8 @@ export const VehicleGrid = ({
                       vehicles={filteredVehicles}
                       columns={columns}
                       getStatusColor={getStatusColor}
-                      sortOrder={sortOrder}
-                      setSortOrder={setSortOrder}
+                      sortOrder={sortOrder as any}
+                      setSortOrder={setSortOrderDispatch}
                       cardSettings={cardSettings}
                       newBadgeText={newBadgeText}
                     />

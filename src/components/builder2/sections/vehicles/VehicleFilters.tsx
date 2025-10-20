@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   ChevronRight,
   ChevronDown,
@@ -27,7 +27,8 @@ export interface PriceRange {
 
 export interface VehicleFiltersProps {
   priceRange: PriceRange;
-  setPriceRange: React.Dispatch<React.SetStateAction<PriceRange>>;
+  /** El store expone un setter tipo (next: PriceRange) => void, no el setter funcional de React */
+  setPriceRange: (next: PriceRange) => void;
   minMaxPrice: { min: number; max: number };
   selectedBrands: string[];
   setSelectedBrands: React.Dispatch<React.SetStateAction<string[]>>;
@@ -89,7 +90,6 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
   const [colorOpen, setColorOpen] = useState(false);
   const [yearOpen, setYearOpen] = useState(false);
 
-  // Check if any filters are active
   const hasActiveFilters =
     selectedBrands.length > 0 ||
     selectedTypes.length > 0 ||
@@ -100,11 +100,6 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
     priceRange.min !== minMaxPrice.min ||
     priceRange.max !== minMaxPrice.max;
 
-  // Asegurar valores por defecto para el rango de precio
-  const DEFAULT_MIN_PRICE = 0;
-  const DEFAULT_MAX_PRICE = minMaxPrice.max;
-
-  // Función local para formatear precios en CLP
   function formatPrice(price: number) {
     return new Intl.NumberFormat('es-CL', {
       style: 'currency',
@@ -113,7 +108,6 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
     }).format(price);
   }
 
-  // Generic filter section component
   const FilterSection = ({
     title,
     icon,
@@ -131,9 +125,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
     availableItems: string[];
     type: 'brand' | 'year' | 'type' | 'fuel' | 'condition' | 'color';
   }) => {
-    // Estado local para el texto del input de búsqueda
     const [search, setSearch] = useState('');
-    // Filtrar items solo si es filtro de marca, año o tipo y hay texto
     const filteredItems =
       (type === 'brand' || type === 'year' || type === 'type') && search
         ? availableItems.filter((item) =>
@@ -169,7 +161,6 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
 
         {isOpen && (
           <div className='mt-3 pl-6 space-y-2 max-h-[200px] overflow-y-auto pr-2'>
-            {/* Input de autocompletado solo para marcas, año o tipo */}
             {(type === 'brand' || type === 'year' || type === 'type') && (
               <div className='mb-2 sticky top-0 bg-white z-10'>
                 <Input
@@ -220,7 +211,6 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
 
   return (
     <div className='w-full md:w-full lg:w-80 '>
-      {/* Advanced Filters */}
       <div className='bg-white rounded-lg shadow-sm border border-gray-100 p-4 sticky top-4'>
         <div className='flex justify-between items-center mb-4'>
           <div className='flex items-center gap-2'>
@@ -240,7 +230,6 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           )}
         </div>
 
-        {/* Active Filters */}
         {hasActiveFilters && (
           <div className='flex flex-wrap gap-1 mb-4'>
             {selectedBrands.map((brand) => (
@@ -341,7 +330,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           </div>
         )}
 
-        {/* Price Range Filter */}
+        {/* Price Range */}
         <div className='mb-4 border-b border-gray-100 pb-4'>
           <button
             className='flex w-full items-center justify-between cursor-pointer transition-colors hover:bg-gray-50 p-2 rounded-md'
@@ -361,19 +350,14 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
 
           {priceRangeOpen && (
             <div className='mt-3 px-4'>
-              {/* Inputs de precio manuales */}
               <div className='flex justify-between items-center gap-2 mb-3'>
+                {/* MIN */}
                 <div className='flex items-center bg-gray-100 rounded-lg px-3 py-2 w-32'>
                   <span className='text-gray-500 text-sm mr-1'>$</span>
                   <input
                     type='text'
                     className='bg-transparent border-none outline-none w-full text-sm text-gray-900 text-center'
-                    value={
-                      priceRange.min === 0 &&
-                      document.activeElement !== document.activeElement
-                        ? ''
-                        : formatPrice(priceRange.min).replace('$', '').trim()
-                    }
+                    value={formatPrice(priceRange.min).replace('$', '').trim()}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
                       setPriceRange({
@@ -390,9 +374,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        const value = (
-                          e.target as HTMLInputElement
-                        ).value.replace(/\D/g, '');
+                        const value = (e.target as HTMLInputElement).value.replace(/\D/g, '');
                         setPriceRange({
                           min: value ? Number(value) : 0,
                           max: priceRange.max,
@@ -401,47 +383,43 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                     }}
                   />
                 </div>
+
                 <span className='text-gray-400 text-lg font-bold'>-</span>
+
+                {/* MAX */}
                 <div className='flex items-center bg-gray-100 rounded-lg px-3 py-2 w-32'>
                   <span className='text-gray-500 text-sm mr-1'>$</span>
                   <input
                     type='text'
                     className='bg-transparent border-none outline-none w-full text-sm text-gray-900 text-center'
-                    value={
-                      priceRange.max === minMaxPrice.max &&
-                      !document.activeElement
-                        ? ''
-                        : formatPrice(priceRange.max).replace('$', '').trim()
-                    }
+                    value={formatPrice(priceRange.max).replace('$', '').trim()}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
                       setPriceRange({
                         min: priceRange.min,
-                        max: value === '' ? '' : Number(value),
+                        max: value ? Number(value) : minMaxPrice.max, // ← nunca ''
                       });
                     }}
                     onBlur={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
                       setPriceRange({
                         min: priceRange.min,
-                        max: value === '' ? minMaxPrice.max : Number(value),
+                        max: value ? Number(value) : minMaxPrice.max, // ← nunca ''
                       });
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        const value = (
-                          e.target as HTMLInputElement
-                        ).value.replace(/\D/g, '');
+                        const value = (e.target as HTMLInputElement).value.replace(/\D/g, '');
                         setPriceRange({
                           min: priceRange.min,
-                          max: value === '' ? minMaxPrice.max : Number(value),
+                          max: value ? Number(value) : minMaxPrice.max, // ← nunca ''
                         });
                       }
                     }}
                   />
                 </div>
               </div>
-              {/* Slider y valores formateados */}
+
               <Slider
                 value={[priceRange.min ?? 0, priceRange.max ?? minMaxPrice.max]}
                 min={0}
@@ -460,7 +438,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           )}
         </div>
 
-        {/* Brand Filter */}
+        {/* Brand */}
         <FilterSection
           title='Marca'
           icon={<Car size={18} />}
@@ -471,7 +449,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           type='brand'
         />
 
-        {/* Year Filter */}
+        {/* Year */}
         <FilterSection
           title='Año'
           icon={<Calendar size={18} />}
@@ -482,7 +460,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           type='year'
         />
 
-        {/* Vehicle Type Filter */}
+        {/* Type */}
         <FilterSection
           title='Tipo de Vehículo'
           icon={<CarFront size={18} />}
@@ -493,7 +471,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           type='type'
         />
 
-        {/* Fuel Type Filter */}
+        {/* Fuel */}
         <FilterSection
           title='Combustible'
           icon={<Fuel size={18} />}
@@ -504,7 +482,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           type='fuel'
         />
 
-        {/* Condition Filter */}
+        {/* Condition */}
         <FilterSection
           title='Condición'
           icon={<Star size={18} />}
@@ -515,7 +493,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           type='condition'
         />
 
-        {/* Color Filter */}
+        {/* Color */}
         <FilterSection
           title='Color'
           icon={<Palette size={18} />}
