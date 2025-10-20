@@ -70,35 +70,35 @@ const MapMarker = ({
   isSelected?: boolean;
   iconColor?: string;
 }) => (
-  <div className='relative group'>
+  <div className="relative group">
     <div
       onClick={onClick}
       className={`cursor-pointer transform-gpu transition-transform ${
         isSelected ? 'scale-110' : 'group-hover:scale-110'
       }`}
     >
-      <div className='relative'>
+      <div className="relative">
         <svg
-          xmlns='http://www.w3.org/2000/svg'
-          viewBox='0 0 24 24'
-          className='w-8 h-8 drop-shadow-lg'
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          className="w-8 h-8 drop-shadow-lg"
           style={{ color: iconColor }}
-          fill='currentColor'
+          fill="currentColor"
         >
-          <path d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM12 11.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z' />
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM12 11.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
         </svg>
         <div
-          className='absolute -inset-1 animate-ping rounded-full duration-1000'
+          className="absolute -inset-1 animate-ping rounded-full duration-1000"
           style={{ backgroundColor: `${iconColor}30` }}
         />
       </div>
     </div>
 
     {address && (
-      <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
-        <div className='bg-white dark:bg-dark-card px-4 py-2 rounded-lg shadow-lg text-sm text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-dark-border'>
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="bg-white dark:bg-dark-card px-4 py-2 rounded-lg shadow-lg text-sm text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-dark-border">
           {address}
-          <div className='absolute -bottom-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white dark:border-t-dark-card' />
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white dark:border-t-dark-card" />
         </div>
       </div>
     )}
@@ -130,7 +130,6 @@ export default function HowToArrive({
     connectors = nodeData.connectors;
     selected = nodeData.selected;
   } catch (error) {
-    // useNode no está disponible (contexto tradicional), usar valores por defecto
     connectors = null;
     selected = false;
   }
@@ -139,9 +138,19 @@ export default function HowToArrive({
   const { theme } = useThemeStore();
   const { t } = useTranslation();
 
+  // Logo según tema 
+  const logoSrc =
+    theme === 'dark' && client?.logo_dark ? client.logo_dark : client?.logo;
+
+  const logoClassName =
+    theme === 'dark' && client?.logo_dark
+      ? 'h-12 w-auto mb-2 object-contain'
+      : 'h-12 w-auto mb-2 object-contain dark:brightness-90';
+
   // Color primario por defecto (celestito claro)
   const primaryColor = '#60a5fa';
   const finalIconColor = iconColor || primaryColor;
+
   const [dealerships, setDealerships] = useState<Dealership[]>([]);
   const [selectedDealership, setSelectedDealership] =
     useState<Dealership | null>(null);
@@ -163,7 +172,6 @@ export default function HowToArrive({
           setDealerships(data);
           setSelectedDealership(data[0]);
         } else if (client.location) {
-          // Create a default dealership using client data if no dealerships found
           const defaultDealership: Dealership = {
             id: 'default',
             client_id: client.id,
@@ -224,8 +232,8 @@ export default function HowToArrive({
 
   if (!isLoaded || isLoading) {
     return (
-      <div className='flex items-center justify-center' style={{ height }}>
-        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary' />
+      <div className="flex items-center justify-center" style={{ height }}>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
@@ -235,7 +243,7 @@ export default function HowToArrive({
       ref={connectors?.connect || null}
       className={`py-12 rounded-2xl bg-gray-50 dark:bg-black text-gray-900 dark:text-white ${
         selected
-          ? 'border-2 border-dashed border-gray-600 outline outline-1 outline-dashed outline-gray-400 outline-offset-2'
+          ? 'border-2 border-dashed border-gray-600  outline-1 outline-dashed outline-gray-400 outline-offset-2'
           : 'border border-transparent'
       }`}
       style={{
@@ -243,7 +251,7 @@ export default function HowToArrive({
         ...(textColor !== '#111827' && { color: textColor }),
       }}
     >
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h3
           className={`text-4xl font-semibold mb-4 text-gray-900 dark:text-white ${
             titleAlignment === 'center'
@@ -267,85 +275,83 @@ export default function HowToArrive({
           {subtitle || t('home.howToArrive.subtitle')}
         </p>
 
-        <div className='grid md:grid-cols-3 gap-8 items-start'>
+        <div className="grid md:grid-cols-3 gap-8 items-start">
           {/* Contact Info with Navigation */}
-          <div className='md:col-span-1 space-y-6 p-6 h-full flex flex-col justify-between rounded-xl shadow-sm mx-auto max-w-[90vw] bg-white dark:bg-dark-card text-gray-900 dark:text-white'>
-            {client?.logo && (
+          <div className="md:col-span-1 space-y-6 p-6 h-full flex flex-col justify-between rounded-xl shadow-sm mx-auto max-w-[90vw] bg-white dark:bg-dark-card text-gray-900 dark:text-white">
+            {logoSrc && (
               <img
-                src={client.logo}
-                alt={client.name}
-                className='h-12 w-auto mb-2 object-contain dark:brightness-90'
+                src={logoSrc}
+                alt={client?.name || 'Logo'}
+                className={logoClassName}
               />
             )}
 
             {dealerships.length > 1 && (
-              <div className='flex items-center justify-between mb-4'>
+              <div className="flex items-center justify-between mb-4">
                 <button
                   onClick={handlePrevDealership}
-                  className='p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full text-gray-700 dark:text-gray-300'
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full text-gray-700 dark:text-gray-300"
                 >
-                  <Icon icon='mdi:chevron-left' className='text-2xl' />
+                  <Icon icon="mdi:chevron-left" className="text-2xl" />
                 </button>
-                <span className='text-sm text-gray-600 dark:text-gray-400 opacity-70'>
-                  {dealerships.findIndex(
-                    (d) => d.id === selectedDealership?.id
-                  ) + 1}{' '}
+                <span className="text-sm text-gray-600 dark:text-gray-400 opacity-70">
+                  {dealerships.findIndex((d) => d.id === selectedDealership?.id) + 1}{' '}
                   de {dealerships.length}
                 </span>
                 <button
                   onClick={handleNextDealership}
-                  className='p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full text-gray-700 dark:text-gray-300'
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full text-gray-700 dark:text-gray-300"
                 >
-                  <Icon icon='mdi:chevron-right' className='text-2xl' />
+                  <Icon icon="mdi:chevron-right" className="text-2xl" />
                 </button>
               </div>
             )}
 
             {selectedDealership && (
-              <div className='space-y-4'>
-                <div className='flex items-start space-x-3'>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
                   <Icon
-                    icon='mdi:map-marker'
-                    className='text-2xl flex-shrink-0 mt-1'
+                    icon="mdi:map-marker"
+                    className="text-2xl flex-shrink-0 mt-1"
                     style={{ color: finalIconColor }}
                   />
                   <div>
-                    <h4 className='font-medium text-gray-900 dark:text-white'>
+                    <h4 className="font-medium text-gray-900 dark:text-white">
                       {t('home.howToArrive.address')}
                     </h4>
-                    <p className='text-gray-600 dark:text-gray-400 opacity-70'>
+                    <p className="text-gray-600 dark:text-gray-400 opacity-70">
                       {selectedDealership.address}
                     </p>
                   </div>
                 </div>
 
-                <div className='flex items-start space-x-3'>
+                <div className="flex items-start space-x-3">
                   <Icon
-                    icon='mdi:phone'
-                    className='text-2xl flex-shrink-0 mt-1'
+                    icon="mdi:phone"
+                    className="text-2xl flex-shrink-0 mt-1"
                     style={{ color: finalIconColor }}
                   />
                   <div>
-                    <h4 className='font-medium text-gray-900 dark:text-white'>
+                    <h4 className="font-medium text-gray-900 dark:text-white">
                       {t('home.howToArrive.phone')}
                     </h4>
-                    <p className='text-gray-600 dark:text-gray-400 opacity-70'>
+                    <p className="text-gray-600 dark:text-gray-400 opacity-70">
                       {selectedDealership.phone}
                     </p>
                   </div>
                 </div>
 
-                <div className='flex items-start space-x-3'>
+                <div className="flex items-start space-x-3">
                   <Icon
-                    icon='mdi:email'
-                    className='text-2xl flex-shrink-0 mt-1'
+                    icon="mdi:email"
+                    className="text-2xl flex-shrink-0 mt-1"
                     style={{ color: finalIconColor }}
                   />
-                  <div className='min-w-0'>
-                    <h4 className='font-medium text-gray-900 dark:text-white'>
+                  <div className="min-w-0">
+                    <h4 className="font-medium text-gray-900 dark:text-white">
                       Email
                     </h4>
-                    <p className='break-words text-gray-600 dark:text-gray-400 opacity-70'>
+                    <p className="break-words text-gray-600 dark:text-gray-400 opacity-70">
                       {selectedDealership.email}
                     </p>
                   </div>
@@ -354,7 +360,7 @@ export default function HowToArrive({
             )}
 
             <Button
-              className='w-full mt-6'
+              className="w-full mt-6"
               style={{
                 backgroundColor: buttonBgColor,
                 color: buttonTextColor,
@@ -368,10 +374,10 @@ export default function HowToArrive({
           </div>
 
           {/* Map */}
-          <div className='md:col-span-2'>
+          <div className="md:col-span-2">
             <div
               style={{ height, width: '100%' }}
-              className='rounded-xl overflow-hidden shadow-lg'
+              className="rounded-xl overflow-hidden shadow-lg"
             >
               <GoogleMap
                 zoom={13}
