@@ -11,6 +11,7 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
 import RoutePrefetcher from '@/components/routing/RoutePrefetcher';
 import { ToastContainer } from 'react-toastify';
+import DebugPropGuard from './DebugPropGuard';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
@@ -68,6 +69,7 @@ export default function RootLayout({
   return (
     <html lang='es' suppressHydrationWarning>
       <body className={`${poppins.variable} antialiased`}>
+        {process.env.NODE_ENV !== 'production' && <DebugPropGuard />}
         <HeroUIProvider>
           <ClientProvider>
             <I18nProvider>
