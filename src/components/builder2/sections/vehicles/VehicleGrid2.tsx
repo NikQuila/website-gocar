@@ -36,6 +36,13 @@ type VehicleRow = {
   event_date?: string;
 };
 
+type GradientCfg = {
+  from: string;
+  via: string;
+  to: string;
+  angle?: number; // grados
+};
+
 interface Props {
   title?: string;
   subtitle?: string;
@@ -43,6 +50,7 @@ interface Props {
   textColor?: string;
   columns?: 2 | 3 | 4;
   showStatuses?: StatusName[];
+  gradient?: GradientCfg; // 👈 NUEVO: gradient configurable
   cardSettings?: {
     cardBgColor: string;
     cardBorderColor: string;
@@ -71,6 +79,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
   textColor = '#111827',
   columns = 3,
   showStatuses = ['Publicado', 'Reservado', 'Vendido'],
+  gradient = { from: '#000000', via: '#171717', to: '#404040', angle: 135 }, // 👈 default compartido
   cardSettings = [
     {
       cardBgColor: '#ffffff',
@@ -101,6 +110,44 @@ export const VehicleGrid2: CraftComponent<Props> = ({
 
   const { client } = useClientStore();
 
+  // ---------------------------
+  // TÍTULO: toma de clients.name
+  // ---------------------------
+  const PLACEHOLDER_TITLE = 'Sarret Cars Boutique';
+  const [resolvedTitle, setResolvedTitle] = useState<string>(title);
+
+  useEffect(() => {
+    setResolvedTitle(title);
+  }, [title]);
+
+  useEffect(() => {
+    const shouldResolveFromClient = !title || title.trim() === '' || title === PLACEHOLDER_TITLE;
+    if (!shouldResolveFromClient) return;
+    if (!client?.id) return;
+
+    const candidate = (client as any)?.name;
+    if (candidate && String(candidate).trim() !== '') {
+      setResolvedTitle(String(candidate).trim());
+      return;
+    }
+
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('clients')
+          .select('name')
+          .eq('id', +client.id)
+          .single();
+
+        if (!error && data?.name) {
+          setResolvedTitle(String(data.name).trim());
+        }
+      } catch (e) {
+        console.error('Error resolviendo título desde clients.name:', e);
+      }
+    })();
+  }, [client?.id, title]);
+
   // data
   const [vehicles, setVehicles] = useState<VehicleRow[]>([]);
   const [filtered, setFiltered] = useState<VehicleRow[]>([]);
@@ -111,7 +158,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
   const [types, setTypes] = useState<string[]>([]);
   const [fuels, setFuels] = useState<string[]>([]);
   const [trans, setTrans] = useState<string[]>([]);
-  const [minMaxPrice, setMinMaxPrice] = useState({ min: 0, max: 100000 });
+  const [minMaxPrice, setMinMaxPrice] = useState({ min: 0, max: 1000000000 });
   const [minMaxYear, setMinMaxYear] = useState({ min: 1990, max: new Date().getFullYear() });
 
   // filters
@@ -120,7 +167,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
   const [transSel, setTransSel] = useState('Todas');
   const [fuelSel, setFuelSel] = useState('Todos');
   const [priceMin, setPriceMin] = useState(0);
-  const [priceMax, setPriceMax] = useState(100000);
+  const [priceMax, setPriceMax] = useState(1000000000);
   const [yearMin, setYearMin] = useState(1990);
   const [yearMax, setYearMax] = useState(new Date().getFullYear());
 
@@ -162,7 +209,6 @@ export const VehicleGrid2: CraftComponent<Props> = ({
           `)
           .eq('client_id', +client.id)
           .order('created_at', { ascending: false });
-          // 👆 sin .limit(50)
 
         if (error) throw error;
 
@@ -180,7 +226,12 @@ export const VehicleGrid2: CraftComponent<Props> = ({
           return { ...v, event_date };
         });
 
-        const byStatus = processed.filter((v) => v.status && showStatuses.includes((v.status.name || '') as StatusName));
+        // Filtra por estados permitidos
+        const byStatus = processed.filter(
+          (v) => v.status && showStatuses.includes((v.status.name || '') as StatusName)
+        );
+
+        // Ordena Publicado primero y luego por fecha desc
         const sorted = [...byStatus].sort((a, b) => {
           if (a.status?.name === 'Publicado' && b.status?.name !== 'Publicado') return -1;
           if (a.status?.name !== 'Publicado' && b.status?.name === 'Publicado') return 1;
@@ -190,14 +241,21 @@ export const VehicleGrid2: CraftComponent<Props> = ({
         setVehicles(sorted);
         setFiltered(sorted);
 
+        // Opciones para filtros
         const b = [...new Set(sorted.map((v) => v.brand?.name).filter(Boolean))] as string[];
         const t = [...new Set(sorted.map((v) => v.category?.name).filter(Boolean))] as string[];
         const f = [...new Set(sorted.map((v) => v.fuel_type?.name).filter(Boolean))] as string[];
         const tr = [...new Set(sorted.map((v) => v.transmission).filter(Boolean))] as string[];
 
-        const prices = sorted.map((v) => v.price).filter((p): p is number => p != null);
-        const minP = prices.length ? Math.min(...prices) : 0;
-        const maxP = prices.length ? Math.max(...prices) : 100000;
+        // 👉 Igual que en VehicleGrid: min/max de PRECIO solo con disponibles (no R/V)
+        const available = sorted.filter(
+          (v) => v.status?.name !== 'Vendido' && v.status?.name !== 'Reservado'
+        );
+        const pricedAvail = available.filter((v) => typeof v.price === 'number') as Array<
+          Required<Pick<VehicleRow, 'price'>>
+        >;
+        const minP = 0;
+        const maxP = pricedAvail.length ? Math.max(...pricedAvail.map((v) => v.price)) : 1000000000;
 
         const years = sorted.map((v) => v.year).filter((y): y is number => !!y);
         const minY = years.length ? Math.min(...years) : 1990;
@@ -207,9 +265,11 @@ export const VehicleGrid2: CraftComponent<Props> = ({
         setTypes(t);
         setFuels(f);
         setTrans(tr);
+
         setMinMaxPrice({ min: minP, max: maxP });
         setPriceMin(minP);
         setPriceMax(maxP);
+
         setMinMaxYear({ min: minY, max: maxY });
         setYearMin(minY);
         setYearMax(maxY);
@@ -227,13 +287,25 @@ export const VehicleGrid2: CraftComponent<Props> = ({
   // apply filters + sort
   useEffect(() => {
     if (!vehicles.length) return;
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-    threeDaysAgo.setHours(0, 0, 0, 0);
 
     let f = [...vehicles];
 
-    // Reservado/Vendido solo últimos 3 días (igual que en VehicleGrid)
+    // (A) Filtros básicos
+    if (typeSel !== 'Todos') f = f.filter((v) => v.category?.name === typeSel);
+    if (brandSel !== 'Todas') f = f.filter((v) => v.brand?.name === brandSel);
+    if (transSel !== 'Todas') f = f.filter((v) => (v.transmission || '') === transSel);
+    if (fuelSel !== 'Todos') f = f.filter((v) => v.fuel_type?.name === fuelSel);
+
+    // (B) Precio — APLICA A TODOS (incluye Reservado/Vendido)
+    f = f.filter((v) => v.price !== undefined && v.price >= priceMin && v.price <= priceMax);
+
+    // (C) Año
+    f = f.filter((v) => (v.year ?? 0) >= yearMin && (v.year ?? 0) <= yearMax);
+
+    // (D) Recencia R/V (solo últimos 3 días)
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    threeDaysAgo.setHours(0, 0, 0, 0);
     f = f.filter((v) => {
       const s = v.status?.name;
       if (s === 'Vendido' || s === 'Reservado') {
@@ -243,15 +315,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
       return true;
     });
 
-    if (typeSel !== 'Todos') f = f.filter((v) => v.category?.name === typeSel);
-    if (brandSel !== 'Todas') f = f.filter((v) => v.brand?.name === brandSel);
-    if (transSel !== 'Todas') f = f.filter((v) => (v.transmission || '') === transSel);
-    if (fuelSel !== 'Todos') f = f.filter((v) => v.fuel_type?.name === fuelSel);
-
-    // 🔧 Igualado al VehicleGrid: exige price definido
-    f = f.filter((v) => v.price !== undefined && v.price >= priceMin && v.price <= priceMax);
-    f = f.filter((v) => (v.year ?? 0) >= yearMin && (v.year ?? 0) <= yearMax);
-
+    // (E) Ordenamiento (considera descuento)
     const effectivePrice = (v: VehicleRow) => {
       const p = v.price ?? Infinity;
       const d = v.discount_percentage ?? 0;
@@ -282,7 +346,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
     setFiltered(f);
   }, [vehicles, typeSel, brandSel, transSel, fuelSel, priceMin, priceMax, yearMin, yearMax, sortOrder]);
 
-  // 🔸 Normalizador de features (por si llega string libre desde CMS)
+  // 🔸 Normalizador de features
   const normalizeFeature = (v: string | undefined): FeatureKey | undefined => {
     const allowed: FeatureKey[] = ['category', 'year', 'fuel', 'mileage', 'transmission'];
     return v && (allowed as string[]).includes(v) ? (v as FeatureKey) : undefined;
@@ -362,6 +426,12 @@ export const VehicleGrid2: CraftComponent<Props> = ({
       'focus:outline-none focus:ring-2 focus:ring-white/30',
     ].join(' ');
 
+  // 👇 gradient inline style a partir de props.gradient
+  const gradientStyle: React.CSSProperties = {
+    background: `linear-gradient(${(gradient?.angle ?? 135)}deg, ${gradient?.from ?? '#000'} 0%, ${gradient?.via ?? '#171717'} 55%, ${gradient?.to ?? '#404040'} 100%)`,
+    color: '#fff',
+  };
+
   return (
     <section
       ref={connectRef}
@@ -374,18 +444,21 @@ export const VehicleGrid2: CraftComponent<Props> = ({
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
         {/* ===== FULL-BLEED HEADER + FILTROS ===== */}
         <div className="relative left-1/2 right-1/2 -mx-[50vw] w-[100vw] max-w-[100vw] overflow-hidden">
-          <section className="bg-gradient-to-br from-black via-neutral-900 to-neutral-700 text-white">
+          {/* ⬇️ Antes: tailwind bg-gradient-to-br ...  Ahora: estilo con gradient props */}
+          <section className="text-white" style={gradientStyle}>
             <div className="max-w-[1200px] mx-auto">
               {/* Título */}
               <div className="text-center mb-5 pt-6 sm:pt-8">
-                <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">{title}</h2>
+                <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+                  {resolvedTitle || 'Explora nuestro stock'}
+                </h2>
                 {subtitle ? <p className="text-white/80 mt-2 text-sm sm:text-base">{subtitle}</p> : null}
               </div>
 
               {/* Categorías – mobile */}
               <div className="md:hidden mb-5 -mx-4 px-4">
                 <div
-                  className="flex gap-4 items-center overflow-x-auto snap-x snap-mandatory scroll-px-4 pb-1
+                  className="flex gap-4 px-4 pt-7 items-center overflow-x-auto snap-x snap-mandatory scroll-px-4 pb-1
                              [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden overscroll-x-contain"
                 >
                   {typeCards.map(({ name, img }) => {
@@ -430,7 +503,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
               </div>
 
               {/* Categorías – desktop */}
-              <div className="hidden md:grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6 place-items-center mb-6 px-4">
+              <div className="hidden md:flex flex-wrap justify-center gap-4 mb-6 px-4">
                 {typeCards.map(({ name, img }) => {
                   const isAll = name === 'Todos';
                   const active = typeSel === name || (isAll && typeSel === 'Todos');
@@ -659,6 +732,7 @@ VehicleGrid2.craft = {
     textColor: '#111827',
     columns: 3,
     showStatuses: ['Publicado', 'Reservado', 'Vendido'],
+    gradient: { from: '#000000', via: '#171717', to: '#404040', angle: 135 }, // 👈 default del gradient
     cardSettings: [
       {
         cardBgColor: '#ffffff',

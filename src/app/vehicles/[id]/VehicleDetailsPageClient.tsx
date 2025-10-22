@@ -70,7 +70,7 @@ export default function VehicleDetailsPageClient() {
       <div className='mb-8'>
         <button
           onClick={() => router.back()}
-          className='flex items-center gap-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors'
+          className='flex items-center gap-2 text-gray-600 hover:text-gray-800 dark:text-gray-400  dark:hover:text-white transition-colors'
         >
           <Icon icon='mdi:arrow-left' className='text-xl' />
           <span>{t('pages.vehicleDetails.backToVehicles')}</span>
