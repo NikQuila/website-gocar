@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Navbar as NextUINavbar,
   NavbarBrand,
@@ -9,20 +9,17 @@ import {
   NavbarMenuToggle,
   NavbarMenu,
   Button,
-  Divider,
 } from '@heroui/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from '@iconify/react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion, MotionConfig } from 'framer-motion';
 
 import useClientStore from '@/store/useClientStore';
 import useThemeStore from '@/store/useThemeStore';
 import ThemeToggle from '../ThemeToggle';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
-
-const spring = { type: 'spring', stiffness: 400, damping: 30, mass: 0.6 };
 
 const Navbar = () => {
   const { client } = useClientStore();
@@ -31,6 +28,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const { t } = useTranslation();
+  const prefersReduced = useReducedMotion();
 
   const navigation = useMemo(
     () => [
@@ -49,162 +47,139 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Forzar esquema desde el backend si está habilitado
   useEffect(() => {
     if (client?.client_website_config?.is_enabled) {
       setTheme(client?.client_website_config?.color_scheme === 'LIGHT' ? 'light' : 'dark');
     }
   }, [client, setTheme]);
 
-  const isActive = (href: string) => (href === '/' ? pathname === href : pathname.startsWith(href));
+  const isActive = useCallback(
+    (href: string) => (href === '/' ? pathname === href : pathname.startsWith(href)),
+    [pathname]
+  );
 
-  // Mostrar toggle de tema solo si tiene dark mode y NO está forzado por el backend
   const shouldShowThemeToggle =
     !!client?.has_dark_mode && !client?.client_website_config?.is_enabled;
 
+  // Transiciones globales más baratas si el usuario pide menos motion
+  const transition = prefersReduced
+    ? { type: false as const, duration: 0 }
+    : { type: 'spring' as const, stiffness: 260, damping: 28, mass: 0.5 };
+
   return (
-    <NextUINavbar
-      isMenuOpen={isMenuOpen}
-      onMenuOpenChange={setIsMenuOpen}
-      className={`transition-all duration-300 fixed top-0 z-50 ${
-        isScrolled
-          ? 'bg-white/90 dark:bg-black/90 backdrop-blur-md shadow-sm'
-          : 'bg-white dark:bg-dark-bg'
-      }`}
-      maxWidth="xl"
-    >
-      {/* Brand */}
-      <NavbarContent justify="start">
-        <NavbarBrand>
-          <Link href="/" className="flex items-center gap-2">
-            <img
-              src={theme === 'dark' && client?.logo_dark ? client.logo_dark : client?.logo}
-              alt={client?.name}
-              className="h-10 w-auto object-contain dark:brightness-200"
-            />
-          </Link>
-        </NavbarBrand>
-      </NavbarContent>
-
-      {/* Desktop nav */}
-      <NavbarContent className="hidden sm:flex" justify="center">
-        {navigation.map((item) => (
-          <NavbarItem key={item.href}>
-            <Link
-              href={item.href}
-              prefetch
-              className={`px-3 py-2 text-sm font-medium transition-colors ${
-                isActive(item.href)
-                  ? 'text-primary font-semibold dark:text-white'
-                  : 'text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-white'
-              }`}
-            >
-              {item.name}
-            </Link>
-          </NavbarItem>
-        ))}
-      </NavbarContent>
-
-      {/* Right side */}
-      <NavbarContent justify="end" className="gap-3">
-        <NavbarItem className="hidden sm:flex">
-          <LanguageSelector variant="minimal" className="rounded-full" />
-        </NavbarItem>
-        {shouldShowThemeToggle && (
-          <NavbarItem className="hidden sm:flex">
-            <ThemeToggle />
-          </NavbarItem>
-        )}
-        <NavbarItem className="hidden sm:flex">
-          <Button
-            as={Link}
-            href="/contact"
-            size="sm"
-            className="bg-primary text-white dark:text-black hover:bg-primary/90 transition-colors rounded-md px-4"
-            variant="solid"
-          >
-            {t('navigation.links.contact')}
-          </Button>
-        </NavbarItem>
-        <NavbarMenuToggle
-          aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-          className="sm:hidden text-gray-700 dark:text-white"
-        />
-      </NavbarContent>
-
-      {/* Mobile Menu – sin <li> anidados */}
-      <NavbarMenu className="bg-transparent p-0">
-        <AnimatePresence>
-          {isMenuOpen && (
-            <>
-              {/* Backdrop */}
-              <motion.div
-                key="backdrop"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[-1] backdrop-blur-[6px]"
+    <MotionConfig transition={transition}>
+      <NextUINavbar
+        isMenuOpen={isMenuOpen}
+        onMenuOpenChange={setIsMenuOpen}
+        className={`transition-colors duration-300 fixed top-0 z-50 ${
+          isScrolled
+            ? 'bg-white/90 dark:bg-black/90 shadow-sm supports-[backdrop-filter]:backdrop-blur-md'
+            : 'bg-white dark:bg-dark-bg'
+        }`}
+        maxWidth="xl"
+      >
+        {/* Brand */}
+        <NavbarContent justify="start">
+          <NavbarBrand>
+            <Link href="/" className="flex items-center gap-2" prefetch={false}>
+              <img
+                src={theme === 'dark' && client?.logo_dark ? client.logo_dark : client?.logo}
+                alt={client?.name}
+                className="h-10 w-auto object-contain dark:brightness-200"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
               />
-              {/* Gradients decorativos */}
-              <div className="pointer-events-none fixed inset-0 z-[-1] overflow-hidden">
-                <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-60 bg-primary/20" />
-                <div className="absolute top-1/4 -right-20 h-80 w-80 rounded-full blur-3xl opacity-50 bg-fuchsia-500/20 dark:bg-fuchsia-400/10" />
-                <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full blur-3xl opacity-50 bg-emerald-400/20 dark:bg-emerald-300/10" />
-              </div>
+            </Link>
+          </NavbarBrand>
+        </NavbarContent>
 
-              {/* Panel */}
+        {/* Desktop nav (simple, sin Framer por item) */}
+        <NavbarContent className="hidden sm:flex" justify="center">
+          {navigation.map((item) => (
+            <NavbarItem key={item.href}>
+              <Link
+                href={item.href}
+                prefetch={false}
+                className={`px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive(item.href)
+                    ? 'text-primary font-semibold dark:text-white'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-white'
+                }`}
+              >
+                {item.name}
+              </Link>
+            </NavbarItem>
+          ))}
+        </NavbarContent>
+
+        {/* Right side */}
+        <NavbarContent justify="end" className="gap-3">
+          <NavbarItem className="hidden sm:flex">
+            <LanguageSelector variant="minimal" className="rounded-full" />
+          </NavbarItem>
+          {shouldShowThemeToggle && (
+            <NavbarItem className="hidden sm:flex">
+              <ThemeToggle />
+            </NavbarItem>
+          )}
+          <NavbarItem className="hidden sm:flex">
+            <Button
+              as={Link}
+              href="/contact"
+              size="sm"
+              className="bg-primary text-white dark:text-black hover:bg-primary/90 transition-colors rounded-md px-4"
+              variant="solid"
+              prefetch={false}
+            >
+              {t('navigation.links.contact')}
+            </Button>
+          </NavbarItem>
+          <NavbarMenuToggle
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            className="sm:hidden text-gray-700 dark:text-white"
+          />
+        </NavbarContent>
+
+        {/* Mobile Menu (panel único animado; items con CSS) */}
+        <NavbarMenu className="bg-transparent p-0">
+          <AnimatePresence>
+            {isMenuOpen && (
               <motion.div
                 key="panel"
-                initial={{ y: -16, opacity: 0, scale: 0.98 }}
-                animate={{ y: 0, opacity: 1, scale: 1 }}
-                exit={{ y: -16, opacity: 0, scale: 0.98 }}
-                transition={spring}
-                className="mx-3 mt-3 mb-4 rounded-2xl border border-black/5 dark:border-white/10 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-xl"
+                initial={{ y: prefersReduced ? 0 : -12, opacity: prefersReduced ? 1 : 0.001 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: prefersReduced ? 0 : -12, opacity: prefersReduced ? 1 : 0 }}
+                className="
+                  mx-3 mt-3 mb-4 rounded-2xl border border-black/5 dark:border-white/10
+                  bg-white/90 dark:bg-black/70
+                  supports-[backdrop-filter]:backdrop-blur-xl
+                  shadow-xl
+                  overflow-hidden
+                "
               >
                 {/* Header panel */}
-                <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                <div className="flex items-center justify-between px-4 pt-4 pb-3">
                   <div className="flex items-center gap-2">
                     <LanguageSelector variant="minimal" className="rounded-full" />
                     {shouldShowThemeToggle && <ThemeToggle />}
                   </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">{client?.name}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[50%]">
+                    {client?.name}
+                  </span>
                 </div>
 
-                <Divider className="opacity-50" />
-
-                {/* Lista: SOLO un <li> por item (motion.li) */}
-                <motion.ul
-                  initial="hidden"
-                  animate="show"
-                  exit="hidden"
-                  variants={{
-                    hidden: { transition: { staggerChildren: 0.03, staggerDirection: -1 } },
-                    show: { transition: { staggerChildren: 0.05 } },
-                  }}
-                  className="px-1 py-2"
-                >
+                {/* Lista */}
+                <ul className="px-1 py-1">
                   {navigation.map((item) => {
                     const active = isActive(item.href);
                     return (
-                      <motion.li
-                        key={item.href}
-                        variants={{ hidden: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0, transition: spring } }}
-                        className="relative list-none" // evita bullets en caso de reset
-                      >
-                        {/* Indicador activo */}
-                        <motion.span
-                          layout
-                          className={`absolute left-0 top-1/2 -translate-y-1/2 h-6 rounded-r-full ${
-                            active ? 'bg-primary' : 'bg-transparent'
-                          }`}
-                          style={{ width: active ? 4 : 0 }}
-                          transition={spring}
-                        />
-                        {/* Enlace (sin NavbarMenuItem) */}
+                      <li key={item.href} className="list-none">
                         <Link
                           href={item.href}
+                          prefetch={false}
                           onClick={() => setIsMenuOpen(false)}
-                          className={`group block w-full select-none rounded-xl px-4 py-3 active:scale-[0.99] transition-all
+                          className={`group block w-full select-none rounded-xl px-4 py-3 transition
                             ${active
                               ? 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-white'
                               : 'text-gray-700 dark:text-gray-200 hover:bg-black/[0.04] dark:hover:bg-white/[0.04]'
@@ -219,13 +194,13 @@ const Navbar = () => {
                                 <span className="text-base leading-none">{item.name}</span>
                                 <Icon
                                   icon="solar:alt-arrow-right-linear"
-                                  className={`text-lg transition-transform group-hover:translate-x-0.5 ${
+                                  className={`text-lg transition-transform duration-200 group-hover:translate-x-0.5 ${
                                     active ? 'opacity-100' : 'opacity-60'
                                   }`}
                                 />
                               </div>
                               <div
-                                className={`mt-2 h-[2px] rounded-full transition-all ${
+                                className={`mt-2 h-[2px] rounded-full transition-all duration-200 ${
                                   active
                                     ? 'w-14 bg-primary'
                                     : 'w-0 bg-transparent group-hover:w-10 group-hover:bg-white/40 dark:group-hover:bg-white/30'
@@ -234,18 +209,17 @@ const Navbar = () => {
                             </div>
                           </div>
                         </Link>
-                      </motion.li>
+                      </li>
                     );
                   })}
-                </motion.ul>
-
-                <Divider className="opacity-50" />
+                </ul>
 
                 {/* Footer acciones */}
-                <div className="p-3">
+                <div className="p-3 border-t border-black/5 dark:border-white/10">
                   <Button
                     as={Link}
                     href="/contact"
+                    prefetch={false}
                     onClick={() => setIsMenuOpen(false)}
                     className="w-full bg-primary text-white dark:text-black hover:bg-primary/90 transition-colors rounded-xl h-11"
                     variant="solid"
@@ -253,18 +227,13 @@ const Navbar = () => {
                   >
                     {t('navigation.links.contact')}
                   </Button>
-                  <div className="mt-2 text-center">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {t('navigation.links.weSearchForYou')}
-                    </span>
-                  </div>
                 </div>
               </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-      </NavbarMenu>
-    </NextUINavbar>
+            )}
+          </AnimatePresence>
+        </NavbarMenu>
+      </NextUINavbar>
+    </MotionConfig>
   );
 };
 
