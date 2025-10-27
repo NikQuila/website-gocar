@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  Card,
-  CardBody,
-  Image,
-  Button,
-  Chip,
-  Divider,
-  useDisclosure,
-  Tooltip,
-} from '@heroui/react';
+import { Card, CardBody, Image, Button, Chip, Divider, useDisclosure } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { toast } from 'react-toastify';
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -22,24 +13,9 @@ import useCustomerStore from '@/store/useCustomerStore';
 import { supabase } from '@/lib/supabase';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
+import BookingModal from '../booking/BookingModal';
 
-interface VehicleDetailSectionProps {
-  vehicle: Vehicle | null;
-  loading?: boolean;
-  client?: Client;
-  onLike?: (vehicleId: string) => Promise<void>;
-  isLiked?: boolean;
-  showLikeButton?: boolean;
-}
-
-interface DetailCardProps {
-  icon: string;
-  label: string;
-  value: string;
-  className?: string;
-}
-
-/** Helpers de color */
+/** Toma un color de marca/acento disponible */
 function pickAccent(v: any): string {
   return (
     v?.theme_color ||
@@ -50,31 +26,25 @@ function pickAccent(v: any): string {
     '#6C2CF9'
   );
 }
-function hexToRgb(hex: string) {
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!m) return { r: 108, g: 44, b: 249 };
-  return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) };
-}
-function bestTextColor(bgHex: string) {
-  const { r, g, b } = hexToRgb(bgHex);
-  const srgb = [r, g, b].map(v => {
-    const x = v / 255;
-    return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
-  });
-  const L = 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
-  return L > 0.5 ? '#0b0b0b' : '#ffffff';
-}
 
-/** Tarjeta de especificación (compacta) */
+/** Tarjeta de especificación (no se muestra si value está vacío) */
+interface DetailCardProps {
+  icon: string;
+  label: string;
+  value: string;
+  className?: string;
+}
 function DetailCard({ icon, label, value, className }: DetailCardProps) {
+  const val = String(value ?? '').trim();
+  if (!val) return null;
   return (
-    <div className={`group relative w-full ${className || ''}`} role="listitem" aria-label={`${label}: ${value}`}>
-      <Card className="relative rounded-2xl bg-gray-50/80 dark:bg-white/5 border border-gray-100 dark:border-gray-800 hover:border-primary/40 transition">
+    <div className={`group relative w-full ${className || ''}`} role="listitem" aria-label={`${label}: ${val}`}>
+      <Card className="relative rounded-2xl bg-gray-50/80 dark:bg-white/5 border border-gray-100 dark:border-gray-800 3:border-primary/40 transition">
         <CardBody className="flex flex-col items-center justify-center gap-1.5 p-4">
           <Icon icon={icon} className="text-lg text-gray-700 dark:text-gray-200" />
           <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</p>
-          <p className="text-[13px] font-semibold text-gray-900 dark:text-white text-center truncate max-w-[180px]">
-            {value}
+          <p className="text-[13px] font-semibold text-gray-900 dark:text-white text-center">
+            {val}
           </p>
         </CardBody>
       </Card>
@@ -82,7 +52,7 @@ function DetailCard({ icon, label, value, className }: DetailCardProps) {
   );
 }
 
-/** Fila de miniaturas FLUIDA (una sola fila + “+N”) */
+/** Fila de miniaturas con tamaño contenido cuando hay < 4 imágenes */
 function ThumbRow({
   images,
   onOpenModal,
@@ -108,9 +78,20 @@ function ThumbRow({
     if (!el) return;
 
     const compute = () => {
-      const W = el.clientWidth;
+      const W = el.clientWidth || 0;
       if (!W) return;
 
+      const count = images.length;
+
+      // Si hay menos de 4 imágenes, no llenar el ancho: usar un ancho fijo (clamp) por thumb.
+      if (count > 0 && count < 4) {
+        const thumbW = Math.min(maxThumb, Math.max(minThumb, Math.floor(W / 4 - gap)));
+        const thumbH = Math.round(thumbW / aspect);
+        setLayout({ cols: count, thumbW, thumbH, show: count });
+        return;
+      }
+
+      // Fluido normal (intenta casar columnas dentro de un rango cómodo)
       let bestCols = 1;
       let bestW = W;
 
@@ -132,8 +113,8 @@ function ThumbRow({
         }
       }
 
-      const needsPlus = images.length > bestCols;
-      const visible = needsPlus ? bestCols - 1 : Math.min(images.length, bestCols);
+      const needsPlus = count > bestCols;
+      const visible = needsPlus ? bestCols - 1 : Math.min(count, bestCols);
       const totalGapVisible = gap * (visible + (needsPlus ? 1 : 0) - 1);
       const tiles = visible + (needsPlus ? 1 : 0);
       const thumbW = (W - totalGapVisible) / tiles;
@@ -150,26 +131,33 @@ function ThumbRow({
 
   if (!images?.length) return null;
 
-  const canShowAll = images.length <= layout.cols;
-  const thumbs = canShowAll ? images.slice(0, layout.show || images.length) : images.slice(0, Math.max(0, layout.show));
-  const remaining = Math.max(0, images.length - (thumbs.length));
+  const canShowAll = images.length <= layout.cols || images.length < 4; // si <4, no hay "+n"
+  const thumbs = canShowAll
+    ? images.slice(0, layout.show || images.length)
+    : images.slice(0, Math.max(0, layout.show));
+  const remaining = Math.max(0, images.length - thumbs.length);
+
+  const rowStyle: React.CSSProperties =
+    images.length < 4
+      ? { gap, justifyContent: 'flex-start' } // no estirar cuando hay pocas
+      : { gap };
 
   return (
     <div ref={wrapRef} className="w-full min-w-0">
-      <div className="flex items-center" style={{ gap }}>
+      <div className="flex items-center md:pb-10 md:px-2" style={rowStyle}>
         {thumbs.map((src, i) => (
           <button
             key={src + i}
             type="button"
             onClick={() => onOpenModal(src)}
-            className="relative  overflow-hidden rounded-xl ring-1 ring-gray-200 dark:ring-gray-700 hover:ring-primary transition grid place-items-center"
-            style={{ width: layout.thumbW, height: layout.thumbH }}
+            className="relative overflow-hidden rounded-xl ring-1 ring-gray-200 dark:ring-gray-700 hover:ring-primary transition grid place-items-center"
+            style={{ width: layout.thumbW, height: layout.thumbH, flex: '0 0 auto' }}
             aria-label={`Miniatura ${i + 1}`}
           >
             <img
               src={src}
               alt={`thumb ${i + 1}`}
-              className="max-w-full  h-full w-auto  object-cover"
+              className="h-full w-full object-cover"
               loading="lazy"
               draggable={false}
             />
@@ -181,7 +169,7 @@ function ThumbRow({
             type="button"
             onClick={() => onOpenModal(thumbs[0] || images[0])}
             className="grid place-content-center rounded-xl bg-gray-100 dark:bg-dark-card ring-1 ring-gray-200 dark:ring-gray-700 hover:ring-primary transition"
-            style={{ width: layout.thumbW, height: layout.thumbH }}
+            style={{ width: layout.thumbW, height: layout.thumbH, flex: '0 0 auto' }}
             aria-label="Ver toda la galería"
           >
             <Icon icon="mdi:image-multiple" className="text-2xl text-gray-700 dark:text-gray-300" />
@@ -193,13 +181,20 @@ function ThumbRow({
   );
 }
 
+interface VehicleDetailSectionProps {
+  vehicle: Vehicle | null;
+  loading?: boolean;
+  client?: Client;
+  onLike?: (vehicleId: string) => Promise<void>;
+  isLiked?: boolean;
+}
+
 export default function VehicleDetailSection({
   vehicle,
   loading = false,
   client,
   onLike,
   isLiked = false,
-  showLikeButton = true,
 }: VehicleDetailSectionProps) {
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
@@ -207,14 +202,12 @@ export default function VehicleDetailSection({
   const isLoadingUI = loading || !vehicle;
   const v = (vehicle ?? {}) as Vehicle;
 
-  // hooks en orden
   const images = useMemo(
     () => (v?.main_image ? [v.main_image, ...(v.gallery || [])].filter(Boolean) : []),
     [v?.main_image, v?.gallery]
   );
 
   const ACCENT = pickAccent(v);
-  const ACCENT_TEXT = bestTextColor(ACCENT);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [currentModalImage, setCurrentModalImage] = useState<string>('');
@@ -223,23 +216,9 @@ export default function VehicleDetailSection({
     onOpen();
   };
 
-  const [mainImageStyle, setMainImageStyle] = useState<Record<string, any>>({});
-  useEffect(() => {
-    if (isLoadingUI || !v?.main_image) return;
-    const img = document.createElement('img');
-    img.onload = () => {
-      const vertical = img.height > img.width * 1.2;
-      setMainImageStyle({
-        objectPosition: vertical ? 'center 88%' : 'center center',
-        objectFit: 'cover',
-        width: '100%',
-        height: '100%',
-      });
-    };
-    img.src = v.main_image!;
-  }, [isLoadingUI, v?.main_image]);
-
+  // ===== Store cliente =====
   const { setIsModalOpen } = useCustomerStore();
+
   const [sellerPhone, setSellerPhone] = useState<string | null>(null);
   const [dealershipPhone, setDealershipPhone] = useState<string | null>(null);
   const fmtPhone = (p?: string | null) => {
@@ -265,10 +244,10 @@ export default function VehicleDetailSection({
       }
     };
     run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoadingUI, v?.seller_id, v?.dealership_id]);
 
-  const getPhone = () => sellerPhone || dealershipPhone || fmtPhone(client?.contact?.phone) || '';
+  const getPhone = () =>
+    sellerPhone || dealershipPhone || fmtPhone(client?.contact?.phone) || '';
 
   const handleShare = async () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
@@ -293,9 +272,37 @@ export default function VehicleDetailSection({
   const formattedPrice = formatPrice(price);
   const discountedPrice = v.discount_percentage ? price * (1 - (v.discount_percentage || 0) / 100) : null;
 
+  // ---------- ESTADO y LÓGICA DEL MODAL DE AGENDA ----------
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const openBooking = () => setBookingOpen(true);
+
   if (isLoadingUI) {
     return <VehicleDetailSkeleton />;
   }
+
+  // ===== Preparar specs (se ocultan si value vacío) =====
+  const specs = [
+    {
+      icon: 'mdi:speedometer',
+      label: t('vehicles.card.mileage'),
+      value: (v.mileage ?? null) !== null ? `${Number(v.mileage).toLocaleString()} ${t('common.units.km')}` : '',
+    },
+    {
+      icon: 'mdi:gas-station',
+      label: t('vehicles.card.fuel'),
+      value: v.fuel_type?.name ? v.fuel_type.name[0].toUpperCase() + v.fuel_type.name.slice(1) : '',
+    },
+    {
+      icon: 'mdi:car-shift-pattern',
+      label: t('vehicles.card.transmission'),
+      value: mapTransmissionTypeToSpanish(v.transmission) || '',
+    },
+    {
+      icon: 'mdi:palette',
+      label: t('vehicles.card.color'),
+      value: v.color?.name ? v.color.name[0].toUpperCase() + v.color.name.slice(1) : '',
+    },
+  ].filter(s => String(s.value ?? '').trim() !== '');
 
   return (
     <div
@@ -321,13 +328,12 @@ export default function VehicleDetailSection({
           )}
 
           <CardBody className="p-0 w-full">
-            <div className="relative  w-full overflow-hidden rounded-[22px]">
-              <div className="relative aspect-[4/3] md:aspect-[16/11] 2xl:aspect-[16/10] max-h-[540px]">
+            <div className="relative w-full overflow-hidden rounded-[22px]">
+              <div className="relative aspect-[4/3] md:aspect-[16/11] 2xl:aspect-[16/10]">
                 {!!images[0] && (
                   <Image
                     alt={`${v?.brand?.name} ${v?.model?.name}`}
                     className={`absolute inset-0 w-full h-full cursor-pointer ${isSold || isReserved ? 'opacity-85' : ''}`}
-                    style={mainImageStyle}
                     src={images[0]}
                     onClick={() => handleImageClick(images[0])}
                     removeWrapper
@@ -386,8 +392,8 @@ export default function VehicleDetailSection({
                 </div>
               </div>
 
-              {/* Botón compartir (DESKTOP) */}
-              <div className="hidden sm:flex shrink-0 items-center">
+              {/* Acciones: SOLO ÍCONOS (sin fondo ni borde) */}
+              <div className="hidden sm:flex shrink-0 items-center gap-2">
                 <Button
                   isIconOnly
                   radius="full"
@@ -395,26 +401,52 @@ export default function VehicleDetailSection({
                   size="lg"
                   onPress={handleShare}
                   aria-label={t('common.actions.share')}
-                  style={{ color: ACCENT }}
-                  className="hover:opacity-90"
+                  className="hover:opacity-80 text-primary"
                 >
                   <Icon icon="mdi:share-variant" className="text-2xl" />
                 </Button>
-              </div>
 
-              {/* Botón compartir (MOBILE) */}
-              <div className="flex sm:hidden shrink-0 items-center">
                 <Button
                   isIconOnly
                   radius="full"
                   variant="light"
-                  size="md"
+                  size="lg"
+                  onPress={handleLike}
+                  aria-label={isLiked ? t('common.actions.unsave') : t('common.actions.save')}
+                  aria-pressed={isLiked}
+                  className="hover:opacity-80"
+                  style={{ background: 'transparent', color: '#e11d48' }}
+                >
+                  <Icon icon={isLiked ? 'mdi:heart' : 'mdi:heart-outline'} className="text-2xl" />
+                </Button>
+              </div>
+
+              {/* Mobile: botones grandes (mejor área táctil) */}
+              <div className="flex sm:hidden shrink-0 items-center gap-2">
+                <Button
+                  isIconOnly
+                  radius="full"
+                  variant="light"
+                  size="lg"
                   onPress={handleShare}
                   aria-label={t('common.actions.share')}
-                  style={{ color: ACCENT }}
-                  className="hover:opacity-90"
+                  className="hover:opacity-80 h-12 w-12 text-primary"
                 >
-                  <Icon icon="mdi:share-variant" className="text-xl" />
+                  <Icon icon="mdi:share-variant" className="text-[28px]" />
+                </Button>
+
+                <Button
+                  isIconOnly
+                  radius="full"
+                  variant="light"
+                  size="lg"
+                  onPress={handleLike}
+                  aria-label={isLiked ? t('common.actions.unsave') : t('common.actions.save')}
+                  aria-pressed={isLiked}
+                  className="hover:opacity-80 h-12 w-12"
+                  style={{ background: 'transparent', color: '#e11d48' }}
+                >
+                  <Icon icon={isLiked ? 'mdi:heart' : 'mdi:heart-outline'} className="text-[28px]" />
                 </Button>
               </div>
             </div>
@@ -423,38 +455,10 @@ export default function VehicleDetailSection({
           {/* Body */}
           <CardBody className="p-4 md:p-6 space-y-6">
             {/* Precio */}
-            <div className="space-y-2">
-              {v.discount_percentage ? (
-                <>
-                  <p className="text-[36px] md:text-[42px] font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-800 dark:from-white dark:to-white/90 leading-none tracking-tight whitespace-nowrap tabular-nums">
-                    {formatPrice(discountedPrice!)}
-                  </p>
-                  <p className="text-sm line-through text-gray-400 dark:text-gray-500 whitespace-nowrap tabular-nums">
-                    {formattedPrice}
-                  </p>
-                </>
-              ) : (
-                <p className="text-[36px] md:text-[42px] font-black text-gray-900 dark:text-white leading-none tracking-tight whitespace-nowrap tabular-nums">
-                  {formattedPrice}
-                </p>
-              )}
-            </div>
+            <PriceBlock v={v} formattedPrice={formattedPrice} discountedPrice={discountedPrice} />
 
-            {/* CTAs */}
+            {/* CTAs (sin guardar abajo) */}
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-              {showLikeButton && (
-                <Button
-                  size="lg"
-                  variant="bordered"
-                  onPress={handleLike}
-                  aria-label={t('common.actions.save')}
-                  className="sm:flex-1"
-                  style={{ borderColor: ACCENT, color: ACCENT }}
-                  startContent={<Icon icon={isLiked ? 'mdi:heart' : 'mdi:heart-outline'} />}
-                >
-                  {t('common.actions.save')}
-                </Button>
-              )}
               <Button
                 size="lg"
                 as="a"
@@ -464,40 +468,38 @@ export default function VehicleDetailSection({
                   `Hola, me interesa el ${v.brand?.name} ${v?.model?.name} ${v.year} que vi en ${typeof window !== 'undefined' ? window.location.href : ''}`
                 )}
                 target="_blank"
-                className="sm:flex-1"
+                className="sm:flex-1 bg-[#24d465]"
                 aria-label={t('vehicles.card.contact')}
-                style={{ backgroundColor: ACCENT, color: bestTextColor(ACCENT) }}
+                style={{ color: '#fff', borderColor: '#0e7c3d' }}
               >
                 {t('vehicles.card.contact')}
               </Button>
+
+              {/* <Button
+                size="lg"
+                variant="solid"
+                color="default"
+                startContent={<Icon icon="mdi:calendar-check" className="text-xl" />}
+                className="sm:flex-1 hover:opacity-95 bg-primary text-white transition-[filter,opacity] focus:opacity-100"
+                onPress={openBooking}
+                aria-label="Agendar visita"
+              >
+                Agendar visita
+              </Button> */}
             </div>
 
             <Divider className="dark:border-dark-border" />
 
-            {/* Specs */}
-            <div role="list" className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <DetailCard
-                icon="mdi:speedometer"
-                label={t('vehicles.card.mileage')}
-                value={`${(v.mileage ?? 0).toLocaleString()} ${t('common.units.km')}`}
-              />
-              <DetailCard
-                icon="mdi:gas-station"
-                label={t('vehicles.card.fuel')}
-                value={v.fuel_type?.name ? v.fuel_type.name[0].toUpperCase() + v.fuel_type.name.slice(1) : ''}
-              />
-              <DetailCard
-                icon="mdi:car-shift-pattern"
-                label={t('vehicles.card.transmission')}
-                value={mapTransmissionTypeToSpanish(v.transmission)}
-              />
-              <DetailCard
-                icon="mdi:palette"
-                label={t('vehicles.card.color')}
-                value={v.color?.name ? v.color.name[0].toUpperCase() + v.color.name.slice(1) : ''}
-              />
-            </div>
+            {/* Specs (se muestra solo si hay alguna con valor) */}
+            {specs.length > 0 && (
+              <div role="list" className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {specs.map((s, idx) => (
+                  <DetailCard key={s.label + idx} icon={s.icon} label={s.label} value={s.value} />
+                ))}
+              </div>
+            )}
 
+            {/* Features */}
             {!!v?.features?.length && (
               <>
                 <Divider className="dark:border-dark-border" />
@@ -521,6 +523,7 @@ export default function VehicleDetailSection({
               </>
             )}
 
+            {/* Descripción */}
             {!!v.description && (
               <>
                 <Divider className="dark:border-dark-border" />
@@ -528,7 +531,7 @@ export default function VehicleDetailSection({
                   <h2 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
                     {t('vehicles.details.description')}
                   </h2>
-                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                     {v.description}
                   </p>
                 </div>
@@ -546,6 +549,39 @@ export default function VehicleDetailSection({
         images={images}
         onImageChange={setCurrentModalImage}
       />
+
+      {/* MODAL AGENDA */}
+      <BookingModal
+        open={bookingOpen}
+        onOpenChange={setBookingOpen}
+        client={client}
+        vehicle={v as Vehicle}
+      />
+    </div>
+  );
+}
+
+/** Bloque precio separado */
+function PriceBlock({ v, formattedPrice, discountedPrice }: {
+  v: Vehicle, formattedPrice: string, discountedPrice: number | null
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-2">
+      {v.discount_percentage ? (
+        <>
+          <p className="text-[36px] md:text-[42px] font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-800 dark:from-white dark:to-white/90 leading-none tracking-tight tabular-nums">
+            {new Intl.NumberFormat().format(discountedPrice!)}
+          </p>
+          <p className="text-sm line-through text-gray-400 dark:text-gray-500 tabular-nums">
+            {formattedPrice}
+          </p>
+        </>
+      ) : (
+        <p className="text-[36px] md:text-[42px] font-black text-gray-900 dark:text-white leading-none tracking-tight tabular-nums">
+          {formattedPrice}
+        </p>
+      )}
     </div>
   );
 }
