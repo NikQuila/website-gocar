@@ -142,7 +142,7 @@ const Navbar = () => {
         </NavbarContent>
 
         {/* Mobile Menu (panel único animado; items con CSS) */}
-        <NavbarMenu className="bg-transparent p-0">
+        <NavbarMenu className="bg-transparent p-0" onClick={() => setIsMenuOpen(false)}>
           <AnimatePresence>
             {isMenuOpen && (
               <motion.div

@@ -39,11 +39,21 @@ function DetailCard({ icon, label, value, className }: DetailCardProps) {
   if (!val) return null;
   return (
     <div className={`group relative w-full ${className || ''}`} role="listitem" aria-label={`${label}: ${val}`}>
-      <Card className="relative rounded-2xl bg-gray-50/80 dark:bg-white/5 border border-gray-100 dark:border-gray-800 3:border-primary/40 transition">
+      <Card className="relative rounded-2xl bg-gray-50/80 dark:bg-white/5 border border-gray-100 dark:border-gray-800 hover:border-primary/40 transition">
         <CardBody className="flex flex-col items-center justify-center gap-1.5 p-4">
           <Icon icon={icon} className="text-lg text-gray-700 dark:text-gray-200" />
-          <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</p>
-          <p className="text-[13px] font-semibold text-gray-900 dark:text-white text-center">
+          {/* label SIN scroll, con ellipsis si no cabe */}
+          <p
+            className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
+            title={label}
+          >
+            {label}
+          </p>
+          {/* valor SIN scroll, con ellipsis si no cabe */}
+          <p
+            className="text-[13px] font-semibold text-gray-900 dark:text-white text-center w-full overflow-hidden text-ellipsis whitespace-nowrap"
+            title={val}
+          >
             {val}
           </p>
         </CardBody>
@@ -144,7 +154,8 @@ function ThumbRow({
 
   return (
     <div ref={wrapRef} className="w-full min-w-0">
-      <div className="flex items-center md:pb-10 md:px-2" style={rowStyle}>
+      {/* FIX desplazamiento en md: se elimina md:px-2 */}
+      <div className="flex items-center " style={rowStyle}>
         {thumbs.map((src, i) => (
           <button
             key={src + i}
@@ -270,7 +281,8 @@ export default function VehicleDetailSection({
 
   const price = v.price ?? 0;
   const formattedPrice = formatPrice(price);
-  const discountedPrice = v.discount_percentage ? price * (1 - (v.discount_percentage || 0) / 100) : null;
+  const discountedNumeric = v.discount_percentage ? price * (1 - (v.discount_percentage || 0) / 100) : null;
+  const formattedDiscounted = discountedNumeric !== null ? formatPrice(discountedNumeric) : null;
 
   // ---------- ESTADO y LÓGICA DEL MODAL DE AGENDA ----------
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -311,13 +323,15 @@ export default function VehicleDetailSection({
         max-w-[1280px] mx-auto w-full
         grid gap-6 sm:gap-8
         grid-cols-1
-        lg:[grid-template-columns:minmax(0,1fr)_minmax(420px,480px)]
-        xl:[grid-template-columns:minmax(0,1fr)_minmax(460px,520px)]
+        /* Derecha un poquito más ancha en lg/xl */
+        lg:[grid-template-columns:minmax(0,1fr)_minmax(440px,500px)]
+        xl:[grid-template-columns:minmax(0,1fr)_minmax(500px,560px)]
         px-0 md:px-6
       "
     >
       {/* ===== Columna izquierda ===== */}
-      <div className="space-y-4 min-w-0 md:sticky md:top-24 self-start">
+      {/* Mobile = igual que md: sticky en todas las resoluciones */}
+      <div className="space-y-4 min-w-0 sticky top-24 self-start px-px pb-2">
         <Card className="w-full relative dark:bg-dark-card dark:border-dark-border rounded-3xl overflow-hidden border border-gray-100 shadow-[0_8px_28px_rgba(0,0,0,0.08)]">
           {(isSold || isReserved) && (
             <div className="absolute top-0 right-0 h-[200px] w-[200px] overflow-hidden z-20">
@@ -360,14 +374,15 @@ export default function VehicleDetailSection({
       </div>
 
       {/* ===== Columna derecha ===== */}
+      {/* Mobile = igual que md: sticky en todas las resoluciones */}
       <div className="min-w-0">
         <Card
           className="
-            relative rounded-3xl overflow-hidden
+             rounded-3xl overflow-hidden
             bg-white dark:bg-dark-card
             shadow-[0_8px_28px_rgba(0,0,0,0.08)]
             border border-gray-100 dark:border-gray-800
-            md:sticky md:top-24
+            sticky top-24
           "
         >
           {/* Header */}
@@ -455,7 +470,7 @@ export default function VehicleDetailSection({
           {/* Body */}
           <CardBody className="p-4 md:p-6 space-y-6">
             {/* Precio */}
-            <PriceBlock v={v} formattedPrice={formattedPrice} discountedPrice={discountedPrice} />
+            <PriceBlock v={v} formattedPrice={formattedPrice} discountedPrice={formattedDiscounted} />
 
             {/* CTAs (sin guardar abajo) */}
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
@@ -531,7 +546,8 @@ export default function VehicleDetailSection({
                   <h2 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
                     {t('vehicles.details.description')}
                   </h2>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {/* Respetar \n y cortar palabras largas sin scroll */}
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words">
                     {v.description}
                   </p>
                 </div>
@@ -563,7 +579,7 @@ export default function VehicleDetailSection({
 
 /** Bloque precio separado */
 function PriceBlock({ v, formattedPrice, discountedPrice }: {
-  v: Vehicle, formattedPrice: string, discountedPrice: number | null
+  v: Vehicle, formattedPrice: string, discountedPrice: string | null
 }) {
   const { t } = useTranslation();
   return (
@@ -571,7 +587,7 @@ function PriceBlock({ v, formattedPrice, discountedPrice }: {
       {v.discount_percentage ? (
         <>
           <p className="text-[36px] md:text-[42px] font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-800 dark:from-white dark:to-white/90 leading-none tracking-tight tabular-nums">
-            {new Intl.NumberFormat().format(discountedPrice!)}
+            {discountedPrice}
           </p>
           <p className="text-sm line-through text-gray-400 dark:text-gray-500 tabular-nums">
             {formattedPrice}
