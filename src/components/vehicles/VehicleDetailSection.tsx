@@ -10,6 +10,7 @@ import VehicleImagesModal from './VehicleImagesModal';
 import type { Client, Vehicle } from '../../utils/types';
 import { mapTransmissionTypeToSpanish, contactByWhatsApp } from '@/utils/functions';
 import useCustomerStore from '@/store/useCustomerStore';
+import useThemeStore from '@/store/useThemeStore';
 import { supabase } from '@/lib/supabase';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
@@ -209,6 +210,7 @@ export default function VehicleDetailSection({
 }: VehicleDetailSectionProps) {
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
+  const { theme } = useThemeStore();
 
   const isLoadingUI = loading || !vehicle;
   const v = (vehicle ?? {}) as Vehicle;
@@ -219,6 +221,15 @@ export default function VehicleDetailSection({
   );
 
   const ACCENT = pickAccent(v);
+
+  // Obtener el color primary del cliente (mismo que usa bg-primary del botón)
+  const primaryColor = useMemo(() => {
+    if (client?.theme) {
+      const themeColors = theme === 'dark' ? client.theme.dark : client.theme.light;
+      return themeColors?.primary || ACCENT;
+    }
+    return ACCENT;
+  }, [client?.theme, theme, ACCENT]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [currentModalImage, setCurrentModalImage] = useState<string>('');
@@ -343,7 +354,7 @@ export default function VehicleDetailSection({
 
           <CardBody className="p-0 w-full">
             <div className="relative w-full overflow-hidden rounded-[22px]">
-              <div className="relative aspect-[4/3] md:aspect-[16/11] 2xl:aspect-[16/10]">
+              <div className="relative aspect-[4/3] md:aspect-[16/11]]">
                 {!!images[0] && (
                   <Image
                     alt={`${v?.brand?.name} ${v?.model?.name}`}
@@ -490,7 +501,7 @@ export default function VehicleDetailSection({
                 {t('vehicles.card.contact')}
               </Button>
 
-              {/* <Button
+              <Button
                 size="lg"
                 variant="solid"
                 color="default"
@@ -500,7 +511,7 @@ export default function VehicleDetailSection({
                 aria-label="Agendar visita"
               >
                 Agendar visita
-              </Button> */}
+              </Button>
             </div>
 
             <Divider className="dark:border-dark-border" />
@@ -572,6 +583,7 @@ export default function VehicleDetailSection({
         onOpenChange={setBookingOpen}
         client={client}
         vehicle={v as Vehicle}
+        primaryColor={primaryColor}
       />
     </div>
   );
