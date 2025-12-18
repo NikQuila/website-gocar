@@ -3,10 +3,11 @@ import { Metadata, ResolvingMetadata } from 'next';
 import VehicleDetailsPageClient from './VehicleDetailsPageClient';
 
 export async function generateMetadata(
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
   parent?: ResolvingMetadata
 ): Promise<Metadata> {
-  const vehicle = await getVehicleById(params.id);
+  const { id } = await params;
+  const vehicle = await getVehicleById(id);
 
   if (!vehicle) {
     return {

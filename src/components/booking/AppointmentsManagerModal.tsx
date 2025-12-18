@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'react-toastify';
 import useCustomerStore from '@/store/useCustomerStore';
 import type { Client } from '@/utils/types';
+import { sendEmail, createAppointmentCancellationEmailTemplate } from '@/lib/send-email';
 
 /* ==== Utils tiempo (sin alterar TZ) ==== */
 function labelFromTimestamp(ts: unknown): string {
@@ -250,8 +251,16 @@ export default function AppointmentsManagerModal({
   const doCancel = async () => {
     if (!cancelId || !client?.id) return;
 
+    // Buscar los datos de la cita antes de cancelarla
+    const appointment = rows.find(r => r.id === cancelId);
+    if (!appointment) {
+      toast.error('No se encontró la cita');
+      return;
+    }
+
     setCancelling(true);
     try {
+      // Cancelar la cita
       const { error } = await supabase.rpc(cancelRpcName as any, {
         p_appointment_id: cancelId,
         p_reason: cancelReason.trim() || null,
@@ -259,6 +268,95 @@ export default function AppointmentsManagerModal({
       if (error) {
         console.error('Cancel RPC error:', error);
         throw error;
+      }
+
+      console.log('📧 Cita cancelada, enviando notificaciones por email...');
+
+      // Enviar notificaciones por email
+      const ymd = String(appointment.slot_start).slice(0, 10);
+      const emailData = {
+        customerName: `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim() || 'Cliente',
+        customerEmail: customer?.email || '',
+        customerPhone: customer?.phone || '',
+        appointmentDate: prettyYMD(ymd),
+        appointmentTime: `${labelFromTimestamp(appointment.slot_start)} - ${labelFromTimestamp(appointment.slot_end)}`,
+        dealershipAddress: appointment.dealership_address || `Sucursal #${appointment.dealership_id}`,
+        vehicleDetails: {
+          brand: appointment.brand_name || 'N/A',
+          model: appointment.model_name || 'N/A',
+          year: String(appointment.year || 'N/A'),
+        },
+        cancellationReason: cancelReason.trim() || undefined,
+      };
+
+      const emailContent = createAppointmentCancellationEmailTemplate(emailData);
+
+      // 1. Enviar email al cliente
+      if (emailData.customerEmail) {
+        console.log('📤 Enviando notificación de cancelación al cliente:', emailData.customerEmail);
+        const customerEmailResult = await sendEmail({
+          to: [emailData.customerEmail],
+          subject: `Cita Cancelada: ${emailData.vehicleDetails.brand} ${emailData.vehicleDetails.model}`,
+          content: emailContent,
+        });
+
+        if (customerEmailResult.success) {
+          console.log('✅ Notificación enviada al cliente');
+        } else {
+          console.error('❌ Error al enviar notificación al cliente:', customerEmailResult.error);
+        }
+      }
+
+      // 2. Enviar email a la automotora
+      if (client?.contact?.email) {
+        console.log('📤 Enviando notificación de cancelación a la automotora');
+        const dealershipEmailResult = await sendEmail({
+          to: [client.contact.email],
+          subject: `Cita Cancelada: ${emailData.vehicleDetails.brand} ${emailData.vehicleDetails.model}`,
+          content: emailContent,
+        });
+
+        if (dealershipEmailResult.success) {
+          console.log('✅ Notificación enviada a la automotora');
+        } else {
+          console.error('❌ Error al enviar notificación a la automotora:', dealershipEmailResult.error);
+        }
+      }
+
+      // 3. Enviar email al vendedor si el vehículo tiene seller_id
+      if (appointment.vehicle_id) {
+        try {
+          const { data: vehicleData } = await supabase
+            .from('vehicles')
+            .select('seller_id')
+            .eq('id', appointment.vehicle_id)
+            .single();
+
+          if (vehicleData?.seller_id) {
+            const { data: sellerData } = await supabase
+              .from('users')
+              .select('email, first_name, last_name')
+              .eq('id', vehicleData.seller_id)
+              .single();
+
+            if (sellerData?.email) {
+              console.log('📤 Enviando notificación de cancelación al vendedor');
+              const sellerEmailResult = await sendEmail({
+                to: [sellerData.email],
+                subject: `Cita Cancelada para tu vehículo: ${emailData.vehicleDetails.brand} ${emailData.vehicleDetails.model}`,
+                content: emailContent,
+              });
+
+              if (sellerEmailResult.success) {
+                console.log('✅ Notificación enviada al vendedor');
+              } else {
+                console.error('❌ Error al enviar notificación al vendedor:', sellerEmailResult.error);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error al notificar al vendedor:', error);
+        }
       }
 
       toast.success('Cita cancelada');

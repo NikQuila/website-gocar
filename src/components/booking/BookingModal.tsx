@@ -22,8 +22,24 @@ import useCustomerStore from '@/store/useCustomerStore';
 import type { Client, Vehicle } from '@/utils/types';
 import AppointmentsManagerModal from './AppointmentsManagerModal';
 import { AnimatePresence, motion } from 'framer-motion';
+import { sendEmail, createAppointmentEmailTemplate } from '@/lib/send-email';
 
-/* ========================= helpers de color único ========================= */
+/* ========================= helpers de color (idéntico al botón Agendar) ========================= */
+/** Mismo origen de color que usa el botón "Agendar":
+ *  theme_color → accent_color → brand.primary_color → brand_color → ui_color
+ */
+function pickAccentFromClient(c?: any): string | undefined {
+  if (!c) return undefined;
+  return (
+    c?.theme_color ||
+    c?.accent_color ||
+    c?.brand?.primary_color ||
+    c?.brand_color ||
+    c?.ui_color ||
+    undefined
+  );
+}
+
 function hexToRgb(hex?: string): { r: number; g: number; b: number } | null {
   if (!hex) return null;
   const s = hex.replace('#', '').trim();
@@ -34,8 +50,15 @@ function hexToRgb(hex?: string): { r: number; g: number; b: number } | null {
   const n = parseInt(h, 16);
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
-const rgb  = (c: { r: number; g: number; b: number } | null) => c ? `rgb(${c.r},${c.g},${c.b})` : 'rgb(79,70,229)';
-const rgba = (c: { r: number; g: number; b: number } | null, a=1) => c ? `rgba(${c.r},${c.g},${c.b},${a})` : `rgba(79,70,229,${a})`;
+
+/** Fallback neutral (no morado) si el backend no trae color */
+const FALLBACK_RGB = { r: 14, g: 165, b: 233 }; // #0EA5E9
+
+const rgb  = (c: { r: number; g: number; b: number } | null) =>
+  c ? `rgb(${c.r},${c.g},${c.b})` : `rgb(${FALLBACK_RGB.r},${FALLBACK_RGB.g},${FALLBACK_RGB.b})`;
+
+const rgba = (c: { r: number; g: number; b: number } | null, a = 1) =>
+  c ? `rgba(${c.r},${c.g},${c.b},${a})` : `rgba(${FALLBACK_RGB.r},${FALLBACK_RGB.g},${FALLBACK_RGB.b},${a})`;
 
 /* ========================= utils ========================= */
 const labelFromTimestamp = (ts: unknown): string => {
@@ -60,25 +83,25 @@ const labelFromTimestamp = (ts: unknown): string => {
 const minuteKey = (ts: unknown): string => {
   const s =
     typeof ts === 'string' ? ts.replace(' ', 'T')
-    : ts instanceof Date      ? ts.toISOString()
-    : String(ts || '');
+      : ts instanceof Date ? ts.toISOString()
+        : String(ts || '');
   const m = s.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
   return m ? `${m[1]}T${m[2]}` : '';
 };
 const todayYMD = () => {
-  const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 const prettyYMD = (ymd?: string) => {
   if (!ymd) return '';
-  const [y,m,d] = ymd.split('-').map(Number);
-  return new Date(y!, (m??1)-1, d??1).toLocaleDateString();
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(y!, (m ?? 1) - 1, d ?? 1).toLocaleDateString();
 };
-const toYMD = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-const addDays = (d: Date, n: number) => { const c = new Date(d); c.setDate(c.getDate()+n); return c; };
+const toYMD = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const addDays = (d: Date, n: number) => { const c = new Date(d); c.setDate(c.getDate() + n); return c; };
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
-const endOfMonth   = (d: Date) => new Date(d.getFullYear(), d.getMonth()+1, 0);
-const hhmmToMinutes = (hhmm: string) => { const m=hhmm.match(/(\d{2}):(\d{2})/); return m ? (+m[1])*60 + (+m[2]) : 0; };
-const nowMinutesLocal = () => { const d = new Date(); return d.getHours()*60 + d.getMinutes(); };
+const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0);
+const hhmmToMinutes = (hhmm: string) => { const m = hhmm.match(/(\d{2}):(\d{2})/); return m ? (+m[1]) * 60 + (+m[2]) : 0; };
+const nowMinutesLocal = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
 const isFutureSlotSameDay = (ymd: string, slotStart: string) => {
   const t = todayYMD(); if (ymd > t) return true; if (ymd < t) return false;
   return hhmmToMinutes(labelFromTimestamp(slotStart)) > nowMinutesLocal();
@@ -100,6 +123,7 @@ interface BookingModalProps {
   onOpenChange: (open: boolean) => void;
   client: Client | undefined;
   vehicle: Vehicle;
+  primaryColor?: string;
 }
 
 /* ========================= disponibilidad mensual ========================= */
@@ -114,7 +138,7 @@ function useMonthAvailability({
     if (!clientId || !dealershipId) { setAvailableDays({}); return; }
     setLoading(true);
     const start = startOfMonth(monthDate);
-    const end   = endOfMonth(monthDate);
+    const end = endOfMonth(monthDate);
 
     const days: string[] = [];
     for (let d = new Date(start); d <= end; d = addDays(d, 1)) days.push(toYMD(d));
@@ -153,12 +177,7 @@ function useMonthAvailability({
   return { loading, availableDays };
 }
 
-/* ========================= Stepper timeline (2 filas, sin overlays) =========================
-   - Fila 1: espacio para la ETIQUETA del paso ACTIVO (con altura real → no tapa nada).
-   - Fila 2: línea + progreso + nodos fijos (repeat(N,1fr)) → los centros no se mueven.
-   - Animaciones suaves (spring). El número SIEMPRE se ve.
-*/
-
+/* ========================= Stepper timeline (2 filas, nodos fijos) ========================= */
 function TimelineStepper({
   steps,
   current,
@@ -177,20 +196,18 @@ function TimelineStepper({
   return (
     <div
       className="w-full relative select-none"
-      // padding lateral para que la barra llegue al centro de los nodos
       style={{ paddingLeft: node / 2, paddingRight: node / 2 }}
     >
-      {/* GRID de 2 filas: [etiqueta activa] / [nodos + barra] */}
       <div
         className="grid"
         style={{
           gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))`,
-          gridTemplateRows: 'auto 32px', // alto reservado para etiqueta arriba + fila de nodos
+          gridTemplateRows: 'auto 32px',
           rowGap: 6,
           position: 'relative',
         }}
       >
-        {/* ====== FILA 1: etiqueta SOLO del paso ACTIVO (sin absolute) ====== */}
+        {/* etiqueta activa */}
         {steps.map((label, i) => {
           const n = i + 1;
           const active = n === current;
@@ -217,13 +234,11 @@ function TimelineStepper({
           );
         })}
 
-        {/* ====== FILA 2: barra base + progreso (debajo de los nodos) ====== */}
-        {/* línea base (spanning all columns) */}
+        {/* línea base */}
         <div
           className="col-span-full absolute"
           style={{
-            // centramos vertical en la fila de nodos (segunda fila del grid)
-            top: 'calc(100% - 32px / 2 - 1.5px)', // altura total - mitad de 32px - mitad de 3px
+            top: 'calc(100% - 32px / 2 - 1.5px)',
             left: 0,
             right: 0,
             height: 3,
@@ -249,7 +264,7 @@ function TimelineStepper({
           transition={spring}
         />
 
-        {/* ====== FILA 2: nodos (fijos) ====== */}
+        {/* nodos */}
         {steps.map((_, i) => {
           const n = i + 1;
           const past = n < current;
@@ -275,7 +290,6 @@ function TimelineStepper({
                   transition={spring}
                   title={String(n)}
                 >
-                  {/* NÚMERO SIEMPRE VISIBLE */}
                   <span className="leading-none">{n}</span>
                 </motion.div>
               </div>
@@ -287,8 +301,7 @@ function TimelineStepper({
   );
 }
 
-
-/* ========================= Calendario (mantiene opacidades) ========================= */
+/* ========================= Calendario ========================= */
 function CalendarGrid({
   value, onChange, monthDate, setMonthDate, availableDays, loading, brandRGB,
 }: {
@@ -299,16 +312,16 @@ function CalendarGrid({
 }) {
   const monthName = monthDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
   const first = startOfMonth(monthDate);
-  const last  = endOfMonth(monthDate);
+  const last = endOfMonth(monthDate);
   const firstWeekday = (first.getDay() + 7) % 7;
   const totalDays = last.getDate();
 
-  const prevMonth = () => setMonthDate(new Date(monthDate.getFullYear(), monthDate.getMonth()-1, 1));
-  const nextMonth = () => setMonthDate(new Date(monthDate.getFullYear(), monthDate.getMonth()+1, 1));
+  const prevMonth = () => setMonthDate(new Date(monthDate.getFullYear(), monthDate.getMonth() - 1, 1));
+  const nextMonth = () => setMonthDate(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1));
 
   const cells: Array<{ label: string; ymd?: string; disabled?: boolean }> = [];
-  for (let i=0; i<firstWeekday; i++) cells.push({ label: '' });
-  for (let d=1; d<=totalDays; d++) {
+  for (let i = 0; i < firstWeekday; i++) cells.push({ label: '' });
+  for (let d = 1; d <= totalDays; d++) {
     const ymd = toYMD(new Date(monthDate.getFullYear(), monthDate.getMonth(), d));
     const enabled = availableDays[ymd] === true;
     cells.push({ label: String(d), ymd, disabled: !enabled });
@@ -325,7 +338,7 @@ function CalendarGrid({
       </div>
 
       <div className="grid grid-cols-7 text-[11px] sm:text-xs text-gray-500 mb-2">
-        {['D','L','M','X','J','V','S'].map((d, i) => <div key={i} className="text-center py-1">{d}</div>)}
+        {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((d, i) => <div key={i} className="text-center py-1">{d}</div>)}
       </div>
 
       <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
@@ -337,8 +350,8 @@ function CalendarGrid({
           const style: React.CSSProperties = disabled
             ? { borderColor: 'rgba(0,0,0,0.08)', color: 'rgba(0,0,0,0.35)', backgroundColor: 'rgba(0,0,0,0.03)', cursor: 'not-allowed' }
             : selected
-            ? { borderColor: rgba(brandRGB, 0.7), boxShadow: `0 0 0 2px ${rgba(brandRGB, 0.2)}`, backgroundColor: rgba(brandRGB, 0.1), fontWeight: 600 }
-            : { borderColor: 'rgba(0,0,0,0.08)' };
+              ? { borderColor: rgba(brandRGB, 0.7), boxShadow: `0 0 0 2px ${rgba(brandRGB, 0.2)}`, backgroundColor: rgba(brandRGB, 0.1), fontWeight: 600 }
+              : { borderColor: 'rgba(0,0,0,0.08)' };
 
           const inner = (
             <div className="h-9 sm:h-10 rounded-lg border text-sm grid place-items-center transition-colors" title={c.ymd} style={style}>
@@ -368,16 +381,12 @@ function CalendarGrid({
 }
 
 /* ========================= componente principal ========================= */
-export default function BookingModal({ open, onOpenChange, client, vehicle }: BookingModalProps) {
+export default function BookingModal({ open, onOpenChange, client, vehicle, primaryColor }: BookingModalProps) {
   const tz = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Santiago', []);
   const { customer, initializeCustomer } = useCustomerStore();
 
-  // color único
-  const brandHex =
-    (client as any)?.brand_color ||
-    (client as any)?.theme_color  ||
-    (client as any)?.primary_color ||
-    '#6d28d9';
+  // MISMO color que el botón "Agendar" (usa el color pasado como prop o fallback)
+  const brandHex = primaryColor ?? pickAccentFromClient(client) ?? '#0ea5e9';
   const brandRGB = useMemo(() => hexToRgb(brandHex), [brandHex]);
 
   // estado
@@ -385,19 +394,19 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
   const [selectedDealershipId, setSelectedDealershipId] = useState<number | null>(
     vehicle?.dealership_id ? Number(vehicle.dealership_id) : null
   );
-  const [step, setStep] = useState<1|2|3|4>(1);
-  const [monthDate, setMonthDate] = useState<Date>(() => { const d=new Date(); d.setDate(1); return d; });
-  const [selectedDate, setSelectedDate] = useState<string|null>(null);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [monthDate, setMonthDate] = useState<Date>(() => { const d = new Date(); d.setDate(1); return d; });
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [bookedByStart, setBookedByStart] = useState<Record<string, number>>({});
   const [selectedSlot, setSelectedSlot] = useState<{ slot_start: string; slot_end: string } | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<boolean>(() => !customer);
   const [firstName, setFirstName] = useState<string>(customer?.first_name || '');
-  const [lastName,  setLastName]  = useState<string>(customer?.last_name  || '');
-  const [email,     setEmail]     = useState<string>(customer?.email      || '');
-  const [phone,     setPhone]     = useState<string>(customer?.phone      || '');
-  const [userNote,  setUserNote]  = useState<string>('');
+  const [lastName, setLastName] = useState<string>(customer?.last_name || '');
+  const [email, setEmail] = useState<string>(customer?.email || '');
+  const [phone, setPhone] = useState<string>(customer?.phone || '');
+  const [userNote, setUserNote] = useState<string>('');
   const NOTE_MAX = 300;
   const [manageOpen, setManageOpen] = useState(false);
 
@@ -409,7 +418,7 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
       if (!client?.id) return;
       const { data, error } = await supabase.from('dealerships').select('id,address').eq('client_id', Number(client.id));
       const list = !error ? ((data as any as DealershipItem[]) || []) : [];
-      list.sort((a,b)=> (a.address||'').localeCompare(b.address||''));
+      list.sort((a, b) => (a.address || '').localeCompare(b.address || ''));
       setDealerships(list);
       if (list.length === 1) { setSelectedDealershipId(list[0].id); setStep(2); }
       else if (selectedDealershipId == null) {
@@ -443,7 +452,7 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
       setSlots((data || []) as Slot);
 
       const from = `${selectedDate}T00:00:00`;
-      const to   = `${selectedDate}T23:59:59`;
+      const to = `${selectedDate}T23:59:59`;
       const ap = await supabase
         .from('appointments_public')
         .select('slot_start,status,dealership_id')
@@ -507,15 +516,111 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
     } catch (e: any) { toast.error(e?.message || 'No se pudieron guardar tus datos'); return false; }
   };
 
+  const sendAppointmentEmails = async (appointmentData: {
+    customerName: string;
+    customerEmail: string;
+    customerPhone: string;
+    appointmentDate: string;
+    appointmentTime: string;
+    dealershipAddress: string;
+    vehicleDetails: { brand: string; model: string; year: string };
+    notes?: string;
+  }) => {
+    try {
+      console.log('📧 Iniciando envío de emails de confirmación de cita...');
+      console.log('Datos de la cita:', appointmentData);
+
+      // Crear el contenido del email
+      const emailContent = createAppointmentEmailTemplate(appointmentData);
+
+      // 1. Enviar email de confirmación al cliente que agenda la cita
+      if (appointmentData.customerEmail) {
+        console.log('📤 Enviando confirmación al cliente:', appointmentData.customerEmail);
+        const customerEmailResult = await sendEmail({
+          to: [appointmentData.customerEmail],
+          subject: `Confirmación de Cita: ${appointmentData.vehicleDetails.brand} ${appointmentData.vehicleDetails.model}`,
+          content: emailContent,
+        });
+
+        if (customerEmailResult.success) {
+          console.log('✅ Confirmación enviada exitosamente al cliente');
+        } else {
+          console.error('❌ Error al enviar confirmación al cliente:', customerEmailResult.error);
+          toast.warning('Cita agendada, pero no pudimos enviar la confirmación a tu email.');
+        }
+      }
+
+      // 2. Enviar notificación a la automotora
+      const dealershipEmails = client?.contact?.email ? [client.contact.email] : [];
+      console.log('📨 Emails destinatarios (automotora):', dealershipEmails);
+
+      if (dealershipEmails.length > 0) {
+        console.log('📤 Enviando notificación a la automotora...');
+        const dealershipEmailResult = await sendEmail({
+          to: dealershipEmails,
+          subject: `Nueva Cita Agendada: ${appointmentData.vehicleDetails.brand} ${appointmentData.vehicleDetails.model}`,
+          content: emailContent,
+        });
+
+        if (dealershipEmailResult.success) {
+          console.log('✅ Notificación enviada exitosamente a la automotora');
+        } else {
+          console.error('❌ Error al enviar notificación a la automotora:', dealershipEmailResult.error);
+        }
+      } else {
+        console.warn('⚠️ No hay email de contacto configurado para la automotora');
+      }
+
+      // Enviar email al vendedor si el vehículo tiene un seller_id asociado
+      if (vehicle?.seller_id) {
+        try {
+          console.log('🔍 Buscando datos del vendedor...');
+          const { data: sellerData, error: sellerError } = await supabase
+            .from('users')
+            .select('email, first_name, last_name')
+            .eq('id', vehicle.seller_id)
+            .single();
+
+          if (sellerError) {
+            console.error('❌ Error al obtener datos del vendedor:', sellerError);
+          } else if (sellerData?.email) {
+            console.log('📤 Enviando email al vendedor:', sellerData.email);
+            const sellerEmailResult = await sendEmail({
+              to: [sellerData.email],
+              subject: `Nueva Cita para tu vehículo: ${appointmentData.vehicleDetails.brand} ${appointmentData.vehicleDetails.model}`,
+              content: emailContent,
+            });
+
+            if (sellerEmailResult.success) {
+              console.log('✅ Email enviado exitosamente al vendedor');
+            } else {
+              console.error('❌ Error al enviar el email al vendedor:', sellerEmailResult.error);
+            }
+          } else {
+            console.warn('⚠️ El vendedor no tiene email configurado');
+          }
+        } catch (error) {
+          console.error('❌ Error al obtener datos del vendedor:', error);
+        }
+      } else {
+        console.log('ℹ️ El vehículo no tiene vendedor asociado');
+      }
+    } catch (error) {
+      console.error('❌ Error general al enviar emails:', error);
+    }
+  };
+
   const confirmAppointment = async () => {
     if (!client?.id || !selectedDealershipId || !vehicle?.id || !selectedSlot || !selectedDate) return;
     const ok = await ensureCustomer(); if (!ok) return;
     const { cidUUID, cidBigint } = getCustomerIds();
 
-    const contactName  = `${(customer?.first_name || firstName).trim()} ${(customer?.last_name || lastName).trim()}`.trim();
+    const contactName = `${(customer?.first_name || firstName).trim()} ${(customer?.last_name || lastName).trim()}`.trim();
     const contactEmail = (customer?.email || email).trim().toLowerCase();
     const contactPhone = (customer?.phone || phone).trim();
-    const finalNotes   = userNote.trim() ? userNote.trim().slice(0, NOTE_MAX) : null;
+    const finalNotes = userNote.trim() ? userNote.trim().slice(0, NOTE_MAX) : null;
+
+    const dealershipAddress = dealerships.find(d => d.id === selectedDealershipId)?.address || `Sucursal #${selectedDealershipId}`;
 
     if (cidUUID) {
       const { error } = await supabase.rpc('fn_appointments_create', {
@@ -527,7 +632,28 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
         p_contact_snapshot: { name: contactName, email: contactEmail, phone: contactPhone } as any,
         p_admin_note: null,
       } as any);
-      if (!error) { toast.success('¡Cita agendada con éxito!'); onOpenChange(false); setManageOpen(true); return; }
+      if (!error) {
+        // Enviar emails
+        await sendAppointmentEmails({
+          customerName: contactName,
+          customerEmail: contactEmail,
+          customerPhone: contactPhone,
+          appointmentDate: prettyYMD(selectedDate),
+          appointmentTime: `${labelFromTimestamp(selectedSlot.slot_start)} - ${labelFromTimestamp(selectedSlot.slot_end)}`,
+          dealershipAddress,
+          vehicleDetails: {
+            brand: vehicle.brand?.name || '',
+            model: vehicle.model?.name || '',
+            year: String(vehicle.year || ''),
+          },
+          notes: finalNotes || undefined,
+        });
+
+        toast.success('¡Cita agendada con éxito!');
+        onOpenChange(false);
+        setManageOpen(true);
+        return;
+      }
       const msg = (error.message || '').toLowerCase();
       const typeErr = msg.includes('does not exist') || msg.includes('not found') || msg.includes('uuid');
       if (!typeErr) { toast.error(`No se pudo crear la cita: ${error.message}`); return; }
@@ -541,7 +667,28 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
         p_vehicle_id: Number(vehicle.id),
         p_customer_id: Number(cidBigint), p_channel: 'web', p_notes: finalNotes,
       } as any);
-      if (!e2) { toast.success('¡Cita agendada con éxito!'); onOpenChange(false); setManageOpen(true); return; }
+      if (!e2) {
+        // Enviar emails
+        await sendAppointmentEmails({
+          customerName: contactName,
+          customerEmail: contactEmail,
+          customerPhone: contactPhone,
+          appointmentDate: prettyYMD(selectedDate),
+          appointmentTime: `${labelFromTimestamp(selectedSlot.slot_start)} - ${labelFromTimestamp(selectedSlot.slot_end)}`,
+          dealershipAddress,
+          vehicleDetails: {
+            brand: vehicle.brand?.name || '',
+            model: vehicle.model?.name || '',
+            year: String(vehicle.year || ''),
+          },
+          notes: finalNotes || undefined,
+        });
+
+        toast.success('¡Cita agendada con éxito!');
+        onOpenChange(false);
+        setManageOpen(true);
+        return;
+      }
       toast.error(`No se pudo crear la cita: ${e2.message}`); return;
     }
 
@@ -552,15 +699,15 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
   const hasSingleBranch = dealerships.length === 1;
   const manyBranches = dealerships.length >= 7;
   const showStepBranch = !hasSingleBranch;
-  const steps = showStepBranch ? ['Sucursal','Fecha','Horario','Tus datos'] : ['Fecha','Horario','Tus datos'];
+  const steps = showStepBranch ? ['Sucursal', 'Fecha', 'Horario', 'Tus datos'] : ['Fecha', 'Horario', 'Tus datos'];
   const canNextFromBranch = !!selectedDealershipId;
-  const canNextFromDate   = !!selectedDate;
-  const canNextFromTime   = !!selectedSlot;
+  const canNextFromDate = !!selectedDate;
+  const canNextFromTime = !!selectedSlot;
   const canConfirm = !!selectedSlot && !!selectedDealershipId && !!client?.id && (!!customer || formValid);
 
-  const visibleSlots = (slots||[])
-    .filter((s)=> selectedDate && isFutureSlotSameDay(selectedDate, s.slot_start))
-    .filter((s)=> {
+  const visibleSlots = (slots || [])
+    .filter((s) => selectedDate && isFutureSlotSameDay(selectedDate, s.slot_start))
+    .filter((s) => {
       const key = minuteKey(s.slot_start);
       const taken = bookedByStart[key] || 0;
       const capacity = s.capacity ?? 1;
@@ -576,7 +723,6 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
         size="lg"
         backdrop="opaque"
         classNames={{
-          // drawer en mobile (pegado abajo)
           wrapper: 'items-end sm:items-center',
           base: 'w-full sm:w-auto m-0 sm:m-4 rounded-t-2xl sm:rounded-2xl sm:max-h-[92vh] max-h-[90svh] pb-[max(env(safe-area-inset-bottom),0px)]',
           header: 'px-4 sm:px-5 py-3 border-b',
@@ -653,7 +799,7 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
                         <div className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
                           {dealerships.map((d) => {
                             const active = selectedDealershipId === d.id;
-                            const label  = d.address || `Sucursal #${d.id}`;
+                            const label = d.address || `Sucursal #${d.id}`;
                             return (
                               <Tooltip key={`dlp-btn-${d.id}`} content={label} delay={180}>
                                 <Button
@@ -690,7 +836,7 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
                         loading={monthLoading}
                         brandRGB={brandRGB}
                       />
-                      <div className="rounded-md text-xs sm:text-[13px] p-2.5 flex items-start gap-2" style={{ backgroundColor: rgba(brandRGB, 0.06), color: 'rgba(0,0,0,0.75)' }}>
+                      <div className="rounded-md text-xs sm:text[13px] p-2.5 flex items-start gap-2" style={{ backgroundColor: rgba(brandRGB, 0.06), color: 'rgba(0,0,0,0.75)' }}>
                         <Icon icon="mdi:lightbulb-on-outline" className="mt-0.5 shrink-0" />
                         <div>Los días grises se muestran para conservar la vista de calendario, pero no tienen horarios.</div>
                       </div>
@@ -746,10 +892,10 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
 
                       {!customer || editingCustomer ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <Field label="Nombre"><input type="text" value={firstName} onChange={(e)=>setFirstName(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="Juan" autoComplete="given-name" /></Field>
-                          <Field label="Apellido"><input type="text" value={lastName} onChange={(e)=>setLastName(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="Pérez" autoComplete="family-name" /></Field>
-                          <Field label="Email"><input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="correo@dominio.com" autoComplete="email" inputMode="email" /></Field>
-                          <Field label="Teléfono"><input type="tel" value={phone} onChange={(e)=>setPhone(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="+569..." autoComplete="tel" inputMode="tel" /></Field>
+                          <Field label="Nombre"><input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="Juan" autoComplete="given-name" /></Field>
+                          <Field label="Apellido"><input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="Pérez" autoComplete="family-name" /></Field>
+                          <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="correo@dominio.com" autoComplete="email" inputMode="email" /></Field>
+                          <Field label="Teléfono"><input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="+569..." autoComplete="tel" inputMode="tel" /></Field>
                           <div className="sm:col-span-2 flex justify-end">
                             <Button isDisabled={!formValid || !client?.id} onPress={saveCustomer}
                               startContent={<Icon icon="mdi:content-save" className="text-[18px]" />} style={{ backgroundColor: rgba(brandRGB, 0.95), color: '#fff' }}>
@@ -772,7 +918,7 @@ export default function BookingModal({ open, onOpenChange, client, vehicle }: Bo
                       )}
 
                       <Field label={<span className="inline-flex items-center gap-1.5"><Icon icon="mdi:note-edit-outline" className="text-[18px]" /> Nota (opcional)</span>}>
-                        <textarea rows={3} value={userNote} onChange={(e)=>setUserNote(e.target.value.slice(0, NOTE_MAX))}
+                        <textarea rows={3} value={userNote} onChange={(e) => setUserNote(e.target.value.slice(0, NOTE_MAX))}
                           placeholder="Ej: Voy con acompañante, prefiero ver el maletero, etc."
                           className="rounded-md border border-gray-300 px-3 py-2 text-sm resize-y w-full" />
                         <div className="text-[11px] text-gray-500 mt-1">{userNote.length}/{NOTE_MAX}</div>

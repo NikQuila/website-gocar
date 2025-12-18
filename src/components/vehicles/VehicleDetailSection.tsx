@@ -10,6 +10,7 @@ import VehicleImagesModal from './VehicleImagesModal';
 import type { Client, Vehicle } from '../../utils/types';
 import { mapTransmissionTypeToSpanish, contactByWhatsApp } from '@/utils/functions';
 import useCustomerStore from '@/store/useCustomerStore';
+import useThemeStore from '@/store/useThemeStore';
 import { supabase } from '@/lib/supabase';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
@@ -27,6 +28,7 @@ function pickAccent(v: any): string {
   );
 }
 
+// Comentario para merge equisde
 /** Tarjeta de especificación (no se muestra si value está vacío) */
 interface DetailCardProps {
   icon: string;
@@ -209,6 +211,7 @@ export default function VehicleDetailSection({
 }: VehicleDetailSectionProps) {
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
+  const { theme } = useThemeStore();
 
   const isLoadingUI = loading || !vehicle;
   const v = (vehicle ?? {}) as Vehicle;
@@ -219,6 +222,15 @@ export default function VehicleDetailSection({
   );
 
   const ACCENT = pickAccent(v);
+
+  // Obtener el color primary del cliente (mismo que usa bg-primary del botón)
+  const primaryColor = useMemo(() => {
+    if (client?.theme) {
+      const themeColors = theme === 'dark' ? client.theme.dark : client.theme.light;
+      return themeColors?.primary || ACCENT;
+    }
+    return ACCENT;
+  }, [client?.theme, theme, ACCENT]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [currentModalImage, setCurrentModalImage] = useState<string>('');
@@ -288,6 +300,68 @@ export default function VehicleDetailSection({
   const [bookingOpen, setBookingOpen] = useState(false);
   const openBooking = () => setBookingOpen(true);
 
+  // Verificar si hay horarios disponibles para mostrar el botón de agendar
+  const [hasAvailableSlots, setHasAvailableSlots] = useState<boolean>(false);
+  const [loadingAvailability, setLoadingAvailability] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (isLoadingUI || !client?.id || !v?.dealership_id) {
+      setHasAvailableSlots(false);
+      setLoadingAvailability(false);
+      return;
+    }
+
+    const checkAvailability = async () => {
+      setLoadingAvailability(true);
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Santiago';
+        const today = new Date();
+
+        // Verificar los próximos 30 días para ver si hay al menos un slot disponible
+        for (let i = 0; i < 30; i++) {
+          const checkDate = new Date(today);
+          checkDate.setDate(today.getDate() + i);
+          const ymd = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+
+          const { data, error } = await supabase.rpc('fn_compute_availability', {
+            p_client_id: Number(client.id),
+            p_dealership_id: Number(v.dealership_id),
+            p_date: ymd,
+            p_timezone: tz,
+          });
+
+          if (!error && data && Array.isArray(data) && data.length > 0) {
+            // Verificar que hay slots futuros disponibles
+            const nowMinutes = today.getHours() * 60 + today.getMinutes();
+            const todayYMD = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            const hasValidSlot = data.some((slot: any) => {
+              if (ymd > todayYMD) return true; // Días futuros siempre válidos
+              // Para hoy, verificar que el slot sea futuro
+              const slotTime = slot.slot_start?.match?.(/(\d{2}):(\d{2})/);
+              if (!slotTime) return false;
+              const slotMinutes = parseInt(slotTime[1]) * 60 + parseInt(slotTime[2]);
+              return slotMinutes > nowMinutes;
+            });
+
+            if (hasValidSlot) {
+              setHasAvailableSlots(true);
+              setLoadingAvailability(false);
+              return;
+            }
+          }
+        }
+        setHasAvailableSlots(false);
+      } catch (err) {
+        console.error('Error checking availability:', err);
+        setHasAvailableSlots(false);
+      }
+      setLoadingAvailability(false);
+    };
+
+    checkAvailability();
+  }, [isLoadingUI, client?.id, v?.dealership_id]);
+
   if (isLoadingUI) {
     return <VehicleDetailSkeleton />;
   }
@@ -343,7 +417,7 @@ export default function VehicleDetailSection({
 
           <CardBody className="p-0 w-full">
             <div className="relative w-full overflow-hidden rounded-[22px]">
-              <div className="relative aspect-[4/3] md:aspect-[16/11] 2xl:aspect-[16/10]">
+              <div className="relative aspect-[4/3] md:aspect-[16/11]]">
                 {!!images[0] && (
                   <Image
                     alt={`${v?.brand?.name} ${v?.model?.name}`}
@@ -490,17 +564,19 @@ export default function VehicleDetailSection({
                 {t('vehicles.card.contact')}
               </Button>
 
-              {/* <Button
-                size="lg"
-                variant="solid"
-                color="default"
-                startContent={<Icon icon="mdi:calendar-check" className="text-xl" />}
-                className="sm:flex-1 hover:opacity-95 bg-primary text-white transition-[filter,opacity] focus:opacity-100"
-                onPress={openBooking}
-                aria-label="Agendar visita"
-              >
-                Agendar visita
-              </Button> */}
+              {!loadingAvailability && hasAvailableSlots && (
+                <Button
+                  size="lg"
+                  variant="solid"
+                  color="default"
+                  startContent={<Icon icon="mdi:calendar-check" className="text-xl" />}
+                  className="sm:flex-1 hover:opacity-95 bg-primary text-white transition-[filter,opacity] focus:opacity-100"
+                  onPress={openBooking}
+                  aria-label="Agendar visita"
+                >
+                  Agendar visita
+                </Button>
+              )}
             </div>
 
             <Divider className="dark:border-dark-border" />
@@ -572,6 +648,7 @@ export default function VehicleDetailSection({
         onOpenChange={setBookingOpen}
         client={client}
         vehicle={v as Vehicle}
+        primaryColor={primaryColor}
       />
     </div>
   );

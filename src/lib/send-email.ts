@@ -77,6 +77,196 @@ export async function sendEmail(
 }
 
 /**
+ * Crea una plantilla HTML para confirmación de cita
+ */
+export function createAppointmentEmailTemplate({
+  customerName,
+  customerEmail,
+  customerPhone,
+  appointmentDate,
+  appointmentTime,
+  dealershipAddress,
+  vehicleDetails,
+  notes,
+}: {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  dealershipAddress: string;
+  vehicleDetails: {
+    brand: string;
+    model: string;
+    year: string;
+  };
+  notes?: string;
+}): string {
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Confirmación de Cita</title>
+    </head>
+    <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 20px; color: #333; background: #f8f9fa;">
+      <div style="background: #fff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); padding: 0 0 24px 0;">
+        <!-- Header -->
+        <div style="background-color: #51bde5; padding: 24px 24px 20px 24px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 26px;">¡Cita Agendada!</h1>
+          <p style="color: white; margin: 8px 0 0 0; font-size: 15px;">Tu visita ha sido confirmada</p>
+        </div>
+
+        <!-- Bloque Cita -->
+        <div style="padding: 24px 24px 0 24px;">
+          <h2 style="color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;">Detalles de la Cita</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <tr><td style="padding: 7px 0; width: 180px;"><strong>📅 Fecha:</strong></td><td style="padding: 7px 0;">${appointmentDate}</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>🕐 Hora:</strong></td><td style="padding: 7px 0;">${appointmentTime}</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>📍 Sucursal:</strong></td><td style="padding: 7px 0;">${dealershipAddress}</td></tr>
+          </table>
+        </div>
+
+        <!-- Bloque Cliente -->
+        <div style="padding: 24px 24px 0 24px;">
+          <h2 style="color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;">Información del Cliente</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <tr><td style="padding: 7px 0; width: 180px;"><strong>Nombre:</strong></td><td style="padding: 7px 0;">${customerName}</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Email:</strong></td><td style="padding: 7px 0;"><a href="mailto:${customerEmail}" style="color: #51bde5; text-decoration: none;">${customerEmail}</a></td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Teléfono:</strong></td><td style="padding: 7px 0;"><a href="tel:${customerPhone}" style="color: #51bde5; text-decoration: none;">${customerPhone}</a></td></tr>
+          </table>
+        </div>
+
+        <!-- Bloque Vehículo -->
+        <div style="padding: 24px 24px 0 24px;">
+          <h2 style="color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;">Vehículo de Interés</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <tr><td style="padding: 7px 0; width: 180px;"><strong>Marca:</strong></td><td style="padding: 7px 0;">${vehicleDetails.brand}</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Modelo:</strong></td><td style="padding: 7px 0;">${vehicleDetails.model}</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Año:</strong></td><td style="padding: 7px 0;">${vehicleDetails.year}</td></tr>
+          </table>
+        </div>
+
+        ${
+          notes
+            ? `<div style="padding: 24px 24px 0 24px;"><h2 style="color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;">Notas del Cliente</h2><div style="padding: 10px 0; white-space: pre-wrap; font-size: 15px;">${notes}</div></div>`
+            : ''
+        }
+
+        <!-- CTA Button -->
+        <div style="margin: 30px 0 0 0; text-align: center;">
+          <a href="https://portal.goauto.cl/appointments"
+             style="background-color: #51bde5; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">
+            Ver detalles en el Portal
+          </a>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f1f1f1; padding: 15px; text-align: center; font-size: 13px; color: #666; border-top: 1px solid #ddd; margin-top: 32px; border-radius: 0 0 10px 10px;">
+          <p style="margin: 0;">
+            Este es un email automático generado por <a href="https://goauto.cl" style="color: #51bde5; text-decoration: none;">GoAuto</a>.
+            <br>Por favor no responda a este mensaje.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Crea una plantilla HTML para cancelación de cita
+ */
+export function createAppointmentCancellationEmailTemplate({
+  customerName,
+  customerEmail,
+  customerPhone,
+  appointmentDate,
+  appointmentTime,
+  dealershipAddress,
+  vehicleDetails,
+  cancellationReason,
+}: {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  dealershipAddress: string;
+  vehicleDetails: {
+    brand: string;
+    model: string;
+    year: string;
+  };
+  cancellationReason?: string;
+}): string {
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Cita Cancelada</title>
+    </head>
+    <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 20px; color: #333; background: #f8f9fa;">
+      <div style="background: #fff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.08); padding: 0 0 24px 0;">
+        <!-- Header -->
+        <div style="background-color: #ef4444; padding: 24px 24px 20px 24px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 26px;">Cita Cancelada</h1>
+          <p style="color: white; margin: 8px 0 0 0; font-size: 15px;">La siguiente cita ha sido cancelada</p>
+        </div>
+
+        <!-- Bloque Cita -->
+        <div style="padding: 24px 24px 0 24px;">
+          <h2 style="color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;">Detalles de la Cita Cancelada</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <tr><td style="padding: 7px 0; width: 180px;"><strong>📅 Fecha:</strong></td><td style="padding: 7px 0;">${appointmentDate}</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>🕐 Hora:</strong></td><td style="padding: 7px 0;">${appointmentTime}</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>📍 Sucursal:</strong></td><td style="padding: 7px 0;">${dealershipAddress}</td></tr>
+          </table>
+        </div>
+
+        <!-- Bloque Cliente -->
+        <div style="padding: 24px 24px 0 24px;">
+          <h2 style="color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;">Información del Cliente</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <tr><td style="padding: 7px 0; width: 180px;"><strong>Nombre:</strong></td><td style="padding: 7px 0;">${customerName}</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Email:</strong></td><td style="padding: 7px 0;"><a href="mailto:${customerEmail}" style="color: #51bde5; text-decoration: none;">${customerEmail}</a></td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Teléfono:</strong></td><td style="padding: 7px 0;"><a href="tel:${customerPhone}" style="color: #51bde5; text-decoration: none;">${customerPhone}</a></td></tr>
+          </table>
+        </div>
+
+        <!-- Bloque Vehículo -->
+        <div style="padding: 24px 24px 0 24px;">
+          <h2 style="color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;">Vehículo</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <tr><td style="padding: 7px 0; width: 180px;"><strong>Marca:</strong></td><td style="padding: 7px 0;">${vehicleDetails.brand}</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Modelo:</strong></td><td style="padding: 7px 0;">${vehicleDetails.model}</td></tr>
+            <tr><td style="padding: 7px 0;"><strong>Año:</strong></td><td style="padding: 7px 0;">${vehicleDetails.year}</td></tr>
+          </table>
+        </div>
+
+        ${
+          cancellationReason
+            ? `<div style="padding: 24px 24px 0 24px;"><h2 style="color: #222; font-size: 18px; margin: 0 0 18px 0; letter-spacing: 1px;">Motivo de Cancelación</h2><div style="padding: 10px 0; white-space: pre-wrap; font-size: 15px;">${cancellationReason}</div></div>`
+            : ''
+        }
+
+        <!-- Footer -->
+        <div style="background-color: #f1f1f1; padding: 15px; text-align: center; font-size: 13px; color: #666; border-top: 1px solid #ddd; margin-top: 32px; border-radius: 0 0 10px 10px;">
+          <p style="margin: 0;">
+            Este es un email automático generado por <a href="https://goauto.cl" style="color: #51bde5; text-decoration: none;">GoAuto</a>.
+            <br>Por favor no responda a este mensaje.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
  * Crea una plantilla HTML para leads de vehículos
  */
 export function createVehicleLeadEmailTemplate({
