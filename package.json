@@ -30,7 +30,7 @@
     "i18next-browser-languagedetector": "^8.2.0",
     "lucide-react": "^0.503.0",
     "lzutf8": "^0.6.3",
-    "next": "15.1.6",
+    "next": "^16.0.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-fast-marquee": "^1.6.5",
