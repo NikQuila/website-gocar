@@ -458,6 +458,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
   } = useVehicleFiltersStore();
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const activeView = 'grid'; // Fixed to grid view
   // Localized categories and sort options
@@ -645,26 +646,28 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
 
   const whatsappUrl = `https://wa.me/${whatsappNumber}`;
 
-  // Estado para controlar la visibilidad del botón de WhatsApp en móvil
-  const [showMobileWhatsApp, setShowMobileWhatsApp] = useState(false);
+  // Estado para controlar la visibilidad de los botones flotantes en móvil
+  const [showMobileButtons, setShowMobileButtons] = useState(false);
 
-  // Detectar scroll para mostrar/ocultar el botón en móvil
+  // Detectar si estamos dentro de la sección de vehículos
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY;
+      const section = document.getElementById('vehicles-section');
+      if (!section) return;
 
-      // WhatsApp
-      if (scrollPosition > 300) {
-        setShowMobileWhatsApp(true);
-      } else {
-        setShowMobileWhatsApp(false);
-      }
+      const rect = section.getBoundingClientRect();
+      const sectionTop = rect.top;
+      const sectionBottom = rect.bottom;
+      const windowHeight = window.innerHeight;
+
+      // Mostrar botones cuando la sección está visible y hemos scrolleado un poco dentro
+      const isInSection = sectionTop < windowHeight * 0.7 && sectionBottom > windowHeight * 0.3;
+
+      setShowMobileButtons(isInSection);
     };
 
-    // Ejecutar al montar para establecer valores iniciales
     handleScroll();
-
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -676,39 +679,33 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
 
   return (
     <div id='vehicles-section' className='min-h-screen bg-slate-50/50 dark:bg-dark-bg'>
-      {/* Botón de WhatsApp (posición fija con z-index extremadamente alto) - Solo visible en pantallas mayores a sm */}
-      <div className='fixed bottom-6 right-6 z-[99999] hidden sm:block'>
-        <Link href={whatsappUrl} target='_blank' rel='noopener noreferrer'>
-          <Button
-            isIconOnly
-            className='bg-[#25D366] text-white rounded-full hover:bg-[#22c35e] hover:shadow-lg transition-all duration-200 shadow-md w-12 h-12'
-            aria-label='WhatsApp'
-          >
-            <Icon icon='logos:whatsapp-icon' className='text-xl' />
-          </Button>
-        </Link>
-      </div>
+      {/* Botón de WhatsApp - Siempre visible, derecha */}
+      <a
+        href={whatsappUrl}
+        target='_blank'
+        rel='noopener noreferrer'
+        className='fixed bottom-6 right-6 z-[99999] p-3 bg-[#25D366] rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200'
+      >
+        <Icon icon='logos:whatsapp-icon' className='text-xl' />
+      </a>
 
-      {/* Botón de WhatsApp para móvil que aparece solo al hacer scroll */}
-      <div
-        className={`sm:hidden fixed bottom-6 right-6 z-[99999] transition-all duration-300 ${
-          showMobileWhatsApp
+      {/* Botón de Filtros móvil - Solo visible en sección vehículos, izquierda */}
+      <button
+        onClick={onOpen}
+        className={`md:hidden fixed bottom-6 left-6 z-[99999] flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#0B0B0F] rounded-full border border-slate-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-300 ${
+          showMobileButtons
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-10 pointer-events-none'
         }`}
       >
-        <Button
-          isIconOnly
-          className='bg-[#25D366] text-white rounded-full hover:bg-[#22c35e] hover:shadow-lg transition-all duration-200 shadow-md w-12 h-12'
-          aria-label='WhatsApp'
-          as='a'
-          href={whatsappUrl}
-          target='_blank'
-          rel='noopener noreferrer'
-        >
-          <Icon icon='logos:whatsapp-icon' className='text-xl' />
-        </Button>
-      </div>
+        <Icon icon='solar:filter-linear' className='text-lg text-primary' />
+        <span className='text-sm font-medium text-gray-700 dark:text-white'>Filtros</span>
+        {activeFiltersCount > 0 && (
+          <span className='w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-medium'>
+            {activeFiltersCount}
+          </span>
+        )}
+      </button>
 
       {/* Fixed Categories Navigation */}
       <div className='sticky top-[var(--navbar-height)] z-30 bg-white dark:bg-dark-bg border-b border-gray-200 dark:border-dark-border'>
@@ -835,8 +832,8 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
 
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20'>
         <div className='flex flex-col md:flex-row gap-8'>
-          {/* Filtro en desktop - sticky */}
-          {isMd && (
+          {/* Filtro en desktop - sticky y colapsable */}
+          {isMd && !isFiltersCollapsed && (
             <aside className='w-72 shrink-0'>
               <div className='sticky top-24'>
                 <div className='max-h-[calc(100vh-120px)] overflow-y-auto overflow-x-hidden'>
@@ -850,38 +847,41 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                     initialOpenAccordion={filters.color ? 'color' : undefined}
                     availableYears={availableYears}
                     maxPrice={maxPrice}
+                    isCollapsed={isFiltersCollapsed}
+                    onToggleCollapse={() => setIsFiltersCollapsed(true)}
                   />
                 </div>
               </div>
             </aside>
           )}
 
+          {/* Botón para expandir filtros cuando están colapsados */}
+          {isMd && isFiltersCollapsed && (
+            <button
+              onClick={() => setIsFiltersCollapsed(false)}
+              className='sticky top-24 h-fit shrink-0 p-3 bg-white dark:bg-[#0B0B0F] rounded-xl border border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-200 flex flex-col items-center gap-2'
+              aria-label='Mostrar filtros'
+            >
+              <Icon icon='solar:filter-linear' className='text-xl text-primary' />
+              {activeFiltersCount > 0 && (
+                <span className='w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-medium'>
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
+          )}
+
           {/* Vehicles Content */}
 
           <div className='flex-1 min-w-0'>
-            {/* Sort and View Options */}
-
-            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky bg-slate-50/50 dark:bg-dark-bg py-2 px-4 -mx-4 sm:px-0 sm:mx-0 rounded-lg relative z-10'>
-              {/* Botón para abrir filtros en móvil */}
-              <div className='md:hidden w-full'>
-                <Button
-                  variant='light'
-                  onPress={onOpen}
-                  startContent={<Icon icon='mdi:filter' className='text-xl' />}
-                  className='bg-white dark:bg-dark-card shadow-sm w-full'
-                >
-                  {t('vehicles.filters.title')}{' '}
-                  {activeFiltersCount > 0 && `(${activeFiltersCount})`}
-                </Button>
-              </div>
-            </div>
-
             {/* Vehicle Cards */}
 
             <div
-              className={`grid gap-4 sm:gap-5 ${
+              className={`grid gap-4 sm:gap-5 transition-all duration-500 ${
                 activeView === 'grid'
-                  ? 'grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3'
+                  ? isFiltersCollapsed
+                    ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4'
+                    : 'grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3'
                   : 'grid-cols-1'
               } mx-auto`}
             >
@@ -939,9 +939,11 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
         isOpen={isOpen}
         onClose={onClose}
         placement='bottom'
-        className='bg-white dark:bg-dark-card'
+        className='bg-white dark:bg-dark-card z-[999999]'
         classNames={{
-          base: 'h-[90vh] rounded-t-xl',
+          base: 'h-[90vh] rounded-t-xl z-[999999]',
+          wrapper: 'z-[999999]',
+          backdrop: 'z-[999998]',
           header:
             'border-b border-transparent sm:border-gray-200 dark:sm:border-dark-border',
           body: 'p-0',

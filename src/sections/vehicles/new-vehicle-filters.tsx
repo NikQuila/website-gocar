@@ -52,6 +52,10 @@ interface Props {
   initialOpenAccordion?: string;
   /** Color CTA hex o css-var (p.ej. "#FF5C00" o "var(--brand-color)") */
   ctaColor?: string;
+  /** Si el panel está colapsado */
+  isCollapsed?: boolean;
+  /** Callback para colapsar/expandir */
+  onToggleCollapse?: () => void;
 }
 
 const NewVehicleFilters = ({
@@ -65,6 +69,8 @@ const NewVehicleFilters = ({
   maxPrice = 1_000_000_000,
   initialOpenAccordion,
   ctaColor,
+  isCollapsed,
+  onToggleCollapse,
 }: Props) => {
   const { tx } = useTx();
   const {
@@ -200,6 +206,20 @@ const NewVehicleFilters = ({
       <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
+            {onToggleCollapse && (
+              <button
+                onClick={onToggleCollapse}
+                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+                aria-label={isCollapsed ? 'Expandir filtros' : 'Colapsar filtros'}
+              >
+                <Icon
+                  icon="mdi:chevron-left"
+                  className={`text-xl text-gray-500 dark:text-gray-400 transition-transform duration-300 ${
+                    isCollapsed ? 'rotate-180' : 'rotate-0'
+                  }`}
+                />
+              </button>
+            )}
             <Icon icon="solar:filter-linear" className="text-xl" style={CTA ? { color: CTA } : undefined} />
             <h3 className="text-base font-semibold text-gray-900 dark:text-white">{filtersTitle}</h3>
             {activeFiltersCount > 0 && (
