@@ -118,6 +118,19 @@ const VehiclesPage: React.FC = () => {
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
+  // Contador de filtros activos
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    Object.values(filters).forEach((v) => {
+      if (Array.isArray(v)) count += v.length;
+      else if (v) count += 1;
+    });
+    if (priceRange[0] > 0 || (maxPrice > 0 && priceRange[1] < maxPrice)) count += 1;
+    if (searchQuery.trim()) count += 1;
+    if (sortOrder !== 'date_desc') count += 1;
+    return count;
+  }, [filters, priceRange, maxPrice, searchQuery, sortOrder]);
+
   // Etiquetas con fallback (sin claves crudas)
   const sortOptions = [
     { key: 'date_desc',   label: tx('vehicles.sorting.dateDesc',  'Más recientes'), icon: 'mdi:clock-outline' },
@@ -262,6 +275,20 @@ const VehiclesPage: React.FC = () => {
 
   return (
     <ClientOnly>
+      {/* Botón flotante de Filtros - Solo móvil, siempre visible */}
+      <button
+        onClick={() => setIsFilterModalOpen(true)}
+        className='md:hidden fixed bottom-6 left-6 z-[99999] flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#0B0B0F] rounded-full border border-slate-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-200'
+      >
+        <Icon icon='solar:filter-linear' className='text-lg text-primary' />
+        <span className='text-sm font-medium text-gray-700 dark:text-white'>{filtersTitle}</span>
+        {activeFiltersCount > 0 && (
+          <span className='w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-medium'>
+            {activeFiltersCount}
+          </span>
+        )}
+      </button>
+
       <div className="min-h-screen bg-slate-50/50 dark:bg-black">
         <main className="grid grid-cols-1 md:grid-cols-4">
           {/* Sidebar (desktop) - STICKY y CENTRADO */}

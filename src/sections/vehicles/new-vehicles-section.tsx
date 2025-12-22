@@ -39,7 +39,7 @@ import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 // ============================================
-// MOTOR DE BÚSQUEDA - VERSIÓN CORREGIDA
+// MOTOR DE BÚSQUEDA INTELIGENTE v2.0
 // ============================================
 
 // Normalizar texto (quitar acentos, minúsculas)
@@ -55,206 +55,172 @@ const normalizeText = (text: string): string => {
 
 // Stopwords - palabras comunes que no aportan a la búsqueda
 const STOPWORDS = new Set([
-  // Artículos
   'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas',
-  // Preposiciones
   'de', 'del', 'a', 'al', 'en', 'con', 'por', 'para', 'sin', 'sobre', 'entre', 'hacia',
-  // Verbos comunes de búsqueda
   'busco', 'buscar', 'quiero', 'querer', 'necesito', 'necesitar', 'estoy', 'buscando',
   'me', 'interesa', 'gustaria', 'quisiera', 'deseo', 'encuentren', 'muestren', 'muestrame',
   'dame', 'ver', 'mostrar', 'encontrar',
-  // Conjunciones y otros
   'y', 'o', 'e', 'u', 'que', 'como', 'pero', 'si', 'no', 'mas', 'muy', 'tan', 'algo',
-  // Adjetivos genéricos
   'buen', 'buena', 'bueno', 'buenos', 'buenas', 'mejor', 'mejores', 'bonito', 'bonita',
   'lindo', 'linda', 'bien', 'ideal', 'perfecto', 'perfecta', 'excelente',
-  // Otros
-  'tipo', 'estilo', 'clase', 'modelo', 'version', 'ano', 'precio', 'costo',
+  'tipo', 'estilo', 'clase', 'version', 'precio', 'costo',
   'tengan', 'tenga', 'sea', 'sean', 'este', 'esta', 'esten',
 ]);
 
-// Stemming básico español: quitar plurales y variaciones de género
-const stemWord = (word: string): string => {
-  let stemmed = word;
-
-  // Quitar plurales comunes
-  if (stemmed.endsWith('es') && stemmed.length > 3) {
-    // "nuevos" no termina en "es", pero "azules" sí
-    const withoutEs = stemmed.slice(0, -2);
-    // Verificar que no sea una palabra que naturalmente termina en "es"
-    if (!['mercedes', 'andes'].includes(stemmed)) {
-      stemmed = withoutEs;
-    }
-  } else if (stemmed.endsWith('s') && stemmed.length > 2) {
-    stemmed = stemmed.slice(0, -1);
-  }
-
-  // Normalizar variaciones de género (solo para adjetivos comunes)
-  // "automatica" -> "automatico", "hibrida" -> "hibrido", etc.
-  if (stemmed.endsWith('a') && stemmed.length > 3) {
-    const masculine = stemmed.slice(0, -1) + 'o';
-    // Solo cambiar si la forma masculina es reconocida
-    const knownMasculine = ['automatico', 'hibrido', 'electrico', 'mecanico', 'usado', 'nuevo', 'seminuevo', 'blanco', 'negro', 'rojo', 'azulo', 'plomo'];
-    if (knownMasculine.includes(masculine)) {
-      stemmed = masculine;
-    }
-  }
-
-  return stemmed;
+// Términos que se expanden a múltiples categorías/valores
+const TERM_EXPANSIONS: Record<string, string[]> = {
+  // "Camioneta" en Chile/Latam puede ser SUV o Pickup
+  'camioneta': ['suv', 'pickup', 'crossover'],
+  'camionetas': ['suv', 'pickup', 'crossover'],
+  // "Auto" puede ser cualquier vehículo de pasajeros
+  'auto': ['sedan', 'hatchback', 'coupe'],
+  'autos': ['sedan', 'hatchback', 'coupe'],
+  'carro': ['sedan', 'hatchback', 'coupe', 'suv'],
+  'carros': ['sedan', 'hatchback', 'coupe', 'suv'],
+  // "Económico" se refiere a bajo consumo
+  'economico': ['hatchback', 'sedan', 'hibrido', 'electrico'],
+  'economica': ['hatchback', 'sedan', 'hibrido', 'electrico'],
+  'barato': ['usado', 'seminuevo'],
+  'barata': ['usado', 'seminuevo'],
+  'baratos': ['usado', 'seminuevo'],
+  // "Familiar" puede ser wagon, SUV o van
+  'familiar': ['wagon', 'suv', 'van'],
+  'familiares': ['wagon', 'suv', 'van'],
+  // "Grande" se refiere a SUV, pickup, van
+  'grande': ['suv', 'pickup', 'van'],
+  'grandes': ['suv', 'pickup', 'van'],
+  // "Pequeño/Chico" se refiere a hatchback, sedan compacto
+  'pequeno': ['hatchback'],
+  'pequena': ['hatchback'],
+  'chico': ['hatchback'],
+  'chica': ['hatchback'],
+  'compacto': ['hatchback'],
+  'compacta': ['hatchback'],
+  // "Deportivo"
+  'deportivo': ['coupe', 'sport'],
+  'deportiva': ['coupe', 'sport'],
+  // "4x4" puede ser SUV o Pickup
+  '4x4': ['suv', 'pickup'],
+  'todoterreno': ['suv', 'pickup'],
+  // Trabajo/carga
+  'trabajo': ['pickup', 'van', 'furgon'],
+  'carga': ['pickup', 'van', 'furgon'],
 };
 
-// Frases compuestas que deben tratarse como una sola unidad (incluir variaciones)
+// Mapeo de términos coloquiales a valores de BD
+const TERM_TO_DB_VALUES: Record<string, string[]> = {
+  // Categorías (nombres exactos que podrían estar en la BD)
+  'suv': ['SUV', 'Suv', 'suv', 'CROSSOVER', 'Crossover'],
+  'sedan': ['Sedan', 'SEDAN', 'sedan', 'Sedán'],
+  'hatchback': ['Hatchback', 'HATCHBACK', 'hatchback'],
+  'pickup': ['Pickup', 'PICKUP', 'pickup', 'Pick-up', 'Pick Up'],
+  'van': ['Van', 'VAN', 'van', 'Minivan', 'MINIVAN'],
+  'coupe': ['Coupe', 'COUPE', 'coupe', 'Coupé'],
+  'wagon': ['Wagon', 'WAGON', 'wagon', 'Station Wagon'],
+  // Condiciones
+  'nuevo': ['Nuevo', 'NUEVO', 'nuevo', 'New'],
+  'seminuevo': ['Seminuevo', 'SEMINUEVO', 'seminuevo', 'Semi-nuevo', 'Semi Nuevo'],
+  'usado': ['Usado', 'USADO', 'usado', 'Used'],
+  // Transmisión
+  'automatico': ['Automático', 'Automatico', 'AUTOMATICO', 'Automatic', 'automatica', 'Automática', 'CVT', 'Tiptronic'],
+  'manual': ['Manual', 'MANUAL', 'manual', 'Mecánico', 'Mecanico'],
+  // Combustible
+  'bencina': ['Bencina', 'BENCINA', 'bencina', 'Gasolina', 'GASOLINA', 'Nafta'],
+  'diesel': ['Diesel', 'DIESEL', 'diesel', 'Diésel', 'Petrolero'],
+  'electrico': ['Eléctrico', 'Electrico', 'ELECTRICO', 'Electric', 'EV'],
+  'hibrido': ['Híbrido', 'Hibrido', 'HIBRIDO', 'Hybrid', 'PHEV', 'HEV'],
+  // Colores
+  'blanco': ['Blanco', 'BLANCO', 'blanco', 'White', 'Perla'],
+  'negro': ['Negro', 'NEGRO', 'negro', 'Black'],
+  'gris': ['Gris', 'GRIS', 'gris', 'Plata', 'Plateado', 'Silver', 'Grey'],
+  'rojo': ['Rojo', 'ROJO', 'rojo', 'Red', 'Bordó', 'Bordo'],
+  'azul': ['Azul', 'AZUL', 'azul', 'Blue', 'Marino', 'Celeste'],
+  'verde': ['Verde', 'VERDE', 'verde', 'Green'],
+  'cafe': ['Café', 'Cafe', 'CAFE', 'Marrón', 'Marron', 'Brown', 'Beige'],
+  'amarillo': ['Amarillo', 'AMARILLO', 'amarillo', 'Yellow', 'Dorado'],
+  'naranja': ['Naranja', 'NARANJA', 'naranja', 'Orange'],
+};
+
+// Frases compuestas que deben normalizarse
 const COMPOUND_PHRASES: Record<string, string> = {
-  'semi nuevo': 'seminuevo',
-  'semi nueva': 'seminuevo',
-  'semi nuevos': 'seminuevo',
-  'semi nuevas': 'seminuevo',
-  'semi-nuevo': 'seminuevo',
-  'semi-nueva': 'seminuevo',
-  'seminuevos': 'seminuevo',
-  'seminuevas': 'seminuevo',
-  'poco uso': 'seminuevo',
-  'pocos km': 'seminuevo',
-  'pocos kilometros': 'seminuevo',
-  'como nuevo': 'seminuevo',
-  'como nueva': 'seminuevo',
-  'cero km': 'nuevo',
-  'cero kilometros': 'nuevo',
-  '0 km': 'nuevo',
-  '0km': 'nuevo',
-  'nuevos': 'nuevo',
-  'nuevas': 'nuevo',
-  'usados': 'usado',
-  'usadas': 'usado',
+  'semi nuevo': 'seminuevo', 'semi nueva': 'seminuevo',
+  'poco uso': 'seminuevo', 'pocos km': 'seminuevo', 'pocos kilometros': 'seminuevo',
+  'como nuevo': 'seminuevo', 'como nueva': 'seminuevo',
+  'cero km': 'nuevo', '0 km': 'nuevo', '0km': 'nuevo',
   'segunda mano': 'usado',
   'doble cabina': 'pickup',
   'station wagon': 'wagon',
-  'grand cherokee': 'grandcherokee',
-  'santa fe': 'santafe',
-  'great wall': 'greatwall',
-  'bajo kilometraje': 'bajokilometraje',
-  'pocos kms': 'seminuevo',
-  // Eléctricos
-  'cero emisiones': 'electrico',
-  '100% electrico': 'electrico',
-  'full electric': 'electrico',
-  // Híbridos
-  'plug in': 'hibrido',
-  'mild hybrid': 'hibrido',
+  'pick up': 'pickup', 'pick-up': 'pickup',
+  'grand cherokee': 'grandcherokee', 'santa fe': 'santafe', 'great wall': 'greatwall',
+  'cero emisiones': 'electrico', 'full electric': 'electrico',
+  'plug in': 'hibrido', 'plug-in': 'hibrido',
 };
 
-// Sinónimos EXACTOS - solo el término canónico y sus variantes
-// IMPORTANTE: Incluir singular, plural, masculino y femenino
-const EXACT_SYNONYMS: Record<string, string[]> = {
-  // Condiciones (MUY IMPORTANTE: separados para no mezclar)
-  'nuevo': ['nuevo', 'nueva', 'nuevos', 'nuevas', '0km', 'cero km', 'sin uso', 'recien salido'],
-  'seminuevo': ['seminuevo', 'seminueva', 'seminuevos', 'seminuevas', 'semi nuevo', 'semi nueva', 'semi-nuevo', 'poco uso', 'como nuevo', 'como nueva', 'pocos km', 'pocos kms', 'bajo kilometraje'],
-  'usado': ['usado', 'usada', 'usados', 'usadas', 'segunda mano', 'de uso', 'con uso'],
-
-  // Transmisión
-  'automatico': ['automatico', 'automatica', 'automaticos', 'automaticas', 'automatic', 'tiptronic', 'cvt', 'at'],
-  'manual': ['manual', 'manuales', 'mecanico', 'mecanica', 'mecanicos', 'mt', 'stick'],
-
-  // Combustible
-  'diesel': ['diesel', 'diesels', 'petroleo', 'gasoil', 'petrolero', 'petrolera', 'td', 'tdi', 'hdi', 'cdti', 'crdi'],
-  'bencina': ['bencina', 'bencinero', 'bencinera', 'gasolina', 'gasolinero', 'nafta', 'naftero', 'combustion'],
-  'electrico': ['electrico', 'electrica', 'electricos', 'electricas', 'ev', 'evs', 'electric', 'electricity', 'electricidad', 'bateria', 'cero emisiones', '100% electrico', 'full electric', 'bev'],
-  'hibrido': ['hibrido', 'hibrida', 'hibridos', 'hibridas', 'hybrid', 'hybrids', 'enchufable', 'enchufables', 'phev', 'hev', 'mild hybrid', 'plug-in', 'plugin'],
-
-  // Categorías
-  'suv': ['suv', 'suvs', 'todoterreno', 'todoterrenos', '4x4', 'crossover', 'crossovers'],
-  'sedan': ['sedan', 'sedanes', 'sedans', 'berlina', 'berlinas'],
-  'hatchback': ['hatchback', 'hatchbacks', 'compacto', 'compacta', 'compactos'],
-  'pickup': ['pickup', 'pickups', 'pick up', 'pick-up', 'doble cabina'],
-  'camioneta': ['camioneta', 'camionetas'],
-  'van': ['van', 'vans', 'minivan', 'minivans', 'furgon', 'furgones', 'monovolumen'],
-  'coupe': ['coupe', 'coupes', 'deportivo', 'deportiva', 'deportivos', 'sport', 'sporty'],
-  'wagon': ['wagon', 'wagons', 'familiar', 'familiares', 'station wagon', 'estate'],
-
-  // Colores
-  'blanco': ['blanco', 'blanca', 'blancos', 'blancas', 'white', 'perla'],
-  'negro': ['negro', 'negra', 'negros', 'negras', 'black'],
-  'gris': ['gris', 'grises', 'plata', 'plateado', 'plateada', 'silver', 'grey', 'gray'],
-  'rojo': ['rojo', 'roja', 'rojos', 'rojas', 'red', 'bordo', 'burdeo', 'carmesi'],
-  'azul': ['azul', 'azules', 'blue', 'marino', 'celeste'],
-  'verde': ['verde', 'verdes', 'green'],
-  'cafe': ['cafe', 'marron', 'brown', 'chocolate', 'beige'],
-  'amarillo': ['amarillo', 'amarilla', 'amarillos', 'yellow', 'dorado', 'dorada', 'gold'],
-  'naranja': ['naranja', 'naranjo', 'orange'],
-};
-
-// Pre-procesar query: reemplazar frases compuestas
+// Pre-procesar query
 const preprocessQuery = (query: string): string => {
   let processed = normalizeText(query);
-
-  // Reemplazar frases compuestas por su forma canónica
   for (const [phrase, replacement] of Object.entries(COMPOUND_PHRASES)) {
     const normalizedPhrase = normalizeText(phrase);
     if (processed.includes(normalizedPhrase)) {
       processed = processed.replace(new RegExp(normalizedPhrase, 'g'), replacement);
     }
   }
-
   return processed;
 };
 
-// Obtener el término canónico para un término de búsqueda
-const getCanonicalTerm = (term: string): string | null => {
+// Expandir un término a sus posibles significados
+const expandTerm = (term: string): string[] => {
   const normalized = normalizeText(term);
-
-  for (const [canonical, synonyms] of Object.entries(EXACT_SYNONYMS)) {
-    if (synonyms.some(s => normalizeText(s) === normalized)) {
-      return canonical;
-    }
+  const expansions = TERM_EXPANSIONS[normalized];
+  if (expansions) {
+    return [normalized, ...expansions];
   }
-
-  return null;
+  return [normalized];
 };
 
-// Verificar si un valor de campo coincide con un término de búsqueda
+// Verificar si un valor de campo coincide con un término
 const fieldMatchesTerm = (fieldValue: string, searchTerm: string): boolean => {
+  if (!fieldValue || !searchTerm) return false;
+
   const normalizedField = normalizeText(fieldValue);
   const normalizedTerm = normalizeText(searchTerm);
 
-  // Si alguno está vacío, no hay match
-  if (!normalizedField || !normalizedTerm) return false;
-
-  // Aplicar stemming a ambos
-  const stemmedField = stemWord(normalizedField);
-  const stemmedTerm = stemWord(normalizedTerm);
-
-  // 1. Match exacto (con o sin stemming)
+  // Match directo
   if (normalizedField === normalizedTerm) return true;
-  if (stemmedField === stemmedTerm) return true;
+  if (normalizedField.includes(normalizedTerm) && normalizedTerm.length >= 3) return true;
+  if (normalizedField.startsWith(normalizedTerm) && normalizedTerm.length >= 2) return true;
 
-  // 2. El campo contiene el término (substring match para términos largos)
-  if (normalizedTerm.length >= 4 && normalizedField.includes(normalizedTerm)) return true;
-  if (stemmedTerm.length >= 4 && stemmedField.includes(stemmedTerm)) return true;
-
-  // 3. El campo contiene el término completo como palabra
-  const fieldWords = normalizedField.split(' ');
-  const stemmedFieldWords = fieldWords.map(stemWord);
-  if (fieldWords.includes(normalizedTerm)) return true;
-  if (stemmedFieldWords.includes(stemmedTerm)) return true;
-
-  // 4. El término está al inicio del campo (ej: "toyo" -> "toyota")
-  if (normalizedField.startsWith(normalizedTerm) && normalizedTerm.length >= 3) return true;
-  if (stemmedField.startsWith(stemmedTerm) && stemmedTerm.length >= 3) return true;
-
-  // 5. Alguna palabra del campo empieza con el término
-  if (fieldWords.some(w => w.startsWith(normalizedTerm) && normalizedTerm.length >= 3)) return true;
-  if (stemmedFieldWords.some(w => w.startsWith(stemmedTerm) && stemmedTerm.length >= 3)) return true;
-
-  // 6. Buscar por sinónimos (usando término original y stemmed)
-  const canonicalTerm = getCanonicalTerm(searchTerm) || getCanonicalTerm(stemmedTerm);
-  if (canonicalTerm) {
-    const canonicalField = getCanonicalTerm(fieldValue) || getCanonicalTerm(stemmedField);
-    if (canonicalField === canonicalTerm) return true;
+  // Verificar si el término tiene valores de BD mapeados
+  const dbValues = TERM_TO_DB_VALUES[normalizedTerm];
+  if (dbValues) {
+    for (const dbVal of dbValues) {
+      if (normalizeText(dbVal) === normalizedField || normalizedField.includes(normalizeText(dbVal))) {
+        return true;
+      }
+    }
   }
 
-  // 7. Match inverso: el campo está contenido en el término (para casos como "EV" en descripción)
-  if (normalizedField.length >= 2 && normalizedTerm.includes(normalizedField)) return true;
+  // Verificar mapeo inverso: el campo puede tener un valor de BD que corresponde al término
+  for (const [term, values] of Object.entries(TERM_TO_DB_VALUES)) {
+    if (values.some(v => normalizeText(v) === normalizedField)) {
+      if (term === normalizedTerm) return true;
+      // También verificar si el término buscado expande a este term
+      const expansions = expandTerm(searchTerm);
+      if (expansions.includes(term)) return true;
+    }
+  }
 
+  return false;
+};
+
+// Verificar match considerando expansiones
+const fieldMatchesWithExpansion = (fieldValue: string, searchTerm: string): boolean => {
+  const expandedTerms = expandTerm(searchTerm);
+  for (const term of expandedTerms) {
+    if (fieldMatchesTerm(fieldValue, term)) {
+      return true;
+    }
+  }
   return false;
 };
 
@@ -276,7 +242,7 @@ const getSearchableFields = (vehicle: Vehicle): { field: string; value: string; 
   ].filter(f => f.value);
 };
 
-// Calcular score de relevancia
+// Calcular score de relevancia usando expansiones
 const calculateRelevanceScore = (vehicle: Vehicle, searchTerms: string[]): number => {
   const fields = getSearchableFields(vehicle);
   let totalScore = 0;
@@ -287,7 +253,8 @@ const calculateRelevanceScore = (vehicle: Vehicle, searchTerms: string[]): numbe
     let bestMatchScore = 0;
 
     for (const field of fields) {
-      if (fieldMatchesTerm(field.value, term)) {
+      // Usar fieldMatchesWithExpansion para considerar términos expandidos
+      if (fieldMatchesWithExpansion(field.value, term)) {
         bestMatchScore = Math.max(bestMatchScore, field.weight);
         termMatched = true;
       }
@@ -299,21 +266,15 @@ const calculateRelevanceScore = (vehicle: Vehicle, searchTerms: string[]): numbe
     }
   }
 
-  // Si no coinciden todos los términos, penalizar fuertemente
-  if (matchedTermsCount < searchTerms.length) {
-    // Solo mostrar si coincide al menos la mitad de los términos
-    if (matchedTermsCount < searchTerms.length / 2) {
-      return 0;
-    }
-    // Penalización proporcional
-    totalScore = Math.round(totalScore * (matchedTermsCount / searchTerms.length));
-  }
+  // Si no coincide ningún término, score 0
+  if (matchedTermsCount === 0) return 0;
 
-  // Bonus por coincidencia completa
+  // Bonus por coincidencia de todos los términos
   if (matchedTermsCount === searchTerms.length && searchTerms.length > 1) {
     totalScore += 20;
   }
 
+  // Si coincide al menos un término, mostrar (búsqueda más permisiva)
   return totalScore;
 };
 
@@ -458,9 +419,68 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
   } = useVehicleFiltersStore();
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false);
+  const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const activeView = 'grid'; // Fixed to grid view
+
+  // Estados para búsqueda con IA
+  const [aiSearchResults, setAiSearchResults] = useState<string[] | null>(null);
+  const [isAiSearching, setIsAiSearching] = useState(false);
+  const [aiSearchError, setAiSearchError] = useState<string | null>(null);
+
+  // Búsqueda con IA (con debounce)
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+      setAiSearchResults(null);
+      setAiSearchError(null);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setIsAiSearching(true);
+      setAiSearchError(null);
+
+      try {
+        const response = await fetch('/api/ai-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: searchQuery,
+            vehicles: vehicles.map(v => ({
+              id: v.id,
+              brand: v.brand,
+              model: v.model,
+              year: v.year,
+              price: v.price,
+              mileage: v.mileage,
+              category: v.category,
+              condition: v.condition,
+              fuel_type: v.fuel_type,
+              transmission: v.transmission,
+              color: v.color,
+              features: v.features,
+            })),
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Error en la búsqueda');
+        }
+
+        const data = await response.json();
+        setAiSearchResults(data.matchingIds || []);
+      } catch (error) {
+        console.error('AI Search error:', error);
+        setAiSearchError('Error en la búsqueda IA');
+        // Fallback a búsqueda local
+        setAiSearchResults(null);
+      } finally {
+        setIsAiSearching(false);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, vehicles]);
   // Localized categories and sort options
   const vehicleCategories = [
     {
@@ -528,12 +548,30 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
     setSelectedCategory('all');
   };
 
-  // Filtrado de vehículos usando el estado global con MOTOR DE BÚSQUEDA ULTRA PRO
+  // Filtrado de vehículos usando IA o búsqueda local como fallback
   const filteredVehicles = useMemo(() => {
-    // PASO 1: Aplicar búsqueda inteligente primero (si hay query)
-    let result = searchQuery.trim() !== ''
-      ? smartSearch(vehicles, searchQuery)
-      : vehicles;
+    let result: Vehicle[];
+
+    // PASO 1: Usar resultados de IA si están disponibles, sino búsqueda local
+    if (searchQuery.trim() !== '') {
+      if (aiSearchResults !== null && aiSearchResults.length > 0) {
+        // Usar resultados de IA - mantener el orden de relevancia
+        const orderedResults: Vehicle[] = [];
+        for (const id of aiSearchResults) {
+          const vehicle = vehicles.find(v => v.id?.toString() === id);
+          if (vehicle) orderedResults.push(vehicle);
+        }
+        result = orderedResults;
+      } else if (aiSearchResults !== null && aiSearchResults.length === 0) {
+        // IA no encontró nada
+        result = [];
+      } else {
+        // Fallback a búsqueda local mientras IA carga o si hay error
+        result = smartSearch(vehicles, searchQuery);
+      }
+    } else {
+      result = vehicles;
+    }
 
     // Helper para verificar si un valor está en un filtro (soporta arrays y strings)
     const matchesFilter = (filterValue: string | string[] | undefined, vehicleValue: string | undefined): boolean => {
@@ -627,7 +665,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
     }
 
     return result;
-  }, [vehicles, searchQuery, selectedCategory, filters, priceRange, sortOrder]);
+  }, [vehicles, searchQuery, selectedCategory, filters, priceRange, sortOrder, aiSearchResults]);
 
   const activeFiltersCount =
     Object.keys(filters).length +
@@ -709,8 +747,8 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
 
       {/* Fixed Categories Navigation */}
       <div className='sticky top-[var(--navbar-height)] z-30 bg-white dark:bg-dark-bg border-b border-gray-200 dark:border-dark-border'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4'>
-          <div className='flex flex-col gap-4'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2'>
+          <div className='flex flex-col gap-2'>
             {/* Title and Actions - Oculto en modo minimal */}
             {!minimal && (
               <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
@@ -736,7 +774,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
 
             <ScrollShadow orientation='horizontal' className='w-full'>
               <div className='flex justify-start lg:justify-center items-center w-full'>
-                <div className='flex gap-2 pb-2 min-w-max'>
+                <div className='flex gap-2 pt-2 pb-2 min-w-max'>
                   {vehicleCategories.map((category) => (
                     <Button
                       key={category.id}
@@ -747,13 +785,13 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
                         selectedCategory === category.id ? 'primary' : 'default'
                       }
                       onClick={() => setSelectedCategory(category.id)}
-                      className={`whitespace-nowrap hover:-translate-y-0.5 transition-transform
-
-${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
+                      className={`whitespace-nowrap hover:-translate-y-0.5 transition-all px-4 py-2 rounded-full ${
+                        selectedCategory === category.id ? 'shadow-md' : ''
+                      } ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                       startContent={
                         <Icon icon={category.icon} className='text-xl' />
                       }
-                      size='sm'
+                      size='md'
                     >
                       {category.name}
                     </Button>
@@ -767,18 +805,18 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
 
       {/* Search Bar - Oculto en modo minimal */}
       {!minimal && (
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mb-6 flex flex-col sm:flex-row gap-2 sm:gap-4'>
-          {/* Buscador */}
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-1 sm:mb-2 flex flex-col sm:flex-row gap-2 sm:gap-4'>
+          {/* Buscador con IA */}
           <div className='w-full sm:flex-[3] relative'>
             <Search
-              className='absolute  left-3 top-1/2 transform -translate-y-1/2 text-gray-400'
+              className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400'
               size={16}
             />
             <Input
               type='text'
               placeholder={t('pages.vehicles.searchPlaceholder')}
               className='
-                pl-12 pr-3 py-2 min-h-[36px]
+                pl-12 pr-12 py-2 min-h-[36px]
                 rounded-xl
                 border border-slate-300
                 bg-slate-100
@@ -792,6 +830,20 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+            {/* Indicador de búsqueda IA */}
+            {searchQuery.trim().length >= 2 && (
+              <div className='absolute right-3 top-1/2 transform -translate-y-1/2'>
+                {isAiSearching ? (
+                  <div className='flex items-center gap-1'>
+                    <div className='w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin' />
+                  </div>
+                ) : aiSearchResults !== null ? (
+                  <div className='flex items-center gap-1 text-primary'>
+                    <Icon icon='mdi:robot-happy' className='text-lg' />
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
           {/* Selector de orden */}
           <div className='w-full sm:flex-1 min-w-[80px] flex mt-2 sm:mt-0 -mb-4'>
