@@ -6,7 +6,10 @@ export const homeEn = {
     description:
       'Describe your dream vehicle and let our AI find the best options for you.',
     searchButton: 'Search vehicles',
-    aiSearchPlaceholder: 'Describe the vehicle you are looking for...',
+    aiSearchPlaceholder: 'Search by brand, model, type, color, condition...',
+    clearSearch: 'Clear',
+    search: 'Search',
+    voiceSearch: 'Voice search',
   },
 
   // Why choose us section
@@ -42,12 +45,14 @@ export const homeEn = {
 
   // How to arrive section
   howToArrive: {
-    title: 'How to get here',
-    subtitle: 'Find our location',
-    button: 'Directions on Google Maps',
+    title: 'How to get here?',
+    subtitle: 'Find us at the following address:',
+    button: 'Get directions on Google Maps',
     address: 'Address',
     hours: 'Business hours',
     phone: 'Phone',
+    email: 'Email',
+    ofTotal: 'of',
   },
 
   // Featured vehicles section

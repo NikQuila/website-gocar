@@ -31,6 +31,7 @@ export const vehiclesEs = {
     maxPrice: 'Precio máximo',
     selectBrand: 'Selecciona una marca',
     brand: 'Marca',
+    model: 'Modelo',
     category: 'Categoría',
     year: 'Año',
     fuelType: 'Tipo de combustible',

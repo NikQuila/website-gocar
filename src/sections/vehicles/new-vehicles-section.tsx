@@ -3,12 +3,10 @@
 // Vehículos vendidos y reservados se muestran solo por 3 días desde la fecha de venta/reserva
 // Sold and reserved vehicles are shown only for 3 days from the sale/reservation date
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import {
   Button,
-  Card,
-  CardBody,
   Chip,
   Dropdown,
   DropdownTrigger,
@@ -26,7 +24,7 @@ import {
 import { Icon } from '@iconify/react';
 import NewVehicleFilters from './new-vehicle-filters';
 import useVehiclesStore from '@/store/useVehiclesStore';
-import { Vehicle, VehicleFilters as VehicleFiltersType } from '@/utils/types';
+import { Vehicle } from '@/utils/types';
 import VehicleVerticalCard from '@/components/vehicles/VehicleVerticalCard';
 import VehicleHorizontalCard from '@/components/vehicles/VehicleHorizontalCard';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
@@ -40,6 +38,316 @@ import { Input } from '@/components/ui/input';
 import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
 
+// ============================================
+// MOTOR DE BÚSQUEDA - VERSIÓN CORREGIDA
+// ============================================
+
+// Normalizar texto (quitar acentos, minúsculas)
+const normalizeText = (text: string): string => {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+// Stopwords - palabras comunes que no aportan a la búsqueda
+const STOPWORDS = new Set([
+  // Artículos
+  'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas',
+  // Preposiciones
+  'de', 'del', 'a', 'al', 'en', 'con', 'por', 'para', 'sin', 'sobre', 'entre', 'hacia',
+  // Verbos comunes de búsqueda
+  'busco', 'buscar', 'quiero', 'querer', 'necesito', 'necesitar', 'estoy', 'buscando',
+  'me', 'interesa', 'gustaria', 'quisiera', 'deseo', 'encuentren', 'muestren', 'muestrame',
+  'dame', 'ver', 'mostrar', 'encontrar',
+  // Conjunciones y otros
+  'y', 'o', 'e', 'u', 'que', 'como', 'pero', 'si', 'no', 'mas', 'muy', 'tan', 'algo',
+  // Adjetivos genéricos
+  'buen', 'buena', 'bueno', 'buenos', 'buenas', 'mejor', 'mejores', 'bonito', 'bonita',
+  'lindo', 'linda', 'bien', 'ideal', 'perfecto', 'perfecta', 'excelente',
+  // Otros
+  'tipo', 'estilo', 'clase', 'modelo', 'version', 'ano', 'precio', 'costo',
+  'tengan', 'tenga', 'sea', 'sean', 'este', 'esta', 'esten',
+]);
+
+// Stemming básico español: quitar plurales y variaciones de género
+const stemWord = (word: string): string => {
+  let stemmed = word;
+
+  // Quitar plurales comunes
+  if (stemmed.endsWith('es') && stemmed.length > 3) {
+    // "nuevos" no termina en "es", pero "azules" sí
+    const withoutEs = stemmed.slice(0, -2);
+    // Verificar que no sea una palabra que naturalmente termina en "es"
+    if (!['mercedes', 'andes'].includes(stemmed)) {
+      stemmed = withoutEs;
+    }
+  } else if (stemmed.endsWith('s') && stemmed.length > 2) {
+    stemmed = stemmed.slice(0, -1);
+  }
+
+  // Normalizar variaciones de género (solo para adjetivos comunes)
+  // "automatica" -> "automatico", "hibrida" -> "hibrido", etc.
+  if (stemmed.endsWith('a') && stemmed.length > 3) {
+    const masculine = stemmed.slice(0, -1) + 'o';
+    // Solo cambiar si la forma masculina es reconocida
+    const knownMasculine = ['automatico', 'hibrido', 'electrico', 'mecanico', 'usado', 'nuevo', 'seminuevo', 'blanco', 'negro', 'rojo', 'azulo', 'plomo'];
+    if (knownMasculine.includes(masculine)) {
+      stemmed = masculine;
+    }
+  }
+
+  return stemmed;
+};
+
+// Frases compuestas que deben tratarse como una sola unidad (incluir variaciones)
+const COMPOUND_PHRASES: Record<string, string> = {
+  'semi nuevo': 'seminuevo',
+  'semi nueva': 'seminuevo',
+  'semi nuevos': 'seminuevo',
+  'semi nuevas': 'seminuevo',
+  'semi-nuevo': 'seminuevo',
+  'semi-nueva': 'seminuevo',
+  'seminuevos': 'seminuevo',
+  'seminuevas': 'seminuevo',
+  'poco uso': 'seminuevo',
+  'pocos km': 'seminuevo',
+  'pocos kilometros': 'seminuevo',
+  'como nuevo': 'seminuevo',
+  'como nueva': 'seminuevo',
+  'cero km': 'nuevo',
+  'cero kilometros': 'nuevo',
+  '0 km': 'nuevo',
+  '0km': 'nuevo',
+  'nuevos': 'nuevo',
+  'nuevas': 'nuevo',
+  'usados': 'usado',
+  'usadas': 'usado',
+  'segunda mano': 'usado',
+  'doble cabina': 'pickup',
+  'station wagon': 'wagon',
+  'grand cherokee': 'grandcherokee',
+  'santa fe': 'santafe',
+  'great wall': 'greatwall',
+  'bajo kilometraje': 'bajokilometraje',
+  'pocos kms': 'seminuevo',
+  // Eléctricos
+  'cero emisiones': 'electrico',
+  '100% electrico': 'electrico',
+  'full electric': 'electrico',
+  // Híbridos
+  'plug in': 'hibrido',
+  'mild hybrid': 'hibrido',
+};
+
+// Sinónimos EXACTOS - solo el término canónico y sus variantes
+// IMPORTANTE: Incluir singular, plural, masculino y femenino
+const EXACT_SYNONYMS: Record<string, string[]> = {
+  // Condiciones (MUY IMPORTANTE: separados para no mezclar)
+  'nuevo': ['nuevo', 'nueva', 'nuevos', 'nuevas', '0km', 'cero km', 'sin uso', 'recien salido'],
+  'seminuevo': ['seminuevo', 'seminueva', 'seminuevos', 'seminuevas', 'semi nuevo', 'semi nueva', 'semi-nuevo', 'poco uso', 'como nuevo', 'como nueva', 'pocos km', 'pocos kms', 'bajo kilometraje'],
+  'usado': ['usado', 'usada', 'usados', 'usadas', 'segunda mano', 'de uso', 'con uso'],
+
+  // Transmisión
+  'automatico': ['automatico', 'automatica', 'automaticos', 'automaticas', 'automatic', 'tiptronic', 'cvt', 'at'],
+  'manual': ['manual', 'manuales', 'mecanico', 'mecanica', 'mecanicos', 'mt', 'stick'],
+
+  // Combustible
+  'diesel': ['diesel', 'diesels', 'petroleo', 'gasoil', 'petrolero', 'petrolera', 'td', 'tdi', 'hdi', 'cdti', 'crdi'],
+  'bencina': ['bencina', 'bencinero', 'bencinera', 'gasolina', 'gasolinero', 'nafta', 'naftero', 'combustion'],
+  'electrico': ['electrico', 'electrica', 'electricos', 'electricas', 'ev', 'evs', 'electric', 'electricity', 'electricidad', 'bateria', 'cero emisiones', '100% electrico', 'full electric', 'bev'],
+  'hibrido': ['hibrido', 'hibrida', 'hibridos', 'hibridas', 'hybrid', 'hybrids', 'enchufable', 'enchufables', 'phev', 'hev', 'mild hybrid', 'plug-in', 'plugin'],
+
+  // Categorías
+  'suv': ['suv', 'suvs', 'todoterreno', 'todoterrenos', '4x4', 'crossover', 'crossovers'],
+  'sedan': ['sedan', 'sedanes', 'sedans', 'berlina', 'berlinas'],
+  'hatchback': ['hatchback', 'hatchbacks', 'compacto', 'compacta', 'compactos'],
+  'pickup': ['pickup', 'pickups', 'pick up', 'pick-up', 'doble cabina'],
+  'camioneta': ['camioneta', 'camionetas'],
+  'van': ['van', 'vans', 'minivan', 'minivans', 'furgon', 'furgones', 'monovolumen'],
+  'coupe': ['coupe', 'coupes', 'deportivo', 'deportiva', 'deportivos', 'sport', 'sporty'],
+  'wagon': ['wagon', 'wagons', 'familiar', 'familiares', 'station wagon', 'estate'],
+
+  // Colores
+  'blanco': ['blanco', 'blanca', 'blancos', 'blancas', 'white', 'perla'],
+  'negro': ['negro', 'negra', 'negros', 'negras', 'black'],
+  'gris': ['gris', 'grises', 'plata', 'plateado', 'plateada', 'silver', 'grey', 'gray'],
+  'rojo': ['rojo', 'roja', 'rojos', 'rojas', 'red', 'bordo', 'burdeo', 'carmesi'],
+  'azul': ['azul', 'azules', 'blue', 'marino', 'celeste'],
+  'verde': ['verde', 'verdes', 'green'],
+  'cafe': ['cafe', 'marron', 'brown', 'chocolate', 'beige'],
+  'amarillo': ['amarillo', 'amarilla', 'amarillos', 'yellow', 'dorado', 'dorada', 'gold'],
+  'naranja': ['naranja', 'naranjo', 'orange'],
+};
+
+// Pre-procesar query: reemplazar frases compuestas
+const preprocessQuery = (query: string): string => {
+  let processed = normalizeText(query);
+
+  // Reemplazar frases compuestas por su forma canónica
+  for (const [phrase, replacement] of Object.entries(COMPOUND_PHRASES)) {
+    const normalizedPhrase = normalizeText(phrase);
+    if (processed.includes(normalizedPhrase)) {
+      processed = processed.replace(new RegExp(normalizedPhrase, 'g'), replacement);
+    }
+  }
+
+  return processed;
+};
+
+// Obtener el término canónico para un término de búsqueda
+const getCanonicalTerm = (term: string): string | null => {
+  const normalized = normalizeText(term);
+
+  for (const [canonical, synonyms] of Object.entries(EXACT_SYNONYMS)) {
+    if (synonyms.some(s => normalizeText(s) === normalized)) {
+      return canonical;
+    }
+  }
+
+  return null;
+};
+
+// Verificar si un valor de campo coincide con un término de búsqueda
+const fieldMatchesTerm = (fieldValue: string, searchTerm: string): boolean => {
+  const normalizedField = normalizeText(fieldValue);
+  const normalizedTerm = normalizeText(searchTerm);
+
+  // Si alguno está vacío, no hay match
+  if (!normalizedField || !normalizedTerm) return false;
+
+  // Aplicar stemming a ambos
+  const stemmedField = stemWord(normalizedField);
+  const stemmedTerm = stemWord(normalizedTerm);
+
+  // 1. Match exacto (con o sin stemming)
+  if (normalizedField === normalizedTerm) return true;
+  if (stemmedField === stemmedTerm) return true;
+
+  // 2. El campo contiene el término (substring match para términos largos)
+  if (normalizedTerm.length >= 4 && normalizedField.includes(normalizedTerm)) return true;
+  if (stemmedTerm.length >= 4 && stemmedField.includes(stemmedTerm)) return true;
+
+  // 3. El campo contiene el término completo como palabra
+  const fieldWords = normalizedField.split(' ');
+  const stemmedFieldWords = fieldWords.map(stemWord);
+  if (fieldWords.includes(normalizedTerm)) return true;
+  if (stemmedFieldWords.includes(stemmedTerm)) return true;
+
+  // 4. El término está al inicio del campo (ej: "toyo" -> "toyota")
+  if (normalizedField.startsWith(normalizedTerm) && normalizedTerm.length >= 3) return true;
+  if (stemmedField.startsWith(stemmedTerm) && stemmedTerm.length >= 3) return true;
+
+  // 5. Alguna palabra del campo empieza con el término
+  if (fieldWords.some(w => w.startsWith(normalizedTerm) && normalizedTerm.length >= 3)) return true;
+  if (stemmedFieldWords.some(w => w.startsWith(stemmedTerm) && stemmedTerm.length >= 3)) return true;
+
+  // 6. Buscar por sinónimos (usando término original y stemmed)
+  const canonicalTerm = getCanonicalTerm(searchTerm) || getCanonicalTerm(stemmedTerm);
+  if (canonicalTerm) {
+    const canonicalField = getCanonicalTerm(fieldValue) || getCanonicalTerm(stemmedField);
+    if (canonicalField === canonicalTerm) return true;
+  }
+
+  // 7. Match inverso: el campo está contenido en el término (para casos como "EV" en descripción)
+  if (normalizedField.length >= 2 && normalizedTerm.includes(normalizedField)) return true;
+
+  return false;
+};
+
+// Obtener campos buscables del vehículo con pesos
+const getSearchableFields = (vehicle: Vehicle): { field: string; value: string; weight: number }[] => {
+  return [
+    { field: 'brand', value: vehicle.brand?.name || '', weight: 40 },
+    { field: 'model', value: vehicle.model?.name || '', weight: 40 },
+    { field: 'category', value: vehicle.category?.name || '', weight: 30 },
+    { field: 'condition', value: vehicle.condition?.name || '', weight: 35 },
+    { field: 'fuel_type', value: vehicle.fuel_type?.name || '', weight: 25 },
+    { field: 'transmission', value: vehicle.transmission || '', weight: 25 },
+    { field: 'color', value: vehicle.color?.name || '', weight: 20 },
+    { field: 'year', value: vehicle.year?.toString() || '', weight: 20 },
+    { field: 'title', value: vehicle.title || '', weight: 15 },
+    { field: 'label', value: vehicle.label || '', weight: 15 },
+    { field: 'description', value: vehicle.description || '', weight: 5 },
+    ...(vehicle.features || []).map(f => ({ field: 'feature', value: f, weight: 10 })),
+  ].filter(f => f.value);
+};
+
+// Calcular score de relevancia
+const calculateRelevanceScore = (vehicle: Vehicle, searchTerms: string[]): number => {
+  const fields = getSearchableFields(vehicle);
+  let totalScore = 0;
+  let matchedTermsCount = 0;
+
+  for (const term of searchTerms) {
+    let termMatched = false;
+    let bestMatchScore = 0;
+
+    for (const field of fields) {
+      if (fieldMatchesTerm(field.value, term)) {
+        bestMatchScore = Math.max(bestMatchScore, field.weight);
+        termMatched = true;
+      }
+    }
+
+    if (termMatched) {
+      totalScore += bestMatchScore;
+      matchedTermsCount++;
+    }
+  }
+
+  // Si no coinciden todos los términos, penalizar fuertemente
+  if (matchedTermsCount < searchTerms.length) {
+    // Solo mostrar si coincide al menos la mitad de los términos
+    if (matchedTermsCount < searchTerms.length / 2) {
+      return 0;
+    }
+    // Penalización proporcional
+    totalScore = Math.round(totalScore * (matchedTermsCount / searchTerms.length));
+  }
+
+  // Bonus por coincidencia completa
+  if (matchedTermsCount === searchTerms.length && searchTerms.length > 1) {
+    totalScore += 20;
+  }
+
+  return totalScore;
+};
+
+// Búsqueda inteligente
+const smartSearch = (vehicles: Vehicle[], query: string): Vehicle[] => {
+  if (!query.trim()) return vehicles;
+
+  // Pre-procesar para detectar frases compuestas
+  const processedQuery = preprocessQuery(query);
+
+  // Extraer términos (palabras de 2+ caracteres, excluyendo stopwords)
+  const allTerms = processedQuery
+    .split(/\s+/)
+    .filter(term => term.length >= 2);
+
+  // Filtrar stopwords
+  const searchTerms = allTerms.filter(term => !STOPWORDS.has(term));
+
+  // Si después de filtrar no quedan términos, mostrar todos los vehículos
+  if (searchTerms.length === 0) return vehicles;
+
+  // Calcular scores
+  const scoredVehicles = vehicles.map(vehicle => ({
+    vehicle,
+    score: calculateRelevanceScore(vehicle, searchTerms),
+  }));
+
+  // Filtrar y ordenar por relevancia
+  return scoredVehicles
+    .filter(sv => sv.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(sv => sv.vehicle);
+};
+
 const CATEGORY_ICONS: Record<string, string> = {
   all: 'mdi:car-multiple',
   SUV: 'mdi:car-suv',
@@ -51,7 +359,12 @@ const CATEGORY_ICONS: Record<string, string> = {
   Wagon: 'mdi:car-estate',
 };
 
-const NewVehiclesSection = () => {
+interface NewVehiclesSectionProps {
+  /** Ocultar título y buscador (para landing page) */
+  minimal?: boolean;
+}
+
+const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
   const { theme } = useThemeStore();
   const { vehicles, isLoading } = useVehiclesStore();
   const { client } = useClientStore();
@@ -59,13 +372,71 @@ const NewVehiclesSection = () => {
   const { t } = useTranslation();
 
   // Extract unique values for filters
+  const brands = useMemo(() => {
+    const uniqueBrands = new Map();
+    vehicles.forEach((v) => {
+      if (v.brand?.id && v.brand?.name) {
+        uniqueBrands.set(v.brand.id, v.brand);
+      }
+    });
+    return Array.from(uniqueBrands.values());
+  }, [vehicles]);
 
-  const brands = [...new Set(vehicles.map((v) => v.brand))];
-  const availableYears = [
-    ...new Set(vehicles.map((v) => v.year).filter(Boolean)),
-  ]
-    .map(String)
-    .sort((a, b) => b.localeCompare(a));
+  const models = useMemo(() => {
+    const uniqueModels = new Map();
+    vehicles.forEach((v) => {
+      if (v.model?.id && v.model?.name) {
+        uniqueModels.set(v.model.id, { ...v.model, brand_id: v.brand?.id });
+      }
+    });
+    return Array.from(uniqueModels.values());
+  }, [vehicles]);
+
+  const categories = useMemo(() => {
+    const uniqueCategories = new Map();
+    vehicles.forEach((v) => {
+      if (v.category?.id && v.category?.name) {
+        uniqueCategories.set(v.category.id, v.category);
+      }
+    });
+    return Array.from(uniqueCategories.values());
+  }, [vehicles]);
+
+  const fuelTypes = useMemo(() => {
+    const uniqueFuelTypes = new Map();
+    vehicles.forEach((v) => {
+      if (v.fuel_type?.id && v.fuel_type?.name) {
+        uniqueFuelTypes.set(v.fuel_type.id, v.fuel_type);
+      }
+    });
+    return Array.from(uniqueFuelTypes.values());
+  }, [vehicles]);
+
+  const conditions = useMemo(() => {
+    const uniqueConditions = new Map();
+    vehicles.forEach((v) => {
+      if (v.condition?.id && v.condition?.name) {
+        uniqueConditions.set(v.condition.id, v.condition);
+      }
+    });
+    return Array.from(uniqueConditions.values());
+  }, [vehicles]);
+
+  const colors = useMemo(() => {
+    const uniqueColors = new Map();
+    vehicles.forEach((v) => {
+      if (v.color?.id && v.color?.name) {
+        uniqueColors.set(v.color.id, v.color);
+      }
+    });
+    return Array.from(uniqueColors.values());
+  }, [vehicles]);
+
+  const availableYears = useMemo(() => {
+    return [...new Set(vehicles.map((v) => v.year).filter(Boolean))]
+      .map(String)
+      .sort((a, b) => b.localeCompare(a));
+  }, [vehicles]);
 
   // Calcular el precio máximo real de todos los vehículos disponibles
   const maxPrice = Math.max(
@@ -80,7 +451,6 @@ const NewVehiclesSection = () => {
     priceRange,
     sortOrder,
     searchQuery,
-    setFilters,
     setPriceRange,
     setSortOrder,
     setSearchQuery,
@@ -88,9 +458,8 @@ const NewVehiclesSection = () => {
   } = useVehicleFiltersStore();
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [showFilters, setShowFilters] = useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [activeView, setActiveView] = useState<'grid' | 'list'>('grid');
+  const activeView = 'grid'; // Fixed to grid view
   // Localized categories and sort options
   const vehicleCategories = [
     {
@@ -153,43 +522,31 @@ const NewVehiclesSection = () => {
     { key: 'mileage_asc', label: t('vehicles.sorting.mileageAsc'), icon: 'mdi:speedometer-slow' },
   ];
 
-  const handleFilterChange = (key: keyof VehicleFiltersType, value: any) => {
-    setFilters({
-      ...filters,
-      [key]: value === undefined ? undefined : value,
-    });
-  };
-
   const clearAllFilters = () => {
     clearFilters(maxPrice);
     setSelectedCategory('all');
   };
 
-  // Filtrado de vehículos usando el estado global
-  const filteredVehicles = vehicles
-    .filter((vehicle) => {
-      let matches = true;
+  // Filtrado de vehículos usando el estado global con MOTOR DE BÚSQUEDA ULTRA PRO
+  const filteredVehicles = useMemo(() => {
+    // PASO 1: Aplicar búsqueda inteligente primero (si hay query)
+    let result = searchQuery.trim() !== ''
+      ? smartSearch(vehicles, searchQuery)
+      : vehicles;
 
-      // Search filter
-      if (searchQuery.trim() !== '') {
-        const query = searchQuery.toLowerCase().trim();
-        const searchTerms = query.split(' ').filter((term) => term.length > 0);
-
-        const matchesSearch = searchTerms.every((term) => {
-          const brandMatch = vehicle.brand?.name?.toLowerCase().includes(term);
-          const modelMatch = vehicle.model?.name?.toLowerCase().includes(term);
-          const categoryMatch = vehicle.category?.name
-            ?.toLowerCase()
-            .includes(term);
-          const yearMatch = vehicle.year?.toString().includes(term);
-
-          return brandMatch || modelMatch || categoryMatch || yearMatch;
-        });
-
-        if (!matchesSearch) {
-          matches = false;
-        }
+    // Helper para verificar si un valor está en un filtro (soporta arrays y strings)
+    const matchesFilter = (filterValue: string | string[] | undefined, vehicleValue: string | undefined): boolean => {
+      if (!filterValue || (Array.isArray(filterValue) && filterValue.length === 0)) return true;
+      if (!vehicleValue) return false;
+      if (Array.isArray(filterValue)) {
+        return filterValue.includes(vehicleValue);
       }
+      return filterValue === vehicleValue;
+    };
+
+    // PASO 2: Aplicar filtros adicionales
+    result = result.filter((vehicle) => {
+      let matches = true;
 
       // Category from tabs
       if (
@@ -199,37 +556,32 @@ const NewVehiclesSection = () => {
         matches = false;
       }
 
-      // Filters from sidebar
-      if (filters.brand && vehicle?.brand?.id.toString() !== filters.brand) {
+      // Filters from sidebar (ahora soportan multi-select)
+      if (!matchesFilter(filters.brand, vehicle?.brand?.id?.toString())) {
         matches = false;
       }
 
-      if (
-        filters.category &&
-        vehicle?.category?.id.toString() !== filters.category
-      ) {
+      if (!matchesFilter(filters.model, vehicle?.model?.id?.toString())) {
         matches = false;
       }
 
-      if (
-        filters.fuel_type &&
-        vehicle?.fuel_type?.id.toString() !== filters.fuel_type
-      ) {
+      if (!matchesFilter(filters.category, vehicle?.category?.id?.toString())) {
         matches = false;
       }
 
-      if (
-        filters.condition &&
-        vehicle?.condition?.id.toString() !== filters.condition
-      ) {
+      if (!matchesFilter(filters.fuel_type, vehicle?.fuel_type?.id?.toString())) {
         matches = false;
       }
 
-      if (filters.color && vehicle?.color?.id.toString() !== filters.color) {
+      if (!matchesFilter(filters.condition, vehicle?.condition?.id?.toString())) {
         matches = false;
       }
 
-      if (filters.year && vehicle?.year?.toString() !== filters.year) {
+      if (!matchesFilter(filters.color, vehicle?.color?.id?.toString())) {
+        matches = false;
+      }
+
+      if (!matchesFilter(filters.year, vehicle?.year?.toString())) {
         matches = false;
       }
 
@@ -238,36 +590,43 @@ const NewVehiclesSection = () => {
       }
 
       return matches;
-    })
-    .sort((a, b) => {
-      switch (sortOrder) {
-        case 'date_desc':
-          return (
-            new Date(b.created_at || 0).getTime() -
-            new Date(a.created_at || 0).getTime()
-          );
-        case 'date_asc':
-          return (
-            new Date(a.created_at || 0).getTime() -
-            new Date(b.created_at || 0).getTime()
-          );
-        case 'price_asc':
-          return (a.price || 0) - (b.price || 0);
-        case 'price_desc':
-          return (b.price || 0) - (a.price || 0);
-        case 'year_desc':
-          return (b.year || 0) - (a.year || 0);
-        case 'year_asc':
-          return (a.year || 0) - (b.year || 0);
-        case 'mileage_asc':
-          return (a.mileage || 0) - (b.mileage || 0);
-        default:
-          return (
-            new Date(b.created_at || 0).getTime() -
-            new Date(a.created_at || 0).getTime()
-          );
-      }
     });
+
+    // PASO 3: Ordenar (solo si NO hay búsqueda activa, ya que smartSearch ya ordena por relevancia)
+    if (searchQuery.trim() === '') {
+      result = [...result].sort((a, b) => {
+        switch (sortOrder) {
+          case 'date_desc':
+            return (
+              new Date(b.created_at || 0).getTime() -
+              new Date(a.created_at || 0).getTime()
+            );
+          case 'date_asc':
+            return (
+              new Date(a.created_at || 0).getTime() -
+              new Date(b.created_at || 0).getTime()
+            );
+          case 'price_asc':
+            return (a.price || 0) - (b.price || 0);
+          case 'price_desc':
+            return (b.price || 0) - (a.price || 0);
+          case 'year_desc':
+            return (b.year || 0) - (a.year || 0);
+          case 'year_asc':
+            return (a.year || 0) - (b.year || 0);
+          case 'mileage_asc':
+            return (a.mileage || 0) - (b.mileage || 0);
+          default:
+            return (
+              new Date(b.created_at || 0).getTime() -
+              new Date(a.created_at || 0).getTime()
+            );
+        }
+      });
+    }
+
+    return result;
+  }, [vehicles, searchQuery, selectedCategory, filters, priceRange, sortOrder]);
 
   const activeFiltersCount =
     Object.keys(filters).length +
@@ -316,9 +675,9 @@ const NewVehiclesSection = () => {
   }, [maxPrice]);
 
   return (
-    <div className='min-h-screen bg-gray-50 dark:bg-dark-bg'>
+    <div id='vehicles-section' className='min-h-screen bg-slate-50/50 dark:bg-dark-bg'>
       {/* Botón de WhatsApp (posición fija con z-index extremadamente alto) - Solo visible en pantallas mayores a sm */}
-      <div className='fixed bottom-6 right-8 xl:right-12 2xl:right-96 z-[99999] hidden sm:block'>
+      <div className='fixed bottom-6 right-6 z-[99999] hidden sm:block'>
         <Link href={whatsappUrl} target='_blank' rel='noopener noreferrer'>
           <Button
             isIconOnly
@@ -355,30 +714,31 @@ const NewVehiclesSection = () => {
       <div className='sticky top-[var(--navbar-height)] z-30 bg-white dark:bg-dark-bg border-b border-gray-200 dark:border-dark-border'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4'>
           <div className='flex flex-col gap-4'>
-            {/* Title and Actions */}
+            {/* Title and Actions - Oculto en modo minimal */}
+            {!minimal && (
+              <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <h1 className='text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2'>
+                      {selectedCategoryData?.name || t('vehicles.categories.all')}
 
-            <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
-              <div className='flex items-center justify-between'>
-                <div>
-                  <h1 className='text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2'>
-                    {selectedCategoryData?.name || t('vehicles.categories.all')}
+                      <Chip size='sm' variant='flat' color='primary'>
+                        {filteredVehicles.length}
+                      </Chip>
+                    </h1>
 
-                    <Chip size='sm' variant='flat' color='primary'>
-                      {filteredVehicles.length}
-                    </Chip>
-                  </h1>
-
-                  <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                    {selectedCategoryData?.description || t('home.featuredVehicles.subtitle')}
-                  </p>
+                    <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+                      {selectedCategoryData?.description || t('home.featuredVehicles.subtitle')}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Categories */}
 
             <ScrollShadow orientation='horizontal' className='w-full'>
-              <div className='flex justify-between items-center w-full'>
+              <div className='flex justify-center items-center w-full'>
                 <div className='flex gap-2 pb-2 min-w-max'>
                   {vehicleCategories.map((category) => (
                     <Button
@@ -408,83 +768,92 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mb-6 flex flex-col sm:flex-row gap-2 sm:gap-4'>
-        {/* Buscador */}
-        <div className='w-full sm:flex-[3] relative'>
-          <Search
-            className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400'
-            size={16}
-          />
-          <Input
-            type='text'
-            placeholder={t('pages.vehicles.searchPlaceholder')}
-            className='
-              pl-12 pr-3 py-2 min-h-[36px]
-              rounded-xl
-              border border-gray-400
-              bg-gray-100
-              text-sm text-gray-700
-              shadow-md
-              focus:border-primary focus:ring-2 focus:ring-primary
-              transition-all
-              w-full
-              max-w-xxl
-            '
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        {/* Selector de orden */}
-        <div className='w-full sm:flex-1 min-w-[80px] flex mt-2 sm:mt-0 -mb-4'>
-          <Dropdown>
-            <DropdownTrigger>
-              <Button
-                variant='light'
-                startContent={<Icon icon='mdi:sort' className='text-base' />}
-                className='w-full flex items-center gap-x-1 px-3 py-2 min-h-[36px] text-sm shadow-none bg-transparent border-none hover:bg-gray-100 focus:bg-gray-100 transition-colors'
-              >
-                {sortOptions.find((option) => option.key === sortOrder)?.label ||
-                  t('pages.vehicles.orderBy')}
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu
-              selectionMode='single'
-              selectedKeys={new Set([sortOrder])}
-              onSelectionChange={(keys) => {
-                const selected = Array.from(keys)[0];
-                if (selected) setSortOrder(selected.toString());
-              }}
-            >
-              {sortOptions.map((option) => (
-                <DropdownItem
-                  key={option.key}
-                  startContent={<Icon icon={option.icon} className='text-xl' />}
+      {/* Search Bar - Oculto en modo minimal */}
+      {!minimal && (
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mb-6 flex flex-col sm:flex-row gap-2 sm:gap-4'>
+          {/* Buscador */}
+          <div className='w-full sm:flex-[3] relative'>
+            <Search
+              className='absolute  left-3 top-1/2 transform -translate-y-1/2 text-gray-400'
+              size={16}
+            />
+            <Input
+              type='text'
+              placeholder={t('pages.vehicles.searchPlaceholder')}
+              className='
+                pl-12 pr-3 py-2 min-h-[36px]
+                rounded-xl
+                border border-slate-300
+                bg-slate-100
+                text-sm text-gray-700
+                shadow-md
+                focus:border-primary focus:ring-2 focus:ring-primary
+                transition-all
+                w-full
+                max-w-xxl
+              '
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          {/* Selector de orden */}
+          <div className='w-full sm:flex-1 min-w-[80px] flex mt-2 sm:mt-0 -mb-4'>
+            <Dropdown>
+              <DropdownTrigger>
+                <Button
+                  variant='light'
+                  startContent={<Icon icon='mdi:sort' className='text-base' />}
+                  className='w-full flex items-center gap-x-1 px-3 py-2 min-h-[36px] text-sm shadow-none bg-transparent border-none hover:bg-slate-100 focus:bg-slate-100 transition-colors'
                 >
-                  {option.label}
-                </DropdownItem>
-              ))}
-            </DropdownMenu>
-          </Dropdown>
+                  {sortOptions.find((option) => option.key === sortOrder)?.label ||
+                    t('pages.vehicles.orderBy')}
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                selectionMode='single'
+                selectedKeys={new Set([sortOrder])}
+                onSelectionChange={(keys) => {
+                  const selected = Array.from(keys)[0];
+                  if (selected) setSortOrder(selected.toString());
+                }}
+              >
+                {sortOptions.map((option) => (
+                  <DropdownItem
+                    key={option.key}
+                    startContent={<Icon icon={option.icon} className='text-xl' />}
+                  >
+                    {option.label}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content */}
 
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'>
-        <div className='flex flex-col md:flex-row gap-10'>
-          {/* Filtro en desktop */}
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20'>
+        <div className='flex flex-col md:flex-row gap-8'>
+          {/* Filtro en desktop - sticky */}
           {isMd && (
-            <div className='w-72 md:sticky md:top-[calc(var(--navbar-height)+2rem)] self-start'>
-              <div className='bg-white dark:bg-dark-bg p-3 rounded-xl shadow-sm border border-gray-100 dark:border-dark-border max-h-[calc(100vh-130px)] overflow-y-auto'>
-                <NewVehicleFilters
-                  brands={brands}
-                  initialOpenAccordion={filters.color ? 'color' : undefined}
-                  availableYears={availableYears}
-                  maxPrice={maxPrice}
-                />
+            <aside className='w-72 shrink-0'>
+              <div className='sticky top-24'>
+                <div className='max-h-[calc(100vh-120px)] overflow-y-auto overflow-x-hidden'>
+                  <NewVehicleFilters
+                    brands={brands}
+                    models={models}
+                    categories={categories}
+                    fuelTypes={fuelTypes}
+                    conditions={conditions}
+                    colors={colors}
+                    initialOpenAccordion={filters.color ? 'color' : undefined}
+                    availableYears={availableYears}
+                    maxPrice={maxPrice}
+                  />
+                </div>
               </div>
-            </div>
+            </aside>
           )}
 
           {/* Vehicles Content */}
@@ -492,7 +861,7 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
           <div className='flex-1 min-w-0'>
             {/* Sort and View Options */}
 
-            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky bg-gray-50 dark:bg-dark-bg py-2 px-4 -mx-4 sm:px-0 sm:mx-0 rounded-lg relative z-10'>
+            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky bg-slate-50/50 dark:bg-dark-bg py-2 px-4 -mx-4 sm:px-0 sm:mx-0 rounded-lg relative z-10'>
               {/* Botón para abrir filtros en móvil */}
               <div className='md:hidden w-full'>
                 <Button
@@ -543,11 +912,11 @@ ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
                 />
 
                 <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>
-                  {t('pages.vehicles.noResults')}
+                  {t('vehicles.page.noResults')}
                 </h3>
 
                 <p className='text-gray-500 dark:text-gray-400 mb-4'>
-                  {t('pages.vehicles.noResultsDescription')}
+                  {t('vehicles.page.noResultsDescription')}
                 </p>
 
                 <Button

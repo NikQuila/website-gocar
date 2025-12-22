@@ -262,14 +262,14 @@ const VehiclesPage: React.FC = () => {
 
   return (
     <ClientOnly>
-      <div className="min-h-screen bg-gray-50 dark:bg-black">
+      <div className="min-h-screen bg-slate-50/50 dark:bg-black">
         <main className="grid grid-cols-1 md:grid-cols-4">
           {/* Sidebar (desktop) - STICKY y CENTRADO */}
           {isMd && (
             <aside className="col-span-1 mt-20 w-[272px] mx-auto justify-self-center">
               <div className="md:sticky md:top-[5rem]">
-                <div className="rounded-2xl shadow-sm border border-gray-200 dark:border-white/10 backdrop-blur">
-                  <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-white/10">
+                <div className="rounded-2xl shadow-sm border border-slate-200/60 dark:border-neutral-800 backdrop-blur">
+                  <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-neutral-700">
                     <NewVehicleFilters
                       brands={brands as any[]}
                       models={models as any[]}
@@ -332,7 +332,7 @@ const VehiclesPage: React.FC = () => {
                               <Button
                                 variant="light"
                                 startContent={<Icon icon="mdi:sort" className="text-base" />}
-                                className="hidden sm:flex items-center gap-x-1 px-3 min-h-[40px] text-sm bg-white/70 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 rounded-2xl border border-gray-200 dark:border-white/10"
+                                className="hidden sm:flex items-center gap-x-1 px-3 min-h-[40px] text-sm bg-white/70 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 rounded-2xl border border-slate-200/60 dark:border-neutral-800"
                               >
                                 {sortOptions.find((o) => o.key === sortOrder)?.label || orderByText}
                               </Button>
@@ -443,7 +443,7 @@ const VehiclesPage: React.FC = () => {
                             id="vehicles-search"
                             type="text"
                             placeholder={searchPlaceholder}
-                            className="pl-11 pr-3 py-2 min-h-[42px] rounded-2xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#121219] text-sm text-gray-800 dark:text-gray-200 shadow-sm focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/40 transition-all w-full"
+                            className="pl-11 pr-3 py-2 min-h-[42px] rounded-2xl border border-slate-200/60 dark:border-neutral-800 bg-white/80 dark:bg-[#121219] text-sm text-gray-800 dark:text-gray-200 shadow-sm focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/40 transition-all w-full"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                           />
@@ -455,7 +455,7 @@ const VehiclesPage: React.FC = () => {
                               <Button
                                 variant="light"
                                 startContent={<Icon icon="mdi:sort" className="text-base" />}
-                                className="w-full flex items-center gap-x-1 px-3 min-h-[42px] text-sm bg-white/70 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 rounded-2xl border border-gray-200 dark:border-white/10"
+                                className="w-full flex items-center gap-x-1 px-3 min-h-[42px] text-sm bg-white/70 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 rounded-2xl border border-slate-200/60 dark:border-neutral-800"
                               >
                                 {sortOptions.find((o) => o.key === sortOrder)?.label || orderByText}
                               </Button>
@@ -482,7 +482,7 @@ const VehiclesPage: React.FC = () => {
 
                   {/* Grid */}
                   {filteredVehicles.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 border border-dashed border-gray-300 dark:border-white/10 rounded-3xl bg-white/50 dark:bg-white/[0.03]">
+                    <div className="flex flex-col items-center justify-center py-20 border border-dashed border-slate-300 dark:border-neutral-800 rounded-3xl bg-white/50 dark:bg-white/[0.03]">
                       <Icon icon="mdi:car-off" className="text-5xl text-gray-400 mb-3" />
                       <p className="text-gray-700 dark:text-gray-300 font-medium">
                         {noResultsText}

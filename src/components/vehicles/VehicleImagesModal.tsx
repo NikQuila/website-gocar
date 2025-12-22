@@ -1,7 +1,7 @@
 // src/components/vehicles/VehicleImagesModal.tsx
 'use client';
 
-import { Modal, ModalContent, ModalBody, Button, Image as NUIImage } from '@heroui/react';
+import { Modal, ModalContent, ModalBody, Button } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
@@ -606,7 +606,13 @@ function ThumbnailsBar({
                 }}
                 onMouseLeave={() => { if (!isSmall && !isZoomActive) setHoverIdx(null); }}
               >
-                <NUIImage alt={`Miniatura ${i + 1}`} className="w-full h-full object-cover" src={img} />
+                <img
+                  alt={`Miniatura ${i + 1}`}
+                  src={img}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ objectPosition: 'center center' }}
+                  draggable={false}
+                />
                 <span
                   className="pointer-events-none absolute inset-0"
                   style={{

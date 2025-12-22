@@ -6,7 +6,10 @@ export const homeEs = {
     description:
       'Describe el vehículo de tus sueños y deja que nuestra IA encuentre las mejores opciones para ti.',
     searchButton: 'Buscar vehículos',
-    aiSearchPlaceholder: 'Describe el vehículo que buscas...',
+    aiSearchPlaceholder: 'Busca por marca, modelo, tipo, color, condición...',
+    clearSearch: 'Limpiar',
+    search: 'Buscar',
+    voiceSearch: 'Búsqueda por voz',
   },
 
   // Sección "Por qué elegirnos"
@@ -43,12 +46,14 @@ export const homeEs = {
 
   // Sección "Cómo llegar"
   howToArrive: {
-    title: 'Cómo llegar',
-    subtitle: 'Encuentra nuestra ubicación',
+    title: '¿Cómo llegar?',
+    subtitle: 'Encuéntranos en la siguiente dirección:',
     button: 'Cómo llegar en Google Maps',
     address: 'Dirección',
     hours: 'Horarios de atención',
     phone: 'Teléfono',
+    email: 'Email',
+    ofTotal: 'de',
   },
 
   // Sección de vehículos destacados

@@ -6,9 +6,8 @@ import { Button } from '@heroui/react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNode } from '@craftjs/core';
 import useClientStore from '@/store/useClientStore';
-import { Dealership, Location } from '@/utils/types';
+import { Dealership } from '@/utils/types';
 import { supabase } from '@/lib/supabase';
-import useThemeStore from '@/store/useThemeStore';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 interface HowToArriveProps {
@@ -16,26 +15,19 @@ interface HowToArriveProps {
   subtitle?: string;
   titleAlignment?: 'left' | 'center' | 'right';
   height?: string;
-  backgroundColor?: string;
-  textColor?: string;
-  cardBgColor?: string;
-  cardTextColor?: string;
-  buttonBgColor?: string;
-  buttonTextColor?: string;
   buttonLabel?: string;
-  iconColor?: string;
 }
 
 const grayMapStyle = [
   {
     featureType: 'administrative',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#b5b2b2' }],
+    stylers: [{ color: '#6b7280' }],
   },
   {
     featureType: 'landscape',
     elementType: 'all',
-    stylers: [{ color: '#ececec' }],
+    stylers: [{ color: '#f3f4f6' }],
   },
   {
     featureType: 'poi',
@@ -44,8 +36,18 @@ const grayMapStyle = [
   },
   {
     featureType: 'road',
-    elementType: 'all',
-    stylers: [{ saturation: -100 }, { lightness: 45 }, { color: '#d6d6d6' }],
+    elementType: 'geometry',
+    stylers: [{ color: '#ffffff' }],
+  },
+  {
+    featureType: 'road',
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#6b7280' }],
+  },
+  {
+    featureType: 'road.highway',
+    elementType: 'geometry',
+    stylers: [{ color: '#e5e7eb' }],
   },
   {
     featureType: 'transit',
@@ -55,105 +57,60 @@ const grayMapStyle = [
   {
     featureType: 'water',
     elementType: 'all',
-    stylers: [{ color: '#ffffff' }],
+    stylers: [{ color: '#dbeafe' }],
   },
 ];
 
 const MapMarker = ({
   onClick,
-  address,
   isSelected,
-  iconColor = '#60a5fa',
+  hasMultipleLocations = false,
 }: {
   onClick?: () => void;
-  address?: string;
   isSelected?: boolean;
-  iconColor?: string;
+  hasMultipleLocations?: boolean;
 }) => (
-  <div className="relative group">
-    <div
-      onClick={onClick}
-      className={`cursor-pointer transform-gpu transition-transform ${
-        isSelected ? 'scale-110' : 'group-hover:scale-110'
-      }`}
+  <div
+    onClick={onClick}
+    className={`cursor-pointer transition-all duration-200 ${
+      isSelected ? 'scale-110' : 'hover:scale-105'
+    } ${hasMultipleLocations && !isSelected ? 'opacity-40 hover:opacity-70' : ''}`}
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      className="w-8 h-8 drop-shadow-lg text-blue-500"
+      fill="currentColor"
     >
-      <div className="relative">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          className="w-8 h-8 drop-shadow-lg"
-          style={{ color: iconColor }}
-          fill="currentColor"
-        >
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM12 11.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-        </svg>
-        <div
-          className="absolute -inset-1 animate-ping rounded-full duration-1000"
-          style={{ backgroundColor: `${iconColor}30` }}
-        />
-      </div>
-    </div>
-
-    {address && (
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        <div className="bg-white dark:bg-dark-card px-4 py-2 rounded-lg shadow-lg text-sm text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-dark-border">
-          {address}
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white dark:border-t-dark-card" />
-        </div>
-      </div>
-    )}
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM12 11.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+    </svg>
   </div>
 );
 
 export default function HowToArrive({
-  title = '¿Cómo llegar?',
-  subtitle = 'Encuentranos en la siguiente dirección:',
+  title,
+  subtitle,
   titleAlignment = 'center',
   height = '400px',
-  backgroundColor = '#f9fafb',
-  textColor = '#111827',
-  cardBgColor = '#ffffff',
-  cardTextColor = '#111827',
-  buttonBgColor = '#2563eb',
-  buttonTextColor = '#ffffff',
-  buttonLabel = 'Cómo llegar en Google Maps',
-  iconColor,
+  buttonLabel,
 }: HowToArriveProps) {
-  // useNode solo está disponible en el contexto de CraftJS Editor
   let connectors: any = null;
   let selected = false;
 
   try {
-    const nodeData = useNode((state) => ({
-      selected: state.events.selected,
-    }));
+    const nodeData = useNode((state) => ({ selected: state.events.selected }));
     connectors = nodeData.connectors;
     selected = nodeData.selected;
-  } catch (error) {
+  } catch {
     connectors = null;
     selected = false;
   }
 
   const { client } = useClientStore();
-  const { theme } = useThemeStore();
   const { t } = useTranslation();
 
-  // Logo según tema 
-  const logoSrc =
-    theme === 'dark' && client?.logo_dark ? client.logo_dark : client?.logo;
-
-  const logoClassName =
-    theme === 'dark' && client?.logo_dark
-      ? 'h-12 w-auto mb-2 object-contain'
-      : 'h-12 w-auto mb-2 object-contain dark:brightness-90';
-
-  // Color primario por defecto (celestito claro)
-  const primaryColor = '#60a5fa';
-  const finalIconColor = iconColor || primaryColor;
-
   const [dealerships, setDealerships] = useState<Dealership[]>([]);
-  const [selectedDealership, setSelectedDealership] =
-    useState<Dealership | null>(null);
+  const [selectedDealership, setSelectedDealership] = useState<Dealership | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const { isLoaded } = useLoadScript({
@@ -206,34 +163,29 @@ export default function HowToArrive({
     []
   );
 
-  const handleMarkerClick = useCallback((dealership: Dealership) => {
+  const handleOpenDirections = useCallback((dealership: Dealership) => {
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${dealership.location.lat},${dealership.location.lng}`;
     window.open(googleMapsUrl, '_blank');
   }, []);
 
-  const handleNextDealership = () => {
-    if (!selectedDealership || dealerships.length <= 1) return;
-    const currentIndex = dealerships.findIndex(
-      (d) => d.id === selectedDealership.id
-    );
+  const currentIndex = dealerships.findIndex((d) => d.id === selectedDealership?.id);
+
+  const handleNext = () => {
+    if (dealerships.length <= 1) return;
     const nextIndex = (currentIndex + 1) % dealerships.length;
     setSelectedDealership(dealerships[nextIndex]);
   };
 
-  const handlePrevDealership = () => {
-    if (!selectedDealership || dealerships.length <= 1) return;
-    const currentIndex = dealerships.findIndex(
-      (d) => d.id === selectedDealership.id
-    );
-    const prevIndex =
-      (currentIndex - 1 + dealerships.length) % dealerships.length;
+  const handlePrev = () => {
+    if (dealerships.length <= 1) return;
+    const prevIndex = (currentIndex - 1 + dealerships.length) % dealerships.length;
     setSelectedDealership(dealerships[prevIndex]);
   };
 
   if (!isLoaded || isLoading) {
     return (
-      <div className="flex items-center justify-center" style={{ height }}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-primary" />
       </div>
     );
   }
@@ -241,146 +193,114 @@ export default function HowToArrive({
   return (
     <div
       ref={connectors?.connect || null}
-      className={`py-12 rounded-2xl bg-gray-50 dark:bg-black text-gray-900 dark:text-white ${
-        selected
-          ? 'border-2 border-dashed border-gray-600  outline-1 outline-dashed outline-gray-400 outline-offset-2'
-          : 'border border-transparent'
-      }`}
-      style={{
-        ...(backgroundColor !== '#f9fafb' && { backgroundColor }),
-        ...(textColor !== '#111827' && { color: textColor }),
-      }}
+      className={`py-12 bg-slate-50/50 dark:bg-[#0B0B0F] ${selected ? 'ring-2 ring-dashed ring-slate-400' : ''}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h3
-          className={`text-4xl font-semibold mb-4 text-gray-900 dark:text-white ${
-            titleAlignment === 'center'
-              ? 'text-center'
-              : titleAlignment === 'right'
-              ? 'text-right'
-              : 'text-left'
-          }`}
-        >
-          {title || t('home.howToArrive.title')}
-        </h3>
-        <p
-          className={`mb-12 max-w-3xl mx-auto text-gray-700 dark:text-gray-300 ${
-            titleAlignment === 'center'
-              ? 'text-center'
-              : titleAlignment === 'right'
-              ? 'text-right'
-              : 'text-left'
-          }`}
-        >
-          {subtitle || t('home.howToArrive.subtitle')}
-        </p>
+        {/* Header */}
+        <div className={`mb-8 ${titleAlignment === 'center' ? 'text-center' : titleAlignment === 'right' ? 'text-right' : 'text-left'}`}>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            {title || t('home.howToArrive.title')}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            {subtitle || t('home.howToArrive.subtitle')}
+          </p>
+        </div>
 
-        <div className="grid md:grid-cols-3 gap-8 items-start">
-          {/* Contact Info with Navigation */}
-          <div className="md:col-span-1 space-y-6 p-6 h-full flex flex-col justify-between rounded-xl shadow-sm mx-auto max-w-[90vw] bg-white dark:bg-dark-card text-gray-900 dark:text-white">
-            {logoSrc && (
-              <img
-                src={logoSrc}
-                alt={client?.name || 'Logo'}
-                className={logoClassName}
-              />
-            )}
-
-            {dealerships.length > 1 && (
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  onClick={handlePrevDealership}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full text-gray-700 dark:text-gray-300"
-                >
-                  <Icon icon="mdi:chevron-left" className="text-2xl" />
-                </button>
-                <span className="text-sm text-gray-600 dark:text-gray-400 opacity-70">
-                  {dealerships.findIndex((d) => d.id === selectedDealership?.id) + 1}{' '}
-                  de {dealerships.length}
-                </span>
-                <button
-                  onClick={handleNextDealership}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full text-gray-700 dark:text-gray-300"
-                >
-                  <Icon icon="mdi:chevron-right" className="text-2xl" />
-                </button>
-              </div>
-            )}
-
-            {selectedDealership && (
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <Icon
-                    icon="mdi:map-marker"
-                    className="text-2xl flex-shrink-0 mt-1"
-                    style={{ color: finalIconColor }}
-                  />
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">
-                      {t('home.howToArrive.address')}
-                    </h4>
-                    <p className="text-gray-600 dark:text-gray-400 opacity-70">
-                      {selectedDealership.address}
-                    </p>
-                  </div>
+        {/* Grid Layout */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Info Card - Fixed height */}
+          <div className="lg:col-span-1">
+            <div className="bg-white dark:bg-[#151519] rounded-xl shadow-sm border border-slate-200/60 dark:border-white/5 h-full min-h-[300px] flex flex-col">
+              {/* Navigation (only if multiple) */}
+              {dealerships.length > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-neutral-800">
+                  <button
+                    onClick={handlePrev}
+                    className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+                  >
+                    <Icon icon="mdi:chevron-left" className="text-xl text-gray-500" />
+                  </button>
+                  <span className="text-sm text-gray-500">
+                    {currentIndex + 1} {t('home.howToArrive.ofTotal')} {dealerships.length}
+                  </span>
+                  <button
+                    onClick={handleNext}
+                    className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+                  >
+                    <Icon icon="mdi:chevron-right" className="text-xl text-gray-500" />
+                  </button>
                 </div>
+              )}
 
-                <div className="flex items-start space-x-3">
-                  <Icon
-                    icon="mdi:phone"
-                    className="text-2xl flex-shrink-0 mt-1"
-                    style={{ color: finalIconColor }}
-                  />
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">
-                      {t('home.howToArrive.phone')}
-                    </h4>
-                    <p className="text-gray-600 dark:text-gray-400 opacity-70">
-                      {selectedDealership.phone}
-                    </p>
+              {/* Content */}
+              {selectedDealership && (
+                <div className="p-5 flex-1 flex flex-col">
+                  <div className="space-y-4 flex-1">
+                    {/* Address */}
+                    <div className="flex gap-3">
+                      <Icon icon="mdi:map-marker" className="text-xl text-primary flex-shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                          {t('home.howToArrive.address')}
+                        </p>
+                        <p className="text-gray-900 dark:text-white text-sm leading-relaxed">
+                          {selectedDealership.address}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Phone */}
+                    {selectedDealership.phone && (
+                      <div className="flex gap-3">
+                        <Icon icon="mdi:phone" className="text-xl text-primary flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                            {t('home.howToArrive.phone')}
+                          </p>
+                          <a href={`tel:${selectedDealership.phone}`} className="text-gray-900 dark:text-white text-sm hover:text-primary transition-colors">
+                            {selectedDealership.phone}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Email */}
+                    {selectedDealership.email && (
+                      <div className="flex gap-3">
+                        <Icon icon="mdi:email" className="text-xl text-primary flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                            {t('home.howToArrive.email')}
+                          </p>
+                          <a href={`mailto:${selectedDealership.email}`} className="text-gray-900 dark:text-white text-sm hover:text-primary transition-colors truncate block">
+                            {selectedDealership.email}
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
 
-                <div className="flex items-start space-x-3">
-                  <Icon
-                    icon="mdi:email"
-                    className="text-2xl flex-shrink-0 mt-1"
-                    style={{ color: finalIconColor }}
-                  />
-                  <div className="min-w-0">
-                    <h4 className="font-medium text-gray-900 dark:text-white">
-                      Email
-                    </h4>
-                    <p className="break-words text-gray-600 dark:text-gray-400 opacity-70">
-                      {selectedDealership.email}
-                    </p>
-                  </div>
+                  {/* Button */}
+                  <Button
+                    color="primary"
+                    className="w-full mt-4"
+                    onPress={() => handleOpenDirections(selectedDealership)}
+                  >
+                    {buttonLabel || t('home.howToArrive.button')}
+                  </Button>
                 </div>
-              </div>
-            )}
-
-            <Button
-              className="w-full mt-6"
-              style={{
-                backgroundColor: buttonBgColor,
-                color: buttonTextColor,
-              }}
-              onPress={() =>
-                selectedDealership && handleMarkerClick(selectedDealership)
-              }
-            >
-              {buttonLabel || t('home.howToArrive.button')}
-            </Button>
+              )}
+            </div>
           </div>
 
           {/* Map */}
-          <div className="md:col-span-2">
+          <div className="lg:col-span-2">
             <div
-              style={{ height, width: '100%' }}
-              className="rounded-xl overflow-hidden shadow-lg"
+              style={{ height }}
+              className="w-full rounded-xl overflow-hidden shadow-sm border border-slate-200/60 dark:border-neutral-800"
             >
               <GoogleMap
-                zoom={13}
+                zoom={15}
                 center={
                   selectedDealership
                     ? {
@@ -402,13 +322,9 @@ export default function HowToArrive({
                     mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
                   >
                     <MapMarker
-                      onClick={() => {
-                        setSelectedDealership(dealership);
-                        handleMarkerClick(dealership);
-                      }}
-                      address={dealership.address}
+                      onClick={() => setSelectedDealership(dealership)}
                       isSelected={selectedDealership?.id === dealership.id}
-                      iconColor={finalIconColor}
+                      hasMultipleLocations={dealerships.length > 1}
                     />
                   </OverlayView>
                 ))}
@@ -425,18 +341,11 @@ export default function HowToArrive({
 HowToArrive.craft = {
   displayName: 'HowToArrive',
   props: {
-    title: '¿Cómo llegar?',
-    subtitle: 'Encuentranos en la siguiente dirección:',
+    title: '',
+    subtitle: '',
     titleAlignment: 'center',
     height: '400px',
-    backgroundColor: '#f9fafb',
-    textColor: '#111827',
-    cardBgColor: '#ffffff',
-    cardTextColor: '#111827',
-    buttonBgColor: '#2563eb',
-    buttonTextColor: '#ffffff',
-    buttonLabel: 'Cómo llegar en Google Maps',
-    iconColor: '#60a5fa',
+    buttonLabel: '',
   },
   rules: {
     canDrag: () => true,

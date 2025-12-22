@@ -5,8 +5,8 @@ import useThemeStore from '@/store/useThemeStore';
 import useClientStore from '@/store/useClientStore';
 
 // Helper function to convert HEX to HSL component string
-function hexToHslComponents(hex: string): string {
-  if (!hex) return '';
+function hexToHslComponents(hex: string): { hsl: string; lightness: number } {
+  if (!hex) return { hsl: '', lightness: 50 };
   hex = hex.replace('#', '');
 
   let r = 0,
@@ -23,7 +23,7 @@ function hexToHslComponents(hex: string): string {
     g = parseInt(hex.substring(2, 4), 16);
     b = parseInt(hex.substring(4, 6), 16);
   } else {
-    return ''; // Invalid hex string
+    return { hsl: '', lightness: 50 }; // Invalid hex string
   }
 
   const rNorm = r / 255;
@@ -57,7 +57,13 @@ function hexToHslComponents(hex: string): string {
   const sPc = Math.round(s * 100);
   const lPc = Math.round(l * 100);
 
-  return `${hDeg} ${sPc}% ${lPc}%`;
+  return { hsl: `${hDeg} ${sPc}% ${lPc}%`, lightness: lPc };
+}
+
+// Get contrasting foreground color based on background lightness
+function getForegroundHsl(lightness: number): string {
+  // If background is light (>50%), use dark text; otherwise use light text
+  return lightness > 50 ? '0 0% 9%' : '0 0% 98%';
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -102,16 +108,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Apply theme colors
     if (client?.theme?.light && client?.theme?.dark) {
       const colors = theme === 'dark' ? client.theme.dark : client.theme.light;
-      console.log('Colors:', colors);
 
-      const primaryHsl = hexToHslComponents(colors.primary);
-      const secondaryHsl = hexToHslComponents(colors.secondary);
+      const primary = hexToHslComponents(colors.primary);
+      const secondary = hexToHslComponents(colors.secondary);
 
-      if (primaryHsl) {
-        root.style.setProperty('--primary', primaryHsl);
+      if (primary.hsl) {
+        root.style.setProperty('--primary', primary.hsl);
+        root.style.setProperty('--primary-foreground', getForegroundHsl(primary.lightness));
       }
-      if (secondaryHsl) {
-        root.style.setProperty('--secondary', secondaryHsl);
+      if (secondary.hsl) {
+        root.style.setProperty('--secondary', secondary.hsl);
+        root.style.setProperty('--secondary-foreground', getForegroundHsl(secondary.lightness));
       }
     }
   }, [theme, client?.theme, client?.has_dark_mode]);

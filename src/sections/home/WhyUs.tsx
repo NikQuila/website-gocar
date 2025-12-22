@@ -120,7 +120,7 @@ const WhyUs = () => {
       },
     ];
     return (
-      <section className='bg-gray-50 dark:bg-dark-bg py-16'>
+      <section className='bg-slate-50/50 dark:bg-dark-bg py-16'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <h2 className='text-3xl font-bold text-gray-900 dark:text-dark-text text-center mb-4'>
             {t('home.whyUs.title')}
@@ -133,7 +133,7 @@ const WhyUs = () => {
             {translatedDefaultItems.map((feature, i) => (
               <div
                 key={i}
-                className='text-center p-6 bg-white dark:bg-dark-card rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 dark:border dark:border-dark-border dark:hover:border-primary/30'
+                className='text-center p-6 bg-white dark:bg-[#0B0B0F] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200'
               >
                 <div className='flex justify-center mb-4'>
                   <Icon
@@ -157,7 +157,7 @@ const WhyUs = () => {
 
   // Show the section with the custom configuration
   return (
-    <section className='bg-gray-50 dark:bg-dark-bg py-16'>
+    <section className='bg-slate-50/50 dark:bg-dark-bg py-16'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <h2 className='text-4xl font-semibold text-gray-900 dark:text-dark-text text-center mb-4'>
           {config.title}
@@ -172,7 +172,7 @@ const WhyUs = () => {
           {config.items.map((item, i) => (
             <div
               key={item.id || i}
-              className='text-center p-6 bg-white dark:bg-dark-card rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 dark:border dark:border-dark-border dark:hover:border-primary/30'
+              className='text-center p-6 bg-white dark:bg-[#0B0B0F] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200'
             >
               <div className='flex justify-center mb-4'>
                 <Icon icon={item.icon} className='w-12 h-12 text-primary' />

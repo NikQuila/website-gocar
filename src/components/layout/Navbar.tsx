@@ -58,8 +58,7 @@ const Navbar = () => {
     [pathname]
   );
 
-  const shouldShowThemeToggle =
-    !!client?.has_dark_mode && !client?.client_website_config?.is_enabled;
+  const shouldShowThemeToggle = !!client?.has_dark_mode;
 
   // Transiciones globales más baratas si el usuario pide menos motion
   const transition = prefersReduced
@@ -128,7 +127,7 @@ const Navbar = () => {
               as={Link}
               href="/contact"
               size="sm"
-              className="bg-primary text-white dark:text-black hover:bg-primary/90 transition-colors rounded-md px-4"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors rounded-md px-4"
               variant="solid"
               prefetch={false}
             >
@@ -221,7 +220,7 @@ const Navbar = () => {
                     href="/contact"
                     prefetch={false}
                     onClick={() => setIsMenuOpen(false)}
-                    className="w-full bg-primary text-white dark:text-black hover:bg-primary/90 transition-colors rounded-xl h-11"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors rounded-xl h-11"
                     variant="solid"
                     startContent={<Icon icon="solar:chat-round-dots-line-duotone" className="text-xl" />}
                   >

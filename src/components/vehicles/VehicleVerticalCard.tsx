@@ -55,40 +55,20 @@ interface VehicleGridCardProps {
 }
 
 /* =============================
- * Colores por tipo de etiqueta
+ * Tag minimalista y profesional
  * ============================= */
-const getChipColor = (txt: string) => {
-  const k = txt.toLowerCase();
-  if (k.includes('nuevo') || k.includes('0 km') || k.includes('seminuevo')) return '#F5036A'; // magenta
-  if (k.includes('recién') || k.includes('recien')) return '#A21CAF'; // violeta
-  if (k.includes('usado')) return '#22D3EE'; // cyan
-  if (k.includes('garant')) return '#22C55E'; // verde
-  if (k.includes('destacad') || k.includes('promo') || k.includes('oportunidad')) return '#F59E0B'; // ámbar
-  return '#8B5CF6'; // violeta genérico
-};
-
-/* =============================
- * Etiqueta con borde de color (efecto neón minimalista)
- * ============================= */
-type NeonTagProps = {
-  text: string;
-  color?: string;
-};
-
-const NeonTag = ({ text, color = '#F5036A' }: NeonTagProps) => {
-  return (
-    <div
-      className="rounded-full  inline-block"
-      style={{ backgroundColor: color }}
-    >
-      <div className="bg-gradient-to-r from-black/40 to-transparent px-3 py-1 rounded-full flex items-center justify-center">
-        <span className="text-white text-[12px] font-semibold tracking-wide uppercase">
-          {text}
-        </span>
-      </div>
-    </div>
-  );
-};
+const Tag = ({ text, primary = false }: { text: string; primary?: boolean }) => (
+  <span
+    className={`
+      px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide whitespace-nowrap
+      ${primary
+        ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
+        : 'bg-white/90 text-neutral-700 dark:bg-neutral-800/90 dark:text-neutral-200'}
+    `}
+  >
+    {text}
+  </span>
+);
 
 const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardProps) => {
   const router = useRouter();
@@ -186,7 +166,7 @@ const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardPro
       <Card
         className={`h-full flex flex-col overflow-hidden rounded-2xl
         bg-white dark:bg-[#0B0B0F]
-        border border-black/10 dark:border-white/10
+        border border-black/10 dark:border-transparent
         shadow-sm transition-all duration-300
         ${isUnavailable ? 'opacity-90' : 'group-hover:shadow-xl group-hover:-translate-y-2'}`}
       >
@@ -218,19 +198,13 @@ const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardPro
             </div>
           )}
 
-          {/* Badges izquierda */}
-          {leftChips.length > 0 && (
-            <div className="absolute top-3 left-3 z-20 flex flex-wrap gap-2 max-w-[72%]">
-              {leftChips.map((txt, i) => (
-                <NeonTag key={i} text={txt} color={getChipColor(txt)} />
+          {/* Tags minimalistas en esquina superior izquierda */}
+          {(promoBadgeText || leftChips.length > 0) && (
+            <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5">
+              {promoBadgeText && <Tag text={promoBadgeText} primary />}
+              {leftChips.slice(0, 1).map((txt, i) => (
+                <Tag key={i} text={txt} />
               ))}
-            </div>
-          )}
-
-          {/* Badge derecha */}
-          {promoBadgeText && (
-            <div className="absolute top-3 right-3 z-20">
-              <NeonTag text={promoBadgeText} color={getChipColor(promoBadgeText)} />
             </div>
           )}
         </div>
@@ -276,7 +250,7 @@ const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardPro
                   <span className="text-sm line-through text-neutral-500 dark:text-neutral-400">
                     {formattedPrice}
                   </span>
-                  <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                  <span className="text-2xl font-extrabold tracking-tight text-primary">
                     {formatPrice(discountedPrice)}
                   </span>
                 </>

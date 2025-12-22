@@ -48,16 +48,16 @@ const vehicleCategories = [
 
 const VehiclesSectionSkeleton = () => {
   return (
-    <div className='min-h-screen bg-gray-50 dark:bg-dark-bg'>
+    <div className='min-h-screen bg-slate-50/50 dark:bg-dark-bg'>
       {/* Fixed Categories Navigation */}
-      <div className='sticky top-[var(--navbar-height)] z-30 bg-white dark:bg-dark-bg border-b border-gray-200 dark:border-dark-border'>
+      <div className='sticky top-[var(--navbar-height)] z-30 bg-white dark:bg-dark-bg border-b border-slate-200/60 dark:border-dark-border'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4'>
           <div className='flex flex-col gap-4'>
             {/* Title and Actions */}
             <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
               <div>
-                <div className='h-7 w-48 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse'></div>
-                <div className='h-4 w-72 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse mt-2'></div>
+                <div className='h-7 w-48 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'></div>
+                <div className='h-4 w-72 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse mt-2'></div>
               </div>
             </div>
 
@@ -94,24 +94,24 @@ const VehiclesSectionSkeleton = () => {
             >
               {/* Filters Skeleton */}
               <div className='bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm'>
-                <div className='h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse mb-4'></div>
+                <div className='h-6 w-32 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse mb-4'></div>
 
                 {/* Filter Groups */}
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className='mb-6'>
-                    <div className='h-5 w-24 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse mb-3'></div>
+                    <div className='h-5 w-24 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse mb-3'></div>
                     <div className='flex flex-wrap gap-2'>
                       {[1, 2, 3].map((j) => (
                         <div
                           key={j}
-                          className='h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse'
+                          className='h-8 w-24 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'
                         ></div>
                       ))}
                     </div>
                   </div>
                 ))}
 
-                <div className='h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse mt-4'></div>
+                <div className='h-10 w-full bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse mt-4'></div>
               </div>
             </div>
           </div>
@@ -119,14 +119,14 @@ const VehiclesSectionSkeleton = () => {
           {/* Vehicles Content */}
           <div className='flex-1 min-w-0'>
             {/* Sort and View Options */}
-            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky bg-gray-50 dark:bg-dark-bg py-2 px-4 -mx-4 sm:px-0 sm:mx-0 rounded-lg'>
-              <div className='w-24 h-9 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse'></div>
+            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky bg-slate-50/50 dark:bg-dark-bg py-2 px-4 -mx-4 sm:px-0 sm:mx-0 rounded-lg'>
+              <div className='w-24 h-9 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'></div>
 
               <div className='flex flex-wrap items-center gap-3'>
-                <div className='w-36 h-9 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse'></div>
-                <div className='hidden sm:flex border-l border-gray-200 dark:border-dark-border pl-3 gap-2'>
-                  <div className='w-9 h-9 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse'></div>
-                  <div className='w-9 h-9 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse'></div>
+                <div className='w-36 h-9 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'></div>
+                <div className='hidden sm:flex border-l border-slate-200/60 dark:border-dark-border pl-3 gap-2'>
+                  <div className='w-9 h-9 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'></div>
+                  <div className='w-9 h-9 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'></div>
                 </div>
               </div>
             </div>

@@ -194,11 +194,10 @@ const NewVehicleFilters = ({
 
   return (
     <div
-      className="rounded-2xl w-full bg-white/80 dark:bg-[#0F0F14]/80   transition-all 0  dark:border-white/10 overflow-hidden"
-      style={{ contain: 'content' }}
+      className="w-full bg-white dark:bg-[#0B0B0F] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/0 shadow-sm"
     >
-      {/* HEADER sticky */}
-      <div className="p-4 border-b border-gray-200 dark:border-white/10 sticky top-0 z-20 bg-white/80 dark:bg-[#0F0F14]/80 backdrop-blur-xl rounded-t-2xl">
+      {/* HEADER */}
+      <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Icon icon="solar:filter-linear" className="text-xl" style={CTA ? { color: CTA } : undefined} />

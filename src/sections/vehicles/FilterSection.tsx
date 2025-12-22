@@ -104,8 +104,8 @@ const VehicleFilters = ({
   };
 
   return (
-    <div className='bg-white dark:bg-dark-card rounded-lg shadow-sm w-full transition-opacity duration-300 mt-6 md:ml-6 sticky top-0 max-h-[calc(100vh-2rem)] overflow-y-auto'>
-      <div className='p-4 border-b border-gray-200 dark:border-dark-border'>
+    <div className='bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden border border-slate-200/60 dark:border-neutral-800 shadow-sm w-full transition-opacity duration-300 mt-6 md:ml-6 sticky top-0 max-h-[calc(100vh-2rem)] overflow-y-auto'>
+      <div className='p-4  border-b border-slate-200/60 dark:border-dark-border'>
         <div className='flex justify-between items-center'>
           <div>
             <h3 className='text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2'>
@@ -175,7 +175,7 @@ const VehicleFilters = ({
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0 w-full',
             heading:
-              'px-1 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+              'px-1 py-2 hover:bg-slate-50 dark:hover:bg-dark-border/50 transition-colors',
             trigger: 'px-0 flex items-center w-full',
             content: 'px-2 py-2',
             title: 'flex-1',
@@ -249,7 +249,7 @@ const VehicleFilters = ({
                 size='sm'
                 classNames={{
                   base: 'dark:bg-dark-card',
-                  track: 'bg-gray-200 dark:bg-dark-border h-[3px]',
+                  track: 'bg-slate-200 dark:bg-dark-border h-[3px]',
                   filler: 'bg-primary dark:bg-primary',
                   thumb:
                     'bg-white dark:bg-white border-2 border-primary dark:border-primary h-3 w-3 sm:h-4 sm:w-4 shadow-sm',
@@ -294,7 +294,7 @@ const VehicleFilters = ({
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
-              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+              'px-2 py-2 hover:bg-slate-50 dark:hover:bg-dark-border/50 transition-colors',
             trigger: 'px-0',
             content: 'px-2 py-2',
             indicator: 'mr-4',
@@ -350,7 +350,7 @@ const VehicleFilters = ({
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
-              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+              'px-2 py-2 hover:bg-slate-50 dark:hover:bg-dark-border/50 transition-colors',
             trigger: 'px-0',
             content: 'px-2 py-2',
             indicator: 'mr-4',
@@ -406,7 +406,7 @@ const VehicleFilters = ({
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
-              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+              'px-2 py-2 hover:bg-slate-50 dark:hover:bg-dark-border/50 transition-colors',
             trigger: 'px-0',
             content: 'px-2 py-2',
             indicator: 'mr-4',
@@ -461,7 +461,7 @@ const VehicleFilters = ({
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
-              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+              'px-2 py-2 hover:bg-slate-50 dark:hover:bg-dark-border/50 transition-colors',
             trigger: 'px-0',
             content: 'px-2 py-2',
             indicator: 'mr-4',
@@ -518,7 +518,7 @@ const VehicleFilters = ({
           classNames={{
             base: 'group-[.is-splitted]:ps-0 py-0',
             heading:
-              'px-2 py-2 hover:bg-gray-50 dark:hover:bg-dark-border/50 transition-colors',
+              'px-2 py-2 hover:bg-slate-50 dark:hover:bg-dark-border/50 transition-colors',
             trigger: 'px-0',
             content: 'px-2 py-2',
             indicator: 'mr-4',
@@ -535,7 +535,7 @@ const VehicleFilters = ({
                   ${
                     filters.color === color.id.toString()
                       ? 'border-primary bg-primary/5 dark:bg-primary/10'
-                      : 'border-gray-200 dark:border-dark-border bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-border/50'
+                      : 'border-slate-200/60 dark:border-dark-border bg-white dark:bg-dark-card hover:bg-slate-50 dark:hover:bg-dark-border/50'
                   }
                 `}
               >
@@ -544,7 +544,7 @@ const VehicleFilters = ({
                     ${
                       filters.color === color.id.toString()
                         ? 'border-primary'
-                        : 'border-gray-200 dark:border-dark-border'
+                        : 'border-slate-200/60 dark:border-dark-border'
                     }
                   `}
                   style={{

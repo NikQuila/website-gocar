@@ -1,12 +1,72 @@
 'use client';
 
+import { useState } from 'react';
 import useClientStore from '../../store/useClientStore';
-import AISearchBar from '@/components/search/AISearchBar';
+import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
+import useVehiclesStore from '@/store/useVehiclesStore';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
+import { Input, Spinner } from '@heroui/react';
+import { Search, X } from 'lucide-react';
+import { FaMicrophone } from 'react-icons/fa';
 
 export default function WelcomeSection() {
   const { client } = useClientStore();
   const { t } = useTranslation();
+  const { setSearchQuery, clearFilters } = useVehicleFiltersStore();
+  const { vehicles } = useVehiclesStore();
+  const [inputValue, setInputValue] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSearch = (value: string) => {
+    if (!value.trim()) return;
+
+    setIsLoading(true);
+
+    // Establecer la búsqueda - el filtrado inteligente ocurre en NewVehiclesSection
+    setSearchQuery(value);
+
+    // Scroll suave a la sección de vehículos
+    setTimeout(() => {
+      const vehiclesSection = document.getElementById('vehicles-section');
+      if (vehiclesSection) {
+        vehiclesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      setIsLoading(false);
+    }, 100);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch(inputValue);
+    }
+  };
+
+  const handleClear = () => {
+    setInputValue('');
+    setSearchQuery('');
+    const maxPrice = Math.max(...vehicles.map(v => v.price || 0));
+    clearFilters(maxPrice);
+  };
+
+  const startVoiceRecognition = () => {
+    if ('webkitSpeechRecognition' in window) {
+      const recognition = new (window as any).webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'es-ES';
+
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInputValue(transcript);
+        handleSearch(transcript);
+      };
+
+      recognition.start();
+    }
+  };
 
   return (
     <div className='bg-white dark:bg-dark-bg transition-colors'>
@@ -26,10 +86,65 @@ export default function WelcomeSection() {
               {t('home.welcome.description')}
             </p>
 
-            <div className='mt-8 w-full'>
-              {client && (
-                <AISearchBar clientId={client.id} clientName={client.name} />
-              )}
+            {/* Buscador inteligente */}
+            <div className='mt-10 max-w-3xl mx-auto'>
+              <div className='relative'>
+                <Input
+                  type='text'
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder={t('home.welcome.aiSearchPlaceholder')}
+                  size='lg'
+                  radius='lg'
+                  isDisabled={isLoading}
+                  startContent={
+                    <Search size={18} className='text-primary ml-1' />
+                  }
+                  classNames={{
+                    base: 'w-full',
+                    inputWrapper: 'bg-slate-100 dark:bg-[#0B0B0F] border-none shadow-lg h-14',
+                    input: 'text-base',
+                  }}
+                  endContent={
+                    <div className='flex items-center gap-1'>
+                      {isLoading ? (
+                        <Spinner size='sm' />
+                      ) : (
+                        <>
+                          {inputValue && (
+                            <button
+                              onClick={handleClear}
+                              className='p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
+                              aria-label={t('home.welcome.clearSearch')}
+                            >
+                              <X size={18} />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleSearch(inputValue)}
+                            className='p-2 text-gray-500 dark:text-gray-400 hover:text-primary transition-colors'
+                            aria-label={t('home.welcome.search')}
+                          >
+                            <Search size={20} />
+                          </button>
+                          <button
+                            onClick={startVoiceRecognition}
+                            className={`p-2 transition-colors ${
+                              isListening
+                                ? 'text-primary animate-pulse'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-primary'
+                            }`}
+                            aria-label={t('home.welcome.voiceSearch')}
+                          >
+                            <FaMicrophone size={18} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
