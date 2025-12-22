@@ -738,7 +738,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
             {/* Categories */}
 
             <ScrollShadow orientation='horizontal' className='w-full'>
-              <div className='flex justify-center items-center w-full'>
+              <div className='flex justify-start lg:justify-center items-center w-full'>
                 <div className='flex gap-2 pb-2 min-w-max'>
                   {vehicleCategories.map((category) => (
                     <Button

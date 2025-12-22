@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import useClientStore from '../../store/useClientStore';
 import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
 import useVehiclesStore from '@/store/useVehiclesStore';
@@ -8,6 +8,12 @@ import { useTranslation } from '@/i18n/hooks/useTranslation';
 import { Input, Spinner } from '@heroui/react';
 import { Search, X } from 'lucide-react';
 import { FaMicrophone } from 'react-icons/fa';
+
+const searchExamples = [
+  'Toyota Corolla blanco',
+  'SUV automático bajo 15 millones',
+  'Sedán nuevo con garantía',
+];
 
 export default function WelcomeSection() {
   const { client } = useClientStore();
@@ -17,6 +23,40 @@ export default function WelcomeSection() {
   const [inputValue, setInputValue] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [placeholder, setPlaceholder] = useState('');
+  const [exampleIndex, setExampleIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Typewriter effect for placeholder
+  useEffect(() => {
+    const currentExample = searchExamples[exampleIndex];
+
+    const timeout = setTimeout(() => {
+      if (!isDeleting) {
+        // Typing
+        if (charIndex < currentExample.length) {
+          setPlaceholder(currentExample.substring(0, charIndex + 1));
+          setCharIndex(charIndex + 1);
+        } else {
+          // Finished typing, wait then start deleting
+          setTimeout(() => setIsDeleting(true), 2000);
+        }
+      } else {
+        // Deleting
+        if (charIndex > 0) {
+          setPlaceholder(currentExample.substring(0, charIndex - 1));
+          setCharIndex(charIndex - 1);
+        } else {
+          // Finished deleting, move to next example
+          setIsDeleting(false);
+          setExampleIndex((exampleIndex + 1) % searchExamples.length);
+        }
+      }
+    }, isDeleting ? 30 : 80);
+
+    return () => clearTimeout(timeout);
+  }, [charIndex, isDeleting, exampleIndex]);
 
   const handleSearch = (value: string) => {
     if (!value.trim()) return;
@@ -94,7 +134,7 @@ export default function WelcomeSection() {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyPress}
-                  placeholder={t('home.welcome.aiSearchPlaceholder')}
+                  placeholder={placeholder || searchExamples[0].charAt(0)}
                   size='lg'
                   radius='lg'
                   isDisabled={isLoading}
