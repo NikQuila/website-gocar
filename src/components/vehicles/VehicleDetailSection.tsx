@@ -163,14 +163,15 @@ function ThumbRow({
             key={src + i}
             type="button"
             onClick={() => onOpenModal(src)}
-            className="relative overflow-hidden rounded-xl ring-1 ring-gray-200 dark:ring-gray-700 hover:ring-primary transition grid place-items-center"
+            className="relative overflow-hidden rounded-xl ring-1 ring-gray-200 dark:ring-gray-700 hover:ring-primary transition"
             style={{ width: layout.thumbW, height: layout.thumbH, flex: '0 0 auto' }}
             aria-label={`Miniatura ${i + 1}`}
           >
             <img
               src={src}
               alt={`thumb ${i + 1}`}
-              className="h-full w-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ objectPosition: 'center center' }}
               loading="lazy"
               draggable={false}
             />
@@ -570,7 +571,7 @@ export default function VehicleDetailSection({
                   variant="solid"
                   color="default"
                   startContent={<Icon icon="mdi:calendar-check" className="text-xl" />}
-                  className="sm:flex-1 hover:opacity-95 bg-primary text-white transition-[filter,opacity] focus:opacity-100"
+                  className="sm:flex-1 hover:opacity-95 bg-primary text-primary-foreground transition-[filter,opacity] focus:opacity-100"
                   onPress={openBooking}
                   aria-label="Agendar visita"
                 >

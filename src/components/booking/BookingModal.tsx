@@ -60,6 +60,14 @@ const rgb  = (c: { r: number; g: number; b: number } | null) =>
 const rgba = (c: { r: number; g: number; b: number } | null, a = 1) =>
   c ? `rgba(${c.r},${c.g},${c.b},${a})` : `rgba(${FALLBACK_RGB.r},${FALLBACK_RGB.g},${FALLBACK_RGB.b},${a})`;
 
+// Calculate relative luminance and return contrasting foreground color
+const getForeground = (c: { r: number; g: number; b: number } | null): string => {
+  if (!c) return '#fff';
+  // Calculate relative luminance (simplified)
+  const luminance = (0.299 * c.r + 0.587 * c.g + 0.114 * c.b) / 255;
+  return luminance > 0.5 ? '#000' : '#fff';
+};
+
 /* ========================= utils ========================= */
 const labelFromTimestamp = (ts: unknown): string => {
   if (!ts) return '';
@@ -195,7 +203,7 @@ function TimelineStepper({
 
   return (
     <div
-      className="w-full relative select-none"
+      className="w-full relative select-none [--node-bg:#fff] dark:[--node-bg:#262626] [--node-border:rgba(0,0,0,0.2)] dark:[--node-border:rgba(255,255,255,0.25)] [--node-text:rgba(0,0,0,0.85)] dark:[--node-text:rgba(255,255,255,0.9)]"
       style={{ paddingLeft: node / 2, paddingRight: node / 2 }}
     >
       <div
@@ -217,7 +225,7 @@ function TimelineStepper({
                 {active && (
                   <motion.div
                     key={`label-${n}`}
-                    className="mx-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] border bg-white max-w-[72vw] sm:max-w-[360px] break-words"
+                    className="mx-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] border bg-white dark:bg-neutral-800 max-w-[72vw] sm:max-w-[360px] break-words"
                     style={{ borderColor: rgba(brandRGB, 0.25), color: rgba(brandRGB, 0.98) }}
                     initial={{ opacity: 0, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -236,14 +244,13 @@ function TimelineStepper({
 
         {/* línea base */}
         <div
-          className="col-span-full absolute"
+          className="col-span-full absolute bg-gray-200 dark:bg-gray-700"
           style={{
             top: 'calc(100% - 32px / 2 - 1.5px)',
             left: 0,
             right: 0,
             height: 3,
             borderRadius: 4,
-            backgroundColor: 'rgba(0,0,0,0.12)',
             zIndex: 0,
           }}
         />
@@ -269,9 +276,11 @@ function TimelineStepper({
           const n = i + 1;
           const past = n < current;
           const active = n === current;
-          const circleBg = past ? rgb(brandRGB) : '#fff';
-          const circleBorder = active ? rgb(brandRGB) : past ? rgb(brandRGB) : 'rgba(0,0,0,0.2)';
-          const circleText = past ? '#fff' : active ? rgb(brandRGB) : 'rgba(0,0,0,0.85)';
+          // En dark mode usamos neutral-800 como fondo base
+          const circleBg = past ? rgb(brandRGB) : 'var(--node-bg, #fff)';
+          const circleBorder = active ? rgb(brandRGB) : past ? rgb(brandRGB) : 'var(--node-border, rgba(0,0,0,0.2))';
+          // Texto: si está completado usa foreground contrastante, si está activo usa el color primario, sino usa texto por defecto
+          const circleText = past ? getForeground(brandRGB) : active ? rgb(brandRGB) : 'var(--node-text, rgba(0,0,0,0.85))';
 
           return (
             <div key={`node-${n}`} className="min-w-0">
@@ -328,16 +337,16 @@ function CalendarGrid({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-800/50 p-3 sm:p-4">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <div className="text-sm sm:text-base font-semibold capitalize">{monthName}</div>
+        <div className="text-sm sm:text-base font-semibold capitalize text-gray-900 dark:text-white">{monthName}</div>
         <div className="ml-auto flex items-center gap-1">
           <Button size="sm" variant="light" onPress={prevMonth} aria-label="Mes anterior"><Icon icon="mdi:chevron-left" /></Button>
           <Button size="sm" variant="light" onPress={nextMonth} aria-label="Mes siguiente"><Icon icon="mdi:chevron-right" /></Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 text-[11px] sm:text-xs text-gray-500 mb-2">
+      <div className="grid grid-cols-7 text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mb-2">
         {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((d, i) => <div key={i} className="text-center py-1">{d}</div>)}
       </div>
 
@@ -347,16 +356,22 @@ function CalendarGrid({
           const selected = value === c.ymd;
           const disabled = !!c.disabled;
 
-          const style: React.CSSProperties = disabled
-            ? { borderColor: 'rgba(0,0,0,0.08)', color: 'rgba(0,0,0,0.35)', backgroundColor: 'rgba(0,0,0,0.03)', cursor: 'not-allowed' }
-            : selected
-              ? { borderColor: rgba(brandRGB, 0.7), boxShadow: `0 0 0 2px ${rgba(brandRGB, 0.2)}`, backgroundColor: rgba(brandRGB, 0.1), fontWeight: 600 }
-              : { borderColor: 'rgba(0,0,0,0.08)' };
+          const baseClass = "h-9 sm:h-10 rounded-lg border text-sm grid place-items-center transition-colors";
+          const disabledClass = "border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-gray-800/50 cursor-not-allowed";
+          const normalClass = "border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/50";
 
-          const inner = (
-            <div className="h-9 sm:h-10 rounded-lg border text-sm grid place-items-center transition-colors" title={c.ymd} style={style}>
+          const inner = disabled ? (
+            <div className={`${baseClass} ${disabledClass}`} title={c.ymd}>{c.label}</div>
+          ) : selected ? (
+            <div
+              className={`${baseClass} font-semibold`}
+              title={c.ymd}
+              style={{ borderColor: rgba(brandRGB, 0.7), boxShadow: `0 0 0 2px ${rgba(brandRGB, 0.2)}`, backgroundColor: rgba(brandRGB, 0.15) }}
+            >
               {c.label}
             </div>
+          ) : (
+            <div className={`${baseClass} ${normalClass}`} title={c.ymd}>{c.label}</div>
           );
 
           if (disabled) {
@@ -372,7 +387,7 @@ function CalendarGrid({
       </div>
 
       {loading && (
-        <div className="flex items-center gap-2 mt-3 text-xs text-gray-500">
+        <div className="flex items-center gap-2 mt-3 text-xs text-gray-500 dark:text-gray-400">
           <Spinner size="sm" /> Cargando disponibilidad del mes…
         </div>
       )}
@@ -388,6 +403,7 @@ export default function BookingModal({ open, onOpenChange, client, vehicle, prim
   // MISMO color que el botón "Agendar" (usa el color pasado como prop o fallback)
   const brandHex = primaryColor ?? pickAccentFromClient(client) ?? '#0ea5e9';
   const brandRGB = useMemo(() => hexToRgb(brandHex), [brandHex]);
+
 
   // estado
   const [dealerships, setDealerships] = useState<DealershipItem[]>([]);
@@ -736,7 +752,7 @@ export default function BookingModal({ open, onOpenChange, client, vehicle, prim
               {/* header */}
               <ModalHeader className="!px-4 sm:!px-5">
                 <div className="w-full space-y-3">
-                  <div className="text-base sm:text-lg font-semibold flex items-center gap-2">
+                  <div className="text-base sm:text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
                     <Icon icon="mdi:calendar-check" className="text-[18px]" />
                     Agendar visita
                   </div>
@@ -773,8 +789,8 @@ export default function BookingModal({ open, onOpenChange, client, vehicle, prim
 
                   {/* sucursal */}
                   {showStepBranch && step === 1 && (
-                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-4 space-y-3">
-                      <div className="text-sm font-medium">Selecciona sucursal</div>
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-800/50 p-3 sm:p-4 space-y-3">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">Selecciona sucursal</div>
 
                       {manyBranches ? (
                         <Select
@@ -818,7 +834,7 @@ export default function BookingModal({ open, onOpenChange, client, vehicle, prim
                         </div>
                       )}
 
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
                         Zona horaria: <b>{tz}</b>
                       </div>
                     </div>
@@ -836,7 +852,7 @@ export default function BookingModal({ open, onOpenChange, client, vehicle, prim
                         loading={monthLoading}
                         brandRGB={brandRGB}
                       />
-                      <div className="rounded-md text-xs sm:text[13px] p-2.5 flex items-start gap-2" style={{ backgroundColor: rgba(brandRGB, 0.06), color: 'rgba(0,0,0,0.75)' }}>
+                      <div className="rounded-md text-xs sm:text[13px] p-2.5 flex items-start gap-2 text-gray-700 dark:text-gray-300" style={{ backgroundColor: rgba(brandRGB, 0.08) }}>
                         <Icon icon="mdi:lightbulb-on-outline" className="mt-0.5 shrink-0" />
                         <div>Los días grises se muestran para conservar la vista de calendario, pero no tienen horarios.</div>
                       </div>
@@ -845,9 +861,9 @@ export default function BookingModal({ open, onOpenChange, client, vehicle, prim
 
                   {/* horario */}
                   {step === 3 && (
-                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-4 space-y-3">
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-800/50 p-3 sm:p-4 space-y-3">
                       <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium">
+                        <label className="text-sm font-medium text-gray-900 dark:text-white">
                           {selectedDate ? `Horarios para ${prettyYMD(selectedDate)}` : 'Selecciona una fecha'}
                         </label>
                         {selectedDate && (
@@ -858,11 +874,11 @@ export default function BookingModal({ open, onOpenChange, client, vehicle, prim
                       </div>
 
                       {(!selectedDate) ? (
-                        <div className="text-sm text-gray-500">Primero elige una fecha.</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">Primero elige una fecha.</div>
                       ) : loadingSlots ? (
                         <div className="flex items-center justify-center py-10"><Spinner /></div>
                       ) : visibleSlots.length === 0 ? (
-                        <div className="text-sm text-gray-500">No hay horarios disponibles para esa fecha. Prueba con otro día.</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">No hay horarios disponibles para esa fecha. Prueba con otro día.</div>
                       ) : (
                         <div className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(140px,1fr))]">
                           {visibleSlots.map((s, idx) => {
@@ -884,34 +900,35 @@ export default function BookingModal({ open, onOpenChange, client, vehicle, prim
 
                   {/* datos & confirmación */}
                   {step === 4 && (
-                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-4 space-y-4">
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-800/50 p-3 sm:p-4 space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-semibold">Tus datos</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Tus datos</h4>
                         {customer && !editingCustomer ? <Button size="sm" variant="light" onPress={() => setEditingCustomer(true)}>Editar</Button> : null}
                       </div>
 
                       {!customer || editingCustomer ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <Field label="Nombre"><input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="Juan" autoComplete="given-name" /></Field>
-                          <Field label="Apellido"><input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="Pérez" autoComplete="family-name" /></Field>
-                          <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="correo@dominio.com" autoComplete="email" inputMode="email" /></Field>
-                          <Field label="Teléfono"><input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-10 rounded-md border border-gray-300 px-3 text-sm w-full" placeholder="+569..." autoComplete="tel" inputMode="tel" /></Field>
+                          <Field label="Nombre"><input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="h-10 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white px-3 text-sm w-full" placeholder="Juan" autoComplete="given-name" /></Field>
+                          <Field label="Apellido"><input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-10 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white px-3 text-sm w-full" placeholder="Pérez" autoComplete="family-name" /></Field>
+                          <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-10 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white px-3 text-sm w-full" placeholder="correo@dominio.com" autoComplete="email" inputMode="email" /></Field>
+                          <Field label="Teléfono"><input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-10 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white px-3 text-sm w-full" placeholder="+569..." autoComplete="tel" inputMode="tel" /></Field>
                           <div className="sm:col-span-2 flex justify-end">
                             <Button isDisabled={!formValid || !client?.id} onPress={saveCustomer}
-                              startContent={<Icon icon="mdi:content-save" className="text-[18px]" />} style={{ backgroundColor: rgba(brandRGB, 0.95), color: '#fff' }}>
+                              className="bg-primary text-primary-foreground"
+                              startContent={<Icon icon="mdi:content-save" className="text-[18px]" />}>
                               Guardar mis datos
                             </Button>
                           </div>
                         </div>
                       ) : (
                         <div className="flex flex-wrap gap-2">
-                          <Chip variant="flat" className="gap-1.5 inline-flex items-center" startContent={<Icon icon="mdi:account" className="text-[18px]" />} style={{ backgroundColor: rgba(brandRGB, 0.06), color: 'rgba(0,0,0,0.8)' }}>
+                          <Chip variant="flat" className="gap-1.5 inline-flex items-center text-gray-800 dark:text-gray-200" startContent={<Icon icon="mdi:account" className="text-[18px]" />} style={{ backgroundColor: rgba(brandRGB, 0.1) }}>
                             {customer.first_name} {customer.last_name}
                           </Chip>
-                          <Chip variant="flat" className="gap-1.5 inline-flex items-center" startContent={<Icon icon="mdi:email-outline" className="text-[18px]" />} style={{ backgroundColor: rgba(brandRGB, 0.06), color: 'rgba(0,0,0,0.8)' }}>
+                          <Chip variant="flat" className="gap-1.5 inline-flex items-center text-gray-800 dark:text-gray-200" startContent={<Icon icon="mdi:email-outline" className="text-[18px]" />} style={{ backgroundColor: rgba(brandRGB, 0.1) }}>
                             {customer.email}
                           </Chip>
-                          <Chip variant="flat" className="gap-1.5 inline-flex items-center" startContent={<Icon icon="mdi:phone" className="text-[18px]" />} style={{ backgroundColor: rgba(brandRGB, 0.06), color: 'rgba(0,0,0,0.8)' }}>
+                          <Chip variant="flat" className="gap-1.5 inline-flex items-center text-gray-800 dark:text-gray-200" startContent={<Icon icon="mdi:phone" className="text-[18px]" />} style={{ backgroundColor: rgba(brandRGB, 0.1) }}>
                             {customer.phone}
                           </Chip>
                         </div>
@@ -920,12 +937,12 @@ export default function BookingModal({ open, onOpenChange, client, vehicle, prim
                       <Field label={<span className="inline-flex items-center gap-1.5"><Icon icon="mdi:note-edit-outline" className="text-[18px]" /> Nota (opcional)</span>}>
                         <textarea rows={3} value={userNote} onChange={(e) => setUserNote(e.target.value.slice(0, NOTE_MAX))}
                           placeholder="Ej: Voy con acompañante, prefiero ver el maletero, etc."
-                          className="rounded-md border border-gray-300 px-3 py-2 text-sm resize-y w-full" />
-                        <div className="text-[11px] text-gray-500 mt-1">{userNote.length}/{NOTE_MAX}</div>
+                          className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white px-3 py-2 text-sm resize-y w-full" />
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">{userNote.length}/{NOTE_MAX}</div>
                       </Field>
 
-                      <div className="rounded-lg border p-3 sm:p-4">
-                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 bg-gray-50 dark:bg-neutral-900/50">
+                        <h4 className="text-sm font-semibold mb-2 flex items-center gap-2 text-gray-900 dark:text-white">
                           <Icon icon="mdi:clipboard-text-outline" className="text-[18px]" />
                           Resumen
                         </h4>
@@ -963,26 +980,26 @@ export default function BookingModal({ open, onOpenChange, client, vehicle, prim
                   <div className="ml-auto flex items-center gap-2">
                     {showStepBranch && step === 1 && (
                       <Button isDisabled={!canNextFromBranch} onPress={() => setStep(2)}
-                        style={{ backgroundColor: rgba(brandRGB, canNextFromBranch ? 0.95 : 0.35), color: '#fff' }}>
+                        className="bg-primary text-primary-foreground disabled:opacity-40">
                         Elegir fecha <Icon icon="mdi:chevron-right" className="text-[18px]" />
                       </Button>
                     )}
                     {step === 2 && (
                       <Button isDisabled={!canNextFromDate} onPress={() => setStep(3)}
-                        style={{ backgroundColor: rgba(brandRGB, canNextFromDate ? 0.95 : 0.35), color: '#fff' }}>
+                        className="bg-primary text-primary-foreground disabled:opacity-40">
                         Elegir horario <Icon icon="mdi:chevron-right" className="text-[18px]" />
                       </Button>
                     )}
                     {step === 3 && (
                       <Button isDisabled={!canNextFromTime} onPress={() => setStep(4)}
-                        style={{ backgroundColor: rgba(brandRGB, canNextFromTime ? 0.95 : 0.35), color: '#fff' }}>
+                        className="bg-primary text-primary-foreground disabled:opacity-40">
                         Tus datos <Icon icon="mdi:chevron-right" className="text-[18px]" />
                       </Button>
                     )}
                     {step === 4 && (
                       <Button isDisabled={!canConfirm} onPress={confirmAppointment}
-                        startContent={<Icon icon="mdi:calendar-check" className="text-[18px]" />}
-                        style={{ backgroundColor: rgba(brandRGB, canConfirm ? 0.95 : 0.35), color: '#fff' }}>
+                        className="bg-primary text-primary-foreground disabled:opacity-40"
+                        startContent={<Icon icon="mdi:calendar-check" className="text-[18px]" />}>
                         Confirmar cita
                       </Button>
                     )}
@@ -1003,15 +1020,15 @@ export default function BookingModal({ open, onOpenChange, client, vehicle, prim
 function Field({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-medium">{label}</label>
+      <label className="text-xs font-medium text-gray-700 dark:text-gray-300">{label}</label>
       {children}
     </div>
   );
 }
 function SummaryRow({ icon, children }: { icon: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2">
-      <Icon icon={icon} className="text-[18px]" />
+    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+      <Icon icon={icon} className="text-[18px] text-gray-500 dark:text-gray-400" />
       <span className="truncate">{children}</span>
     </div>
   );

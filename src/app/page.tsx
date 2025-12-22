@@ -286,7 +286,7 @@ function TraditionalContent() {
         <WelcomeSection />
       </Suspense>
       <Suspense fallback={<GenericSkeleton />}>
-        <NewVehiclesSection />
+        <NewVehiclesSection minimal />
       </Suspense>
       <Suspense fallback={<GenericSkeleton />}>
         <HowToArrive />

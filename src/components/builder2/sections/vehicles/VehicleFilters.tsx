@@ -134,15 +134,15 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
         : availableItems;
 
     return (
-      <div className='mb-4 border-b border-gray-100 pb-4'>
+      <div className='mb-4 border-b border-slate-100 dark:border-neutral-800 pb-4'>
         <button
-          className='flex w-full items-center justify-between cursor-pointer transition-colors hover:bg-gray-50 p-2 rounded-md'
+          className='flex w-full items-center justify-between cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-neutral-800 p-2 rounded-md'
           onClick={() => toggleOpen()}
           type='button'
         >
           <div className='flex items-center gap-2'>
             {icon}
-            <span className='font-medium text-gray-800'>{title}</span>
+            <span className='font-medium text-gray-800 dark:text-white'>{title}</span>
             {selectedItems.length > 0 && (
               <Badge
                 variant='secondary'
@@ -153,16 +153,16 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
             )}
           </div>
           {isOpen ? (
-            <ChevronDown size={18} className='text-gray-600' />
+            <ChevronDown size={18} className='text-gray-600 dark:text-gray-400' />
           ) : (
-            <ChevronRight size={18} className='text-gray-600' />
+            <ChevronRight size={18} className='text-gray-600 dark:text-gray-400' />
           )}
         </button>
 
         {isOpen && (
           <div className='mt-3 pl-6 space-y-2 max-h-[200px] overflow-y-auto pr-2'>
             {(type === 'brand' || type === 'year' || type === 'type') && (
-              <div className='mb-2 sticky top-0 bg-white z-10'>
+              <div className='mb-2 sticky top-0 bg-white dark:bg-neutral-900 z-10'>
                 <Input
                   type='text'
                   placeholder={
@@ -174,7 +174,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                   }
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className='border-gray-300 mt-1 focus:ring-2 focus:ring-blue-200 text-xs py-1 px-2 rounded-md shadow-sm'
+                  className='border-slate-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white mt-1 focus:ring-2 focus:ring-blue-200 text-xs py-1 px-2 rounded-md shadow-sm'
                   autoComplete='off'
                 />
               </div>
@@ -182,7 +182,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
             {filteredItems.map((item) => (
               <div
                 key={item}
-                className='flex items-center gap-2 hover:bg-gray-50 p-1 rounded-md'
+                className='flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-neutral-800 p-1 rounded-md'
               >
                 <Checkbox
                   id={`${type}-${item}`}
@@ -192,7 +192,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                 />
                 <label
                   htmlFor={`${type}-${item}`}
-                  className='text-sm text-gray-700 cursor-pointer w-full'
+                  className='text-sm text-gray-700 dark:text-gray-300 cursor-pointer w-full'
                 >
                   {item}
                 </label>
@@ -211,11 +211,11 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
 
   return (
     <div className='w-full md:w-full lg:w-80 '>
-      <div className='bg-white rounded-lg shadow-sm border border-gray-100 p-4 sticky top-4'>
+      <div className='bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-neutral-800 p-4 sticky top-4'>
         <div className='flex justify-between items-center mb-4'>
           <div className='flex items-center gap-2'>
             <Filter size={16} />
-            <h3 className='text-lg font-semibold text-gray-800'>Filtros</h3>
+            <h3 className='text-lg font-semibold text-gray-800 dark:text-white'>Filtros</h3>
           </div>
           {hasActiveFilters && (
             <Button
@@ -331,20 +331,20 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
         )}
 
         {/* Price Range */}
-        <div className='mb-4 border-b border-gray-100 pb-4'>
+        <div className='mb-4 border-b border-slate-100 dark:border-neutral-800 pb-4'>
           <button
-            className='flex w-full items-center justify-between cursor-pointer transition-colors hover:bg-gray-50 p-2 rounded-md'
+            className='flex w-full items-center justify-between cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-neutral-800 p-2 rounded-md'
             onClick={() => setPriceRangeOpen(!priceRangeOpen)}
             type='button'
           >
             <div className='flex items-center gap-2'>
-              <Banknote size={18} />
-              <span className='font-medium text-gray-800'>Rango de Precio</span>
+              <Banknote size={18} className='dark:text-white' />
+              <span className='font-medium text-gray-800 dark:text-white'>Rango de Precio</span>
             </div>
             {priceRangeOpen ? (
-              <ChevronDown size={18} className='text-gray-600' />
+              <ChevronDown size={18} className='text-gray-600 dark:text-gray-400' />
             ) : (
-              <ChevronRight size={18} className='text-gray-600' />
+              <ChevronRight size={18} className='text-gray-600 dark:text-gray-400' />
             )}
           </button>
 
@@ -352,11 +352,11 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
             <div className='mt-3 px-4'>
               <div className='flex justify-between items-center gap-2 mb-3'>
                 {/* MIN */}
-                <div className='flex items-center bg-gray-100 rounded-lg px-3 py-2 w-32'>
-                  <span className='text-gray-500 text-sm mr-1'>$</span>
+                <div className='flex items-center bg-slate-100 dark:bg-neutral-800 rounded-lg px-3 py-2 w-32'>
+                  <span className='text-gray-500 dark:text-gray-400 text-sm mr-1'>$</span>
                   <input
                     type='text'
-                    className='bg-transparent border-none outline-none w-full text-sm text-gray-900 text-center'
+                    className='bg-transparent border-none outline-none w-full text-sm text-gray-900 dark:text-white text-center'
                     value={formatPrice(priceRange.min).replace('$', '').trim()}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
@@ -384,14 +384,14 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                   />
                 </div>
 
-                <span className='text-gray-400 text-lg font-bold'>-</span>
+                <span className='text-gray-400 dark:text-gray-500 text-lg font-bold'>-</span>
 
                 {/* MAX */}
-                <div className='flex items-center bg-gray-100 rounded-lg px-3 py-2 w-32'>
-                  <span className='text-gray-500 text-sm mr-1'>$</span>
+                <div className='flex items-center bg-slate-100 dark:bg-neutral-800 rounded-lg px-3 py-2 w-32'>
+                  <span className='text-gray-500 dark:text-gray-400 text-sm mr-1'>$</span>
                   <input
                     type='text'
-                    className='bg-transparent border-none outline-none w-full text-sm text-gray-900 text-center'
+                    className='bg-transparent border-none outline-none w-full text-sm text-gray-900 dark:text-white text-center'
                     value={formatPrice(priceRange.max).replace('$', '').trim()}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
@@ -430,7 +430,7 @@ export const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                 }}
                 className='my-2'
               />
-              <div className='flex justify-between mt-1 text-sm text-gray-500'>
+              <div className='flex justify-between mt-1 text-sm text-gray-500 dark:text-gray-400'>
                 <span>{formatPrice(priceRange.min)}</span>
                 <span>{formatPrice(priceRange.max)}</span>
               </div>
