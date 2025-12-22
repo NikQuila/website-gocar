@@ -154,8 +154,7 @@ const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardPro
   if (isNew()) leftChips = addUnique(leftChips, 'Recién llegado');
   backendArrays.forEach((a) => a.forEach((v) => addUnique(leftChips, v)));
   if (promoBadgeText) leftChips = leftChips.filter((c) => c.toLowerCase() !== promoBadgeText.toLowerCase());
-  leftChips = leftChips.slice(0, 4);
-
+  
   return (
     <div
       role={!isUnavailable ? 'button' : undefined}
@@ -200,9 +199,9 @@ const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardPro
 
           {/* Tags minimalistas en esquina superior izquierda */}
           {(promoBadgeText || leftChips.length > 0) && (
-            <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5">
+            <div className="absolute top-2.5 left-2.5 right-2.5 z-20 flex flex-wrap items-start gap-1.5">
               {promoBadgeText && <Tag text={promoBadgeText} primary />}
-              {leftChips.slice(0, 1).map((txt, i) => (
+              {leftChips.map((txt, i) => (
                 <Tag key={i} text={txt} />
               ))}
             </div>
