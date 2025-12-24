@@ -260,11 +260,6 @@ const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardPro
               )}
             </div>
 
-            {isUnavailable && (
-              <span className="px-3 py-1.5 rounded-full text-[12px] font-semibold bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900">
-                No disponible
-              </span>
-            )}
           </div>
         </CardFooter>
       </Card>
