@@ -49,7 +49,7 @@ export async function middleware(request: NextRequest) {
   try {
     const { data: client } = (await supabase
       .from('clients')
-      .select(isCrawler ? '*' : 'id, name, logo, favicon, seo')
+      .select('id, name, logo, favicon, seo, domain')
       .eq('domain', hostname)
       .single()) as { data: Client | null };
 
