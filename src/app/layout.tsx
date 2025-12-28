@@ -21,9 +21,10 @@ const poppins = Poppins({
 
 export async function generateMetadata() {
   const client = await getClient();
-  console.log('client señores', client);
+  const domain = client?.domain ? `https://${client.domain}` : undefined;
 
   return {
+    metadataBase: domain ? new URL(domain) : undefined,
     title: client?.seo?.title || 'Automotora',
     description: client?.seo?.description || 'Descripción por defecto',
     icons: {
