@@ -1,5 +1,5 @@
 import { getVehicleById } from '@/lib/vehicles';
-import { getClient } from '@/hooks/useClient';
+import { headers } from 'next/headers';
 import { Metadata } from 'next';
 import VehicleDetailsPageClient from './VehicleDetailsPageClient';
 
@@ -9,10 +9,10 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const [vehicle, client] = await Promise.all([
-    getVehicleById(id),
-    getClient(),
-  ]);
+  const headersList = await headers();
+  const host = headersList.get('host') || headersList.get('x-forwarded-host') || '';
+
+  const vehicle = await getVehicleById(id);
 
   if (!vehicle) {
     return {
@@ -24,8 +24,8 @@ export async function generateMetadata({
   const newTitle = `${vehicle.brand?.name || ''} ${vehicle.model?.name || ''} ${vehicle.year || ''}`.trim();
   const description = vehicle.description || `${newTitle} disponible`;
 
-  const domain = client?.domain ? `https://${client.domain}` : '';
-  const ogImageUrl = domain ? `${domain}/vehicles/${id}/opengraph-image` : undefined;
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  const ogImageUrl = host ? `${protocol}://${host}/vehicles/${id}/opengraph-image` : undefined;
 
   return {
     title: newTitle,
