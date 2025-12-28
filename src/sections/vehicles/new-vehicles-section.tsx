@@ -221,8 +221,10 @@ const YEAR_PATTERNS = [
 
 // Patrones para kilometraje
 const MILEAGE_PATTERNS = [
-  // "menos de 50000 km", "bajo 50 mil km"
-  { regex: /(?:menos de|bajo|hasta|max)\s*(\d+(?:[.,]?\d+)?)\s*(?:mil)?\s*(?:km|kilometros?)/i, type: 'max' as const },
+  // "menos de 50000 km", "bajo 50 mil km", "con menos de 30.000km"
+  { regex: /(?:con\s+)?(?:menos de|bajo|hasta|max(?:imo)?)\s*(\d+(?:[.,]\d{3})*(?:[.,]\d+)?)\s*(?:mil)?\s*(?:km|kilometros?|kms?)/i, type: 'max' as const },
+  // "más de 100.000 km", "sobre 50 mil km"
+  { regex: /(?:mas de|sobre|desde|min(?:imo)?)\s*(\d+(?:[.,]\d{3})*(?:[.,]\d+)?)\s*(?:mil)?\s*(?:km|kilometros?|kms?)/i, type: 'min' as const },
   // "pocos km", "bajo kilometraje"
   { regex: /\b(?:pocos?\s*km|bajo\s*kilometraje|poco\s*uso|poco\s*recorrido)\b/i, type: 'low' as const },
 ];
@@ -292,13 +294,17 @@ const extractNumericFilters = (query: string): { filters: NumericFilter[], clean
       if (pattern.type === 'low') {
         // "pocos km" = menos de 50000 km
         filters.push({ type: 'mileage', max: 50000 });
-      } else if (pattern.type === 'max' && match[1]) {
+      } else if ((pattern.type === 'max' || pattern.type === 'min') && match[1]) {
         let val = parseFloat(match[1].replace(/[.,]/g, ''));
         // Si tiene "mil" o es menor a 1000, multiplicar
         if (match[0].toLowerCase().includes('mil') || val < 1000) {
           val *= 1000;
         }
-        filters.push({ type: 'mileage', max: val });
+        if (pattern.type === 'max') {
+          filters.push({ type: 'mileage', max: val });
+        } else {
+          filters.push({ type: 'mileage', min: val });
+        }
       }
       cleanedQuery = cleanedQuery.replace(match[0], ' ');
     }
@@ -829,11 +835,12 @@ const smartSearch = (vehicles: Vehicle[], query: string): Vehicle[] => {
   // PASO 0: Extraer términos negativos
   const { negativeTerms, cleanedQuery: queryWithoutNegatives } = extractNegativeTerms(query);
 
-  // PASO 0.5: Extraer búsqueda por características
-  const { features, cleanedQuery: queryWithoutFeatures } = extractFeatureSearch(queryWithoutNegatives);
+  // PASO 1: Extraer filtros numéricos PRIMERO (precio, año, kilometraje)
+  // Esto debe ir antes de features para que "con menos de 30.000km" se procese correctamente
+  const { filters: numericFilters, cleanedQuery: queryWithoutNumeric } = extractNumericFilters(queryWithoutNegatives);
 
-  // PASO 1: Extraer filtros numéricos (precio, año, kilometraje)
-  const { filters: numericFilters, cleanedQuery } = extractNumericFilters(queryWithoutFeatures);
+  // PASO 2: Extraer búsqueda por características
+  const { features, cleanedQuery } = extractFeatureSearch(queryWithoutNumeric);
 
   // Pre-filtrar por filtros numéricos
   let filteredVehicles = vehicles;
