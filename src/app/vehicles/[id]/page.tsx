@@ -24,9 +24,8 @@ export async function generateMetadata({
   const newTitle = `${vehicle.brand?.name || ''} ${vehicle.model?.name || ''} ${vehicle.year || ''}`.trim();
   const description = vehicle.description || `${newTitle} disponible`;
 
-  // Usar imagen original del vehículo directamente
-  // La API /api/og/[id] sigue disponible como fallback
-  const ogImageUrl = vehicle.main_image || (host ? `https://${host}/api/og/${id}` : undefined);
+  // Usar API /api/og/ que genera imagen optimizada en Vercel (más estable que Supabase)
+  const ogImageUrl = host ? `https://${host}/api/og/${id}` : vehicle.main_image;
 
   return {
     title: newTitle,
