@@ -24,8 +24,9 @@ export async function generateMetadata({
   const newTitle = `${vehicle.brand?.name || ''} ${vehicle.model?.name || ''} ${vehicle.year || ''}`.trim();
   const description = vehicle.description || `${newTitle} disponible`;
 
-  const protocol = host.includes('localhost') ? 'http' : 'https';
-  const ogImageUrl = host ? `${protocol}://${host}/api/og/${id}` : undefined;
+  // Usar imagen original del vehículo directamente
+  // La API /api/og/[id] sigue disponible como fallback
+  const ogImageUrl = vehicle.main_image || (host ? `https://${host}/api/og/${id}` : undefined);
 
   return {
     title: newTitle,
@@ -34,20 +35,18 @@ export async function generateMetadata({
       title: newTitle,
       description,
       type: 'article',
-      ...(ogImageUrl && {
-        images: [{
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: newTitle,
-        }],
-      }),
+      images: ogImageUrl ? [{
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+        alt: newTitle,
+      }] : [],
     },
     twitter: {
       card: 'summary_large_image',
       title: newTitle,
       description,
-      ...(ogImageUrl && { images: [ogImageUrl] }),
+      images: ogImageUrl ? [ogImageUrl] : [],
     },
   };
 }
