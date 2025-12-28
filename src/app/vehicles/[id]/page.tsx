@@ -25,7 +25,7 @@ export async function generateMetadata({
   const description = vehicle.description || `${newTitle} disponible`;
 
   const protocol = host.includes('localhost') ? 'http' : 'https';
-  const ogImageUrl = host ? `${protocol}://${host}/vehicles/${id}/opengraph-image` : undefined;
+  const ogImageUrl = host ? `${protocol}://${host}/api/og/${id}` : undefined;
 
   return {
     title: newTitle,

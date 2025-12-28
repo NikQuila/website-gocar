@@ -1,35 +1,25 @@
 import { ImageResponse } from 'next/og';
+import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
-export const alt = 'Imagen del vehículo';
-export const size = {
-  width: 1200,
-  height: 630,
-};
-export const contentType = 'image/png';
 
 async function getVehicle(id: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
 
-  if (!supabaseUrl || !supabaseKey) {
-    return null;
-  }
+  if (!supabaseUrl || !supabaseKey) return null;
 
   try {
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/vehicles?id=eq.${id}&select=*,brand:brand_id(name),model:model_id(name),fuel_type:fuel_type_id(name)`,
+      `${supabaseUrl}/rest/v1/vehicles?id=eq.${id}&select=*,brand:brand_id(name),model:model_id(name)`,
       {
         headers: {
           apikey: supabaseKey,
           Authorization: `Bearer ${supabaseKey}`,
         },
-        next: { revalidate: 60 },
       }
     );
-
     if (!response.ok) return null;
-
     const data = await response.json();
     return data?.[0] || null;
   } catch {
@@ -37,10 +27,15 @@ async function getVehicle(id: string) {
   }
 }
 
-export default async function Image({ params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const vehicle = await getVehicle(params.id);
 
-  // Fallback si no hay vehículo
+  const width = 1200;
+  const height = 630;
+
   if (!vehicle) {
     return new ImageResponse(
       (
@@ -59,7 +54,7 @@ export default async function Image({ params }: { params: { id: string } }) {
           Vehículo no disponible
         </div>
       ),
-      { ...size }
+      { width, height }
     );
   }
 
@@ -69,11 +64,9 @@ export default async function Image({ params }: { params: { id: string } }) {
         style: 'currency',
         currency: 'CLP',
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
       }).format(vehicle.price)
     : '';
 
-  // Si hay imagen, usarla como fondo
   if (vehicle.main_image) {
     return new ImageResponse(
       (
@@ -118,43 +111,17 @@ export default async function Image({ params }: { params: { id: string } }) {
               gap: 8,
             }}
           >
-            <div
-              style={{
-                fontSize: 52,
-                fontWeight: 700,
-                color: 'white',
-                display: 'flex',
-              }}
-            >
+            <div style={{ fontSize: 52, fontWeight: 700, color: 'white', display: 'flex' }}>
               {title}
             </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 24,
-              }}
-            >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
               {price && (
-                <div
-                  style={{
-                    fontSize: 40,
-                    fontWeight: 700,
-                    color: '#22c55e',
-                    display: 'flex',
-                  }}
-                >
+                <div style={{ fontSize: 40, fontWeight: 700, color: '#22c55e', display: 'flex' }}>
                   {price}
                 </div>
               )}
               {vehicle.mileage && (
-                <div
-                  style={{
-                    fontSize: 26,
-                    color: '#e5e5e5',
-                    display: 'flex',
-                  }}
-                >
+                <div style={{ fontSize: 26, color: '#e5e5e5', display: 'flex' }}>
                   {Number(vehicle.mileage).toLocaleString('es-CL')} km
                 </div>
               )}
@@ -162,11 +129,10 @@ export default async function Image({ params }: { params: { id: string } }) {
           </div>
         </div>
       ),
-      { ...size }
+      { width, height }
     );
   }
 
-  // Sin imagen - solo texto
   return new ImageResponse(
     (
       <div
@@ -179,7 +145,6 @@ export default async function Image({ params }: { params: { id: string } }) {
           justifyContent: 'center',
           backgroundColor: '#1a1a2e',
           color: 'white',
-          padding: 50,
         }}
       >
         <div style={{ fontSize: 56, fontWeight: 700, display: 'flex' }}>{title}</div>
@@ -190,6 +155,6 @@ export default async function Image({ params }: { params: { id: string } }) {
         )}
       </div>
     ),
-    { ...size }
+    { width, height }
   );
 }
