@@ -39,20 +39,14 @@ import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 // ============================================
-// MOTOR DE BÚSQUEDA INTELIGENTE v4.0 PRO+
+// MOTOR DE BÚSQUEDA INTELIGENTE v6.0 - IA + LOCAL
 // ============================================
-// Features:
-// - Fuzzy matching (tolera errores de tipeo)
-// - Detección de rangos de precio en lenguaje natural
-// - Detección de rangos de año
-// - Detección de kilometraje
-// - Expansión inteligente de términos
-// - Sinónimos contextuales
-// - Búsqueda negativa (excluir términos)
-// - Búsqueda por características
-// - Autocompletado inteligente
-// - Sugerencias de búsqueda
+// - Usa IA (GPT) para parsear búsquedas en lenguaje natural
+// - Fallback local para búsqueda básica de texto
+// - Cache inteligente para reducir llamadas API
 // ============================================
+
+import { parseSearchQuery } from '@/lib/ai-search';
 
 // Normalizar texto (quitar acentos, minúsculas)
 const normalizeText = (text: string): string => {
@@ -65,831 +59,165 @@ const normalizeText = (text: string): string => {
     .trim();
 };
 
-// ============================================
-// FUZZY MATCHING - Distancia de Levenshtein
-// ============================================
-const levenshteinDistance = (str1: string, str2: string): number => {
-  const m = str1.length;
-  const n = str2.length;
-
-  if (m === 0) return n;
-  if (n === 0) return m;
-
-  const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
-
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
-      dp[i][j] = Math.min(
-        dp[i - 1][j] + 1,      // deletion
-        dp[i][j - 1] + 1,      // insertion
-        dp[i - 1][j - 1] + cost // substitution
-      );
-    }
-  }
-
-  return dp[m][n];
-};
-
-// Calcular similaridad (0-1) basada en distancia de Levenshtein
-const calculateSimilarity = (str1: string, str2: string): number => {
-  const maxLen = Math.max(str1.length, str2.length);
-  if (maxLen === 0) return 1;
-  const distance = levenshteinDistance(str1, str2);
-  return 1 - distance / maxLen;
-};
-
-// Verificar si dos strings son similares (fuzzy match)
-const isFuzzyMatch = (str1: string, str2: string, threshold = 0.75): boolean => {
-  const n1 = normalizeText(str1);
-  const n2 = normalizeText(str2);
-
-  // Match exacto
-  if (n1 === n2) return true;
-
-  // Si uno contiene al otro
-  if (n1.includes(n2) || n2.includes(n1)) return true;
-
-  // Fuzzy match solo para términos de 4+ caracteres
-  if (n1.length >= 4 && n2.length >= 4) {
-    return calculateSimilarity(n1, n2) >= threshold;
-  }
-
-  return false;
-};
-
-// ============================================
-// MARCAS DE AUTOS - Para fuzzy matching
-// ============================================
-const KNOWN_BRANDS = [
-  'toyota', 'honda', 'nissan', 'mazda', 'hyundai', 'kia', 'chevrolet', 'ford',
-  'volkswagen', 'audi', 'bmw', 'mercedes', 'mercedesbenz', 'jeep', 'suzuki',
-  'mitsubishi', 'subaru', 'lexus', 'porsche', 'ferrari', 'lamborghini', 'volvo',
-  'peugeot', 'renault', 'citroen', 'fiat', 'alfa romeo', 'seat', 'skoda',
-  'land rover', 'range rover', 'jaguar', 'mini', 'smart', 'tesla', 'byd',
-  'chery', 'geely', 'great wall', 'haval', 'jac', 'mg', 'changan', 'dfsk',
-  'ssangyong', 'mahindra', 'tata', 'dacia', 'opel', 'saab', 'lancia',
-  'chrysler', 'dodge', 'ram', 'cadillac', 'buick', 'gmc', 'lincoln', 'acura',
-  'infiniti', 'genesis', 'maserati', 'bentley', 'rolls royce', 'aston martin'
-];
-
-// Corrección de errores comunes de tipeo en marcas
-const BRAND_CORRECTIONS: Record<string, string> = {
-  'toyta': 'toyota', 'toyoya': 'toyota', 'totoya': 'toyota', 'tyota': 'toyota',
-  'hynday': 'hyundai', 'hundai': 'hyundai', 'hyunday': 'hyundai', 'hiundai': 'hyundai',
-  'volksvagen': 'volkswagen', 'wolkswagen': 'volkswagen', 'volkswaguen': 'volkswagen', 'vw': 'volkswagen',
-  'chevroled': 'chevrolet', 'chebrolet': 'chevrolet', 'chevi': 'chevrolet', 'chevy': 'chevrolet',
-  'merzedes': 'mercedes', 'mercedez': 'mercedes', 'mersedes': 'mercedes',
-  'porshe': 'porsche', 'porche': 'porsche',
-  'lamborgini': 'lamborghini', 'lamborgihni': 'lamborghini',
-  'mitsubichi': 'mitsubishi', 'mitsubisi': 'mitsubishi',
-  'peguot': 'peugeot', 'peugeout': 'peugeot',
-  'renaut': 'renault', 'reno': 'renault',
-  'citreon': 'citroen', 'sitrohen': 'citroen',
-  'suzuky': 'suzuki', 'susuki': 'suzuki',
-  'bwm': 'bmw', 'bmv': 'bmw',
-  'nisan': 'nissan', 'nissa': 'nissan',
-  'masda': 'mazda', 'mazdaa': 'mazda',
-  'kya': 'kia',
-  'jepp': 'jeep', 'jip': 'jeep',
-  'forde': 'ford',
-  'audy': 'audi', 'aidy': 'audi',
-};
-
-// Encontrar la mejor marca coincidente
-const findBestBrandMatch = (term: string): string | null => {
-  const normalized = normalizeText(term);
-
-  // Primero verificar correcciones directas
-  if (BRAND_CORRECTIONS[normalized]) {
-    return BRAND_CORRECTIONS[normalized];
-  }
-
-  // Buscar en marcas conocidas con fuzzy matching
-  for (const brand of KNOWN_BRANDS) {
-    if (isFuzzyMatch(normalized, brand, 0.8)) {
-      return brand;
-    }
-  }
-
-  return null;
-};
-
-// ============================================
-// DETECCIÓN DE RANGOS NUMÉRICOS
-// ============================================
-interface NumericFilter {
-  type: 'price' | 'year' | 'mileage';
-  min?: number;
-  max?: number;
+// Interfaz para filtros parseados por IA
+interface AIFilters {
+  brand?: string;
+  model?: string;
+  category?: string;
+  yearMin?: number;
+  yearMax?: number;
+  priceMin?: number;
+  priceMax?: number;
+  mileageMin?: number;
+  mileageMax?: number;
+  fuelType?: string;
+  transmission?: string;
+  color?: string;
+  features?: string[];
+  searchTerms?: string[];
 }
 
-// Patrones para detectar rangos de precio
-const PRICE_PATTERNS = [
-  // "bajo X millones", "menos de X millones"
-  { regex: /(?:bajo|menos de|menor a|hasta|max|maximo)\s*(\d+(?:[.,]\d+)?)\s*(?:millones?|mill?|palos?|m)/i, type: 'max' as const },
-  // "sobre X millones", "más de X millones"
-  { regex: /(?:sobre|mas de|mayor a|desde|min|minimo)\s*(\d+(?:[.,]\d+)?)\s*(?:millones?|mill?|palos?|m)/i, type: 'min' as const },
-  // "entre X y Y millones"
-  { regex: /entre\s*(\d+(?:[.,]\d+)?)\s*(?:y|a|-)\s*(\d+(?:[.,]\d+)?)\s*(?:millones?|mill?|palos?|m)?/i, type: 'range' as const },
-  // "X a Y millones"
-  { regex: /(\d+(?:[.,]\d+)?)\s*(?:a|-)\s*(\d+(?:[.,]\d+)?)\s*(?:millones?|mill?|palos?|m)/i, type: 'range' as const },
-  // Solo número + millones (interpretado como máximo)
-  { regex: /(\d+(?:[.,]\d+)?)\s*(?:millones?|mill?|palos?)/i, type: 'max' as const },
-  // "barato" = bajo precio
-  { regex: /\b(?:barato|baratos?|economico|economica)\b/i, type: 'cheap' as const },
-];
-
-// Patrones para detectar años
-const YEAR_PATTERNS = [
-  // "2020 o más nuevo", "del 2020 en adelante"
-  { regex: /(?:del?\s*)?(\d{4})\s*(?:o\s*mas\s*nuevo|en\s*adelante|o\s*superior|para\s*arriba|\+)/i, type: 'min' as const },
-  // "hasta 2020", "2020 o más antiguo"
-  { regex: /(?:hasta|max|maximo)\s*(\d{4})|(\d{4})\s*(?:o\s*mas\s*antiguo|para\s*abajo|o\s*anterior)/i, type: 'max' as const },
-  // "entre 2018 y 2022"
-  { regex: /(?:entre|del?)\s*(\d{4})\s*(?:y|a|-|al?)\s*(\d{4})/i, type: 'range' as const },
-  // "año 2020", "del 2020"
-  { regex: /(?:ano|year|del?)\s*(\d{4})/i, type: 'exact' as const },
-  // Solo un año (4 dígitos entre 1990-2030)
-  { regex: /\b((?:19|20)\d{2})\b/i, type: 'exact' as const },
-  // "nuevo" = últimos 3 años
-  { regex: /\b(?:nuevo|nueva|reciente|recientes|ultimo modelo)\b/i, type: 'recent' as const },
-];
-
-// Patrones para kilometraje
-const MILEAGE_PATTERNS = [
-  // "menos de 50000 km", "bajo 50 mil km", "con menos de 30.000km"
-  { regex: /(?:con\s+)?(?:menos de|bajo|hasta|max(?:imo)?)\s*(\d+(?:[.,]\d{3})*(?:[.,]\d+)?)\s*(?:mil)?\s*(?:km|kilometros?|kms?)/i, type: 'max' as const },
-  // "más de 100.000 km", "sobre 50 mil km"
-  { regex: /(?:mas de|sobre|desde|min(?:imo)?)\s*(\d+(?:[.,]\d{3})*(?:[.,]\d+)?)\s*(?:mil)?\s*(?:km|kilometros?|kms?)/i, type: 'min' as const },
-  // "pocos km", "bajo kilometraje"
-  { regex: /\b(?:pocos?\s*km|bajo\s*kilometraje|poco\s*uso|poco\s*recorrido)\b/i, type: 'low' as const },
-];
-
-// Extraer filtros numéricos del query
-const extractNumericFilters = (query: string): { filters: NumericFilter[], cleanedQuery: string } => {
-  const filters: NumericFilter[] = [];
-  let cleanedQuery = query;
-  const currentYear = new Date().getFullYear();
-
-  // Procesar precios
-  for (const pattern of PRICE_PATTERNS) {
-    const match = cleanedQuery.match(pattern.regex);
-    if (match) {
-      if (pattern.type === 'cheap') {
-        // "barato" = menos de 12 millones
-        filters.push({ type: 'price', max: 12000000 });
-      } else if (pattern.type === 'range' && match[1] && match[2]) {
-        const val1 = parseFloat(match[1].replace(',', '.')) * 1000000;
-        const val2 = parseFloat(match[2].replace(',', '.')) * 1000000;
-        filters.push({ type: 'price', min: Math.min(val1, val2), max: Math.max(val1, val2) });
-      } else if (pattern.type === 'max' && match[1]) {
-        const val = parseFloat(match[1].replace(',', '.')) * 1000000;
-        filters.push({ type: 'price', max: val });
-      } else if (pattern.type === 'min' && match[1]) {
-        const val = parseFloat(match[1].replace(',', '.')) * 1000000;
-        filters.push({ type: 'price', min: val });
-      }
-      cleanedQuery = cleanedQuery.replace(match[0], ' ');
-    }
-  }
-
-  // Procesar años
-  for (const pattern of YEAR_PATTERNS) {
-    const match = cleanedQuery.match(pattern.regex);
-    if (match) {
-      if (pattern.type === 'recent') {
-        // "nuevo" = últimos 3 años
-        filters.push({ type: 'year', min: currentYear - 3 });
-      } else if (pattern.type === 'range' && match[1] && match[2]) {
-        const y1 = parseInt(match[1]);
-        const y2 = parseInt(match[2]);
-        filters.push({ type: 'year', min: Math.min(y1, y2), max: Math.max(y1, y2) });
-      } else if (pattern.type === 'min' && match[1]) {
-        filters.push({ type: 'year', min: parseInt(match[1]) });
-      } else if (pattern.type === 'max') {
-        const year = match[1] ? parseInt(match[1]) : match[2] ? parseInt(match[2]) : null;
-        if (year) filters.push({ type: 'year', max: year });
-      } else if (pattern.type === 'exact' && match[1]) {
-        const year = parseInt(match[1]);
-        // Solo considerar si es un año razonable
-        if (year >= 1990 && year <= currentYear + 1) {
-          filters.push({ type: 'year', min: year, max: year });
-          cleanedQuery = cleanedQuery.replace(match[0], ' ');
-        }
-      }
-      if (pattern.type !== 'exact') {
-        cleanedQuery = cleanedQuery.replace(match[0], ' ');
-      }
-    }
-  }
-
-  // Procesar kilometraje
-  for (const pattern of MILEAGE_PATTERNS) {
-    const match = cleanedQuery.match(pattern.regex);
-    if (match) {
-      if (pattern.type === 'low') {
-        // "pocos km" = menos de 50000 km
-        filters.push({ type: 'mileage', max: 50000 });
-      } else if ((pattern.type === 'max' || pattern.type === 'min') && match[1]) {
-        let val = parseFloat(match[1].replace(/[.,]/g, ''));
-        // Si tiene "mil" o es menor a 1000, multiplicar
-        if (match[0].toLowerCase().includes('mil') || val < 1000) {
-          val *= 1000;
-        }
-        if (pattern.type === 'max') {
-          filters.push({ type: 'mileage', max: val });
-        } else {
-          filters.push({ type: 'mileage', min: val });
-        }
-      }
-      cleanedQuery = cleanedQuery.replace(match[0], ' ');
-    }
-  }
-
-  return { filters, cleanedQuery: cleanedQuery.replace(/\s+/g, ' ').trim() };
-};
-
-// Verificar si un vehículo cumple con los filtros numéricos
-const vehicleMatchesNumericFilters = (vehicle: Vehicle, filters: NumericFilter[]): boolean => {
-  for (const filter of filters) {
-    if (filter.type === 'price') {
-      const price = vehicle.price || 0;
-      if (filter.min !== undefined && price < filter.min) return false;
-      if (filter.max !== undefined && price > filter.max) return false;
-    } else if (filter.type === 'year') {
-      const year = vehicle.year || 0;
-      if (filter.min !== undefined && year < filter.min) return false;
-      if (filter.max !== undefined && year > filter.max) return false;
-    } else if (filter.type === 'mileage') {
-      const mileage = vehicle.mileage || 0;
-      if (filter.min !== undefined && mileage < filter.min) return false;
-      if (filter.max !== undefined && mileage > filter.max) return false;
-    }
-  }
-  return true;
-};
-
-// Stopwords - palabras comunes que no aportan a la búsqueda
-const STOPWORDS = new Set([
-  'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas',
-  'de', 'del', 'a', 'al', 'en', 'con', 'por', 'para', 'sin', 'sobre', 'entre', 'hacia',
-  'busco', 'buscar', 'quiero', 'querer', 'necesito', 'necesitar', 'estoy', 'buscando',
-  'me', 'interesa', 'gustaria', 'quisiera', 'deseo', 'encuentren', 'muestren', 'muestrame',
-  'dame', 'ver', 'mostrar', 'encontrar',
-  'y', 'o', 'e', 'u', 'que', 'como', 'pero', 'si', 'no', 'mas', 'muy', 'tan', 'algo',
-  'buen', 'buena', 'bueno', 'buenos', 'buenas', 'mejor', 'mejores', 'bonito', 'bonita',
-  'lindo', 'linda', 'bien', 'ideal', 'perfecto', 'perfecta', 'excelente',
-  'tipo', 'estilo', 'clase', 'version',
-  'tengan', 'tenga', 'sea', 'sean', 'este', 'esta', 'esten',
-  'hay', 'tienen', 'tiene', 'tener', 'ser', 'estar',
-]);
-
-// Términos que se expanden a múltiples categorías/valores
-const TERM_EXPANSIONS: Record<string, string[]> = {
-  // "Camioneta" en Chile/Latam puede ser SUV o Pickup
-  'camioneta': ['suv', 'pickup', 'crossover', '4x4'],
-  'camionetas': ['suv', 'pickup', 'crossover', '4x4'],
-  'suv': ['suv', 'crossover'],
-  // "Auto" puede ser cualquier vehículo de pasajeros
-  'auto': ['sedan', 'hatchback', 'coupe'],
-  'autos': ['sedan', 'hatchback', 'coupe'],
-  'carro': ['sedan', 'hatchback', 'coupe', 'suv'],
-  'carros': ['sedan', 'hatchback', 'coupe', 'suv'],
-  'vehiculo': ['sedan', 'hatchback', 'coupe', 'suv', 'pickup'],
-  // "Económico" se refiere a bajo consumo
-  'economico': ['hatchback', 'sedan', 'hibrido', 'electrico'],
-  'economica': ['hatchback', 'sedan', 'hibrido', 'electrico'],
-  'rendidor': ['hatchback', 'sedan', 'hibrido', 'electrico'],
-  'eficiente': ['hibrido', 'electrico'],
-  // "Familiar" puede ser wagon, SUV o van
-  'familiar': ['wagon', 'suv', 'van', 'crossover'],
-  'familiares': ['wagon', 'suv', 'van', 'crossover'],
-  'familia': ['wagon', 'suv', 'van', 'crossover'],
-  'espacioso': ['suv', 'van', 'wagon'],
-  'amplio': ['suv', 'van', 'wagon'],
-  // "Grande" se refiere a SUV, pickup, van
-  'grande': ['suv', 'pickup', 'van'],
-  'grandes': ['suv', 'pickup', 'van'],
-  // "Pequeño/Chico" se refiere a hatchback, sedan compacto
-  'pequeno': ['hatchback', 'citycar'],
-  'pequena': ['hatchback', 'citycar'],
-  'chico': ['hatchback', 'citycar'],
-  'chica': ['hatchback', 'citycar'],
-  'compacto': ['hatchback', 'citycar'],
-  'compacta': ['hatchback', 'citycar'],
-  'city': ['hatchback', 'citycar'],
-  // "Deportivo"
-  'deportivo': ['coupe', 'sport', 'gt'],
-  'deportiva': ['coupe', 'sport', 'gt'],
-  'rapido': ['coupe', 'sport', 'gt'],
-  'potente': ['coupe', 'sport', 'gt', 'suv'],
-  // "4x4" puede ser SUV o Pickup
-  '4x4': ['suv', 'pickup', 'crossover'],
-  'todoterreno': ['suv', 'pickup'],
-  'offroad': ['suv', 'pickup'],
-  'aventura': ['suv', 'pickup'],
-  // Trabajo/carga
-  'trabajo': ['pickup', 'van', 'furgon'],
-  'carga': ['pickup', 'van', 'furgon'],
-  'comercial': ['pickup', 'van', 'furgon'],
-  // Combustible
-  'electrico': ['electrico', 'ev', 'electric'],
-  'eco': ['hibrido', 'electrico'],
-  'verde': ['hibrido', 'electrico'],
-  'gasolina': ['bencina', 'gasolina', 'nafta'],
-  'nafta': ['bencina', 'gasolina', 'nafta'],
-  // Transmisión
-  'automatica': ['automatico', 'automatic', 'cvt', 'tiptronic', 'at'],
-  'mecanico': ['manual', 'mecanico', 'mt'],
-  // Lujo
-  'lujo': ['premium', 'luxury'],
-  'premium': ['premium', 'luxury', 'full'],
-  'full': ['full', 'full equipo', 'equipado'],
-  'equipado': ['full', 'full equipo', 'equipado'],
-};
-
-// Mapeo de términos coloquiales a valores de BD
-const TERM_TO_DB_VALUES: Record<string, string[]> = {
-  // Categorías (nombres exactos que podrían estar en la BD)
-  'suv': ['SUV', 'Suv', 'suv', 'CROSSOVER', 'Crossover', 'crossover'],
-  'crossover': ['SUV', 'Suv', 'suv', 'CROSSOVER', 'Crossover', 'crossover'],
-  'sedan': ['Sedan', 'SEDAN', 'sedan', 'Sedán'],
-  'hatchback': ['Hatchback', 'HATCHBACK', 'hatchback'],
-  'citycar': ['Hatchback', 'HATCHBACK', 'hatchback', 'City Car'],
-  'pickup': ['Pickup', 'PICKUP', 'pickup', 'Pick-up', 'Pick Up', 'Camioneta'],
-  'van': ['Van', 'VAN', 'van', 'Minivan', 'MINIVAN'],
-  'coupe': ['Coupe', 'COUPE', 'coupe', 'Coupé'],
-  'wagon': ['Wagon', 'WAGON', 'wagon', 'Station Wagon'],
-  'furgon': ['Furgón', 'Furgon', 'FURGON', 'Van'],
-  // Condiciones
-  'nuevo': ['Nuevo', 'NUEVO', 'nuevo', 'New', '0 km', '0km'],
-  'seminuevo': ['Seminuevo', 'SEMINUEVO', 'seminuevo', 'Semi-nuevo', 'Semi Nuevo'],
-  'usado': ['Usado', 'USADO', 'usado', 'Used'],
-  // Transmisión
-  'automatico': ['Automático', 'Automatico', 'AUTOMATICO', 'Automatic', 'automatica', 'Automática', 'CVT', 'Tiptronic', 'AT'],
-  'manual': ['Manual', 'MANUAL', 'manual', 'Mecánico', 'Mecanico', 'MT'],
-  // Combustible
-  'bencina': ['Bencina', 'BENCINA', 'bencina', 'Gasolina', 'GASOLINA', 'Nafta'],
-  'diesel': ['Diesel', 'DIESEL', 'diesel', 'Diésel', 'Petrolero'],
-  'electrico': ['Eléctrico', 'Electrico', 'ELECTRICO', 'Electric', 'EV'],
-  'hibrido': ['Híbrido', 'Hibrido', 'HIBRIDO', 'Hybrid', 'PHEV', 'HEV'],
-  'gnc': ['GNC', 'Gas', 'GLP'],
-  // Colores
-  'blanco': ['Blanco', 'BLANCO', 'blanco', 'White', 'Perla', 'Perlado'],
-  'negro': ['Negro', 'NEGRO', 'negro', 'Black'],
-  'gris': ['Gris', 'GRIS', 'gris', 'Plata', 'Plateado', 'Silver', 'Grey', 'Gray'],
-  'plata': ['Gris', 'GRIS', 'gris', 'Plata', 'Plateado', 'Silver'],
-  'rojo': ['Rojo', 'ROJO', 'rojo', 'Red', 'Bordó', 'Bordo', 'Granate'],
-  'azul': ['Azul', 'AZUL', 'azul', 'Blue', 'Marino', 'Celeste', 'Navy'],
-  'verde': ['Verde', 'VERDE', 'verde', 'Green', 'Oliva'],
-  'cafe': ['Café', 'Cafe', 'CAFE', 'Marrón', 'Marron', 'Brown', 'Beige', 'Camel'],
-  'amarillo': ['Amarillo', 'AMARILLO', 'amarillo', 'Yellow', 'Dorado', 'Gold'],
-  'naranja': ['Naranja', 'NARANJA', 'naranja', 'Orange'],
-  'morado': ['Morado', 'Púrpura', 'Purpura', 'Violeta', 'Purple'],
-};
-
-// Frases compuestas que deben normalizarse
-const COMPOUND_PHRASES: Record<string, string> = {
-  'semi nuevo': 'seminuevo', 'semi nueva': 'seminuevo',
-  'poco uso': 'seminuevo', 'poco kilometraje': 'seminuevo',
-  'como nuevo': 'seminuevo', 'como nueva': 'seminuevo',
-  'cero km': 'nuevo', '0 km': 'nuevo', '0km': 'nuevo',
-  'segunda mano': 'usado', 'de segunda': 'usado',
-  'doble cabina': 'pickup', 'cabina doble': 'pickup',
-  'station wagon': 'wagon', 'station': 'wagon',
-  'pick up': 'pickup', 'pick-up': 'pickup',
-  'grand cherokee': 'grandcherokee', 'santa fe': 'santafe', 'great wall': 'greatwall',
-  'cero emisiones': 'electrico', 'full electric': 'electrico',
-  'plug in': 'hibrido', 'plug-in': 'hibrido',
-  'full equipo': 'full', 'full equipado': 'full',
-  'todo terreno': 'todoterreno', 'todo-terreno': 'todoterreno',
-  'mercedes benz': 'mercedesbenz', 'land rover': 'landrover', 'range rover': 'rangerover',
-  'alfa romeo': 'alfaromeo', 'aston martin': 'astonmartin', 'rolls royce': 'rollsroyce',
-};
-
-// Pre-procesar query
-const preprocessQuery = (query: string): string => {
-  let processed = normalizeText(query);
-  for (const [phrase, replacement] of Object.entries(COMPOUND_PHRASES)) {
-    const normalizedPhrase = normalizeText(phrase);
-    if (processed.includes(normalizedPhrase)) {
-      processed = processed.replace(new RegExp(normalizedPhrase, 'g'), replacement);
-    }
-  }
-  return processed;
-};
-
-// Expandir un término a sus posibles significados
-const expandTerm = (term: string): string[] => {
-  const normalized = normalizeText(term);
-  const expansions = TERM_EXPANSIONS[normalized];
-  if (expansions) {
-    return [normalized, ...expansions];
-  }
-  return [normalized];
-};
-
-// Verificar si un valor de campo coincide con un término (con fuzzy matching)
-const fieldMatchesTerm = (fieldValue: string, searchTerm: string): boolean => {
-  if (!fieldValue || !searchTerm) return false;
-
-  const normalizedField = normalizeText(fieldValue);
-  const normalizedTerm = normalizeText(searchTerm);
-
-  // Match exacto
-  if (normalizedField === normalizedTerm) return true;
-  if (normalizedField.includes(normalizedTerm) && normalizedTerm.length >= 3) return true;
-  if (normalizedField.startsWith(normalizedTerm) && normalizedTerm.length >= 2) return true;
-
-  // Fuzzy match para términos largos
-  if (normalizedTerm.length >= 4 && normalizedField.length >= 4) {
-    if (isFuzzyMatch(normalizedField, normalizedTerm, 0.8)) return true;
-  }
-
-  // Verificar si el término tiene valores de BD mapeados
-  const dbValues = TERM_TO_DB_VALUES[normalizedTerm];
-  if (dbValues) {
-    for (const dbVal of dbValues) {
-      if (normalizeText(dbVal) === normalizedField || normalizedField.includes(normalizeText(dbVal))) {
-        return true;
-      }
-    }
-  }
-
-  // Verificar mapeo inverso: el campo puede tener un valor de BD que corresponde al término
-  for (const [term, values] of Object.entries(TERM_TO_DB_VALUES)) {
-    if (values.some(v => normalizeText(v) === normalizedField)) {
-      if (term === normalizedTerm) return true;
-      // También verificar si el término buscado expande a este term
-      const expansions = expandTerm(searchTerm);
-      if (expansions.includes(term)) return true;
-    }
-  }
-
-  return false;
-};
-
-// Verificar match considerando expansiones y fuzzy matching para marcas
-const fieldMatchesWithExpansion = (fieldValue: string, searchTerm: string, fieldType: string): boolean => {
-  // Para marcas, intentar corrección de errores de tipeo primero
-  if (fieldType === 'brand') {
-    const correctedBrand = findBestBrandMatch(searchTerm);
-    if (correctedBrand) {
-      if (isFuzzyMatch(fieldValue, correctedBrand, 0.85)) {
-        return true;
-      }
-    }
-  }
-
-  const expandedTerms = expandTerm(searchTerm);
-  for (const term of expandedTerms) {
-    if (fieldMatchesTerm(fieldValue, term)) {
-      return true;
-    }
-  }
-  return false;
-};
-
-// Obtener campos buscables del vehículo con pesos
-const getSearchableFields = (vehicle: Vehicle): { field: string; value: string; weight: number; type: string }[] => {
-  return [
-    { field: 'brand', value: vehicle.brand?.name || '', weight: 50, type: 'brand' },
-    { field: 'model', value: vehicle.model?.name || '', weight: 45, type: 'model' },
-    { field: 'category', value: vehicle.category?.name || '', weight: 35, type: 'category' },
-    { field: 'condition', value: vehicle.condition?.name || '', weight: 35, type: 'condition' },
-    { field: 'fuel_type', value: vehicle.fuel_type?.name || '', weight: 30, type: 'fuel' },
-    { field: 'transmission', value: vehicle.transmission || '', weight: 30, type: 'transmission' },
-    { field: 'color', value: vehicle.color?.name || '', weight: 25, type: 'color' },
-    { field: 'year', value: vehicle.year?.toString() || '', weight: 25, type: 'year' },
-    { field: 'title', value: vehicle.title || '', weight: 20, type: 'text' },
-    { field: 'label', value: vehicle.label || '', weight: 15, type: 'text' },
-    { field: 'description', value: vehicle.description || '', weight: 10, type: 'text' },
-    ...(vehicle.features || []).map(f => ({ field: 'feature', value: f, weight: 15, type: 'feature' })),
-  ].filter(f => f.value);
-};
-
-// Calcular score de relevancia usando expansiones y fuzzy matching
-const calculateRelevanceScore = (vehicle: Vehicle, searchTerms: string[]): number => {
-  const fields = getSearchableFields(vehicle);
-  let totalScore = 0;
-  let matchedTermsCount = 0;
-
-  for (const term of searchTerms) {
-    let termMatched = false;
-    let bestMatchScore = 0;
-
-    for (const field of fields) {
-      // Usar fieldMatchesWithExpansion con tipo de campo para fuzzy matching de marcas
-      if (fieldMatchesWithExpansion(field.value, term, field.type)) {
-        bestMatchScore = Math.max(bestMatchScore, field.weight);
-        termMatched = true;
-      }
-    }
-
-    if (termMatched) {
-      totalScore += bestMatchScore;
-      matchedTermsCount++;
-    }
-  }
-
-  // Si no coincide ningún término, score 0
-  if (matchedTermsCount === 0) return 0;
-
-  // Bonus por coincidencia de todos los términos
-  if (matchedTermsCount === searchTerms.length && searchTerms.length > 1) {
-    totalScore += 25;
-  }
-
-  // Bonus proporcional por porcentaje de términos encontrados
-  const matchRatio = matchedTermsCount / searchTerms.length;
-  totalScore = totalScore * (0.5 + matchRatio * 0.5);
-
-  return totalScore;
-};
-
 // ============================================
-// BÚSQUEDA NEGATIVA - Excluir términos
+// BÚSQUEDA LOCAL SIMPLIFICADA (Fallback)
 // ============================================
-const NEGATIVE_PREFIXES = ['no', 'sin', 'except', 'excepto', 'menos', '-'];
 
-// Extraer términos negativos del query
-const extractNegativeTerms = (query: string): { negativeTerms: string[], cleanedQuery: string } => {
-  const negativeTerms: string[] = [];
-  let cleanedQuery = query;
-
-  // Patrón para "no X", "sin X", etc.
-  for (const prefix of NEGATIVE_PREFIXES) {
-    const regex = new RegExp(`\\b${prefix}\\s+(\\w+)`, 'gi');
-    let match;
-    while ((match = regex.exec(query)) !== null) {
-      negativeTerms.push(normalizeText(match[1]));
-      cleanedQuery = cleanedQuery.replace(match[0], ' ');
-    }
-  }
-
-  // Patrón para "-término" (sin espacio)
-  const dashRegex = /-(\w+)/g;
-  let dashMatch;
-  while ((dashMatch = dashRegex.exec(query)) !== null) {
-    negativeTerms.push(normalizeText(dashMatch[1]));
-    cleanedQuery = cleanedQuery.replace(dashMatch[0], ' ');
-  }
-
-  return { negativeTerms, cleanedQuery: cleanedQuery.replace(/\s+/g, ' ').trim() };
-};
-
-// Verificar si un vehículo debe ser excluido por términos negativos
-const vehicleMatchesNegativeTerm = (vehicle: Vehicle, negativeTerms: string[]): boolean => {
-  if (negativeTerms.length === 0) return false;
-
-  const fields = getSearchableFields(vehicle);
-
-  for (const negativeTerm of negativeTerms) {
-    for (const field of fields) {
-      if (fieldMatchesWithExpansion(field.value, negativeTerm, field.type)) {
-        return true; // El vehículo debe ser excluido
+// Aplicar filtros de IA a vehículos
+const applyAIFilters = (vehicles: Vehicle[], filters: AIFilters): Vehicle[] => {
+  return vehicles.filter(vehicle => {
+    // Filtro de marca
+    if (filters.brand) {
+      const vehicleBrand = normalizeText(vehicle.brand?.name || '');
+      const filterBrand = normalizeText(filters.brand);
+      if (!vehicleBrand.includes(filterBrand) && !filterBrand.includes(vehicleBrand)) {
+        return false;
       }
     }
-  }
 
-  return false;
-};
-
-// ============================================
-// BÚSQUEDA POR CARACTERÍSTICAS
-// ============================================
-const FEATURE_PATTERNS: Record<string, string[]> = {
-  'sunroof': ['sunroof', 'techo solar', 'techo panoramico', 'panoramic'],
-  'camara': ['camara', 'camera', 'retroceso', 'reversa', '360'],
-  'cuero': ['cuero', 'leather', 'piel'],
-  'navegador': ['navegador', 'gps', 'navigation', 'nav'],
-  'bluetooth': ['bluetooth', 'bt', 'handsfree'],
-  'climatizador': ['climatizador', 'clima', 'ac', 'aire acondicionado', 'air conditioning'],
-  'sensores': ['sensores', 'sensor', 'parking', 'estacionamiento'],
-  'cruise': ['cruise', 'control crucero', 'velocidad crucero'],
-  'asientos calefaccionados': ['asientos calefaccionados', 'heated seats', 'calefaccion'],
-  'apple carplay': ['carplay', 'apple carplay', 'android auto'],
-  'led': ['led', 'xenon', 'luces led'],
-  'llantas': ['llantas', 'rines', 'aros', 'wheels'],
-  'turbo': ['turbo', 'turbocharged', 'biturbo'],
-  '7 asientos': ['7 asientos', '7 plazas', 'tercera fila', '7 pasajeros'],
-};
-
-// Extraer búsqueda por características
-const extractFeatureSearch = (query: string): { features: string[], cleanedQuery: string } => {
-  const features: string[] = [];
-  let cleanedQuery = normalizeText(query);
-
-  // Patrones "con X"
-  const withRegex = /\b(?:con|tiene|incluye|with)\s+(\w+(?:\s+\w+)?)/gi;
-  let match;
-  while ((match = withRegex.exec(query)) !== null) {
-    const featureTerm = normalizeText(match[1]);
-    features.push(featureTerm);
-    cleanedQuery = cleanedQuery.replace(normalizeText(match[0]), ' ');
-  }
-
-  return { features, cleanedQuery: cleanedQuery.replace(/\s+/g, ' ').trim() };
-};
-
-// Verificar si un vehículo tiene una característica
-const vehicleHasFeature = (vehicle: Vehicle, featureTerm: string): boolean => {
-  const vehicleFeatures = vehicle.features || [];
-  const description = vehicle.description || '';
-  const title = vehicle.title || '';
-
-  // Buscar en las características del vehículo
-  const allText = [
-    ...vehicleFeatures,
-    description,
-    title,
-  ].join(' ').toLowerCase();
-
-  const normalizedFeature = normalizeText(featureTerm);
-
-  // Verificar match directo
-  if (allText.includes(normalizedFeature)) return true;
-
-  // Verificar patrones de características conocidas
-  for (const [key, patterns] of Object.entries(FEATURE_PATTERNS)) {
-    if (patterns.some(p => normalizeText(p).includes(normalizedFeature) || normalizedFeature.includes(normalizeText(p)))) {
-      // Si el término coincide con un patrón conocido, buscar cualquiera de sus variantes
-      if (patterns.some(p => allText.includes(normalizeText(p)))) {
-        return true;
+    // Filtro de modelo
+    if (filters.model) {
+      const vehicleModel = normalizeText(vehicle.model?.name || '');
+      const filterModel = normalizeText(filters.model);
+      if (!vehicleModel.includes(filterModel)) {
+        return false;
       }
     }
-  }
 
-  return false;
+    // Filtro de categoría
+    if (filters.category) {
+      const vehicleCategory = normalizeText(vehicle.category?.name || '');
+      const filterCategory = normalizeText(filters.category);
+      if (!vehicleCategory.includes(filterCategory) && !filterCategory.includes(vehicleCategory)) {
+        return false;
+      }
+    }
+
+    // Filtros de año
+    if (filters.yearMin && (vehicle.year || 0) < filters.yearMin) return false;
+    if (filters.yearMax && (vehicle.year || 0) > filters.yearMax) return false;
+
+    // Filtros de precio
+    if (filters.priceMin && (vehicle.price || 0) < filters.priceMin) return false;
+    if (filters.priceMax && (vehicle.price || 0) > filters.priceMax) return false;
+
+    // Filtros de kilometraje
+    if (filters.mileageMin && (vehicle.mileage || 0) < filters.mileageMin) return false;
+    if (filters.mileageMax && (vehicle.mileage || 0) > filters.mileageMax) return false;
+
+    // Filtro de transmisión
+    if (filters.transmission) {
+      const vehicleTransmission = normalizeText(vehicle.transmission || '');
+      const filterTransmission = normalizeText(filters.transmission);
+      if (!vehicleTransmission.includes(filterTransmission)) {
+        return false;
+      }
+    }
+
+    // Filtro de combustible
+    if (filters.fuelType) {
+      const vehicleFuel = normalizeText(vehicle.fuel_type?.name || '');
+      const filterFuel = normalizeText(filters.fuelType);
+      if (!vehicleFuel.includes(filterFuel) && !filterFuel.includes(vehicleFuel)) {
+        return false;
+      }
+    }
+
+    // Filtro de color
+    if (filters.color) {
+      const vehicleColor = normalizeText(vehicle.color?.name || '');
+      const filterColor = normalizeText(filters.color);
+      if (!vehicleColor.includes(filterColor)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 };
 
-// ============================================
-// GENERAR SUGERENCIAS DE BÚSQUEDA
-// ============================================
-const generateSearchSuggestions = (vehicles: Vehicle[], query: string): string[] => {
-  const suggestions: string[] = [];
+// Búsqueda de texto simple para términos restantes
+const textSearch = (vehicles: Vehicle[], searchTerms: string[]): Vehicle[] => {
+  if (!searchTerms || searchTerms.length === 0) return vehicles;
+
+  return vehicles.filter(vehicle => {
+    const searchableText = normalizeText([
+      vehicle.brand?.name,
+      vehicle.model?.name,
+      vehicle.category?.name,
+      vehicle.color?.name,
+      vehicle.fuel_type?.name,
+      vehicle.transmission,
+      vehicle.title,
+      vehicle.description,
+      vehicle.year?.toString(),
+    ].filter(Boolean).join(' '));
+
+    return searchTerms.every(term =>
+      searchableText.includes(normalizeText(term))
+    );
+  });
+};
+
+// Búsqueda local básica (fallback cuando IA no disponible)
+const localSearch = (vehicles: Vehicle[], query: string): Vehicle[] => {
+  if (!query.trim()) return vehicles;
+
+  const terms = normalizeText(query).split(/\s+/).filter(t => t.length >= 2);
+  if (terms.length === 0) return vehicles;
+
+  return vehicles.filter(vehicle => {
+    const searchableText = normalizeText([
+      vehicle.brand?.name,
+      vehicle.model?.name,
+      vehicle.category?.name,
+      vehicle.color?.name,
+      vehicle.fuel_type?.name,
+      vehicle.transmission,
+      vehicle.title,
+      vehicle.year?.toString(),
+    ].filter(Boolean).join(' '));
+
+    // Al menos un término debe coincidir
+    return terms.some(term => searchableText.includes(term));
+  });
+};
+
+// Generar autocompletado básico
+const generateAutocomplete = (vehicles: Vehicle[], query: string): string[] => {
+  if (!query || query.length < 2) return [];
+
   const normalized = normalizeText(query);
+  const suggestions = new Set<string>();
 
-  // Obtener marcas y modelos únicos
-  const uniqueBrands = [...new Set(vehicles.map(v => v.brand?.name).filter(Boolean))];
-  const uniqueModels = [...new Set(vehicles.map(v => v.model?.name).filter(Boolean))];
-  const uniqueCategories = [...new Set(vehicles.map(v => v.category?.name).filter(Boolean))];
-  const uniqueColors = [...new Set(vehicles.map(v => v.color?.name).filter(Boolean))];
-
-  // Sugerir marcas similares
-  for (const brand of uniqueBrands) {
-    if (brand && isFuzzyMatch(normalized, brand, 0.6)) {
-      suggestions.push(brand);
-    }
-  }
-
-  // Sugerir modelos similares
-  for (const model of uniqueModels) {
-    if (model && isFuzzyMatch(normalized, model, 0.6)) {
-      suggestions.push(model);
-    }
-  }
-
-  // Sugerir categorías si hay expansión
-  const expansions = TERM_EXPANSIONS[normalized];
-  if (expansions) {
-    for (const category of uniqueCategories) {
-      if (category && expansions.some(e => normalizeText(category).includes(e))) {
-        suggestions.push(category);
-      }
-    }
-  }
-
-  // Limitar a 5 sugerencias únicas
-  return [...new Set(suggestions)].slice(0, 5);
-};
-
-// ============================================
-// AUTOCOMPLETADO INTELIGENTE
-// ============================================
-const generateAutocomplete = (vehicles: Vehicle[], partialQuery: string): string[] => {
-  if (!partialQuery || partialQuery.length < 2) return [];
-
-  const normalized = normalizeText(partialQuery);
-  const suggestions: Set<string> = new Set();
-
-  // Marcas que empiezan con el query
   vehicles.forEach(v => {
-    if (v.brand?.name && normalizeText(v.brand.name).startsWith(normalized)) {
+    if (v.brand?.name && normalizeText(v.brand.name).includes(normalized)) {
       suggestions.add(v.brand.name);
     }
-    if (v.model?.name && normalizeText(v.model.name).startsWith(normalized)) {
+    if (v.model?.name && normalizeText(v.model.name).includes(normalized)) {
       suggestions.add(`${v.brand?.name || ''} ${v.model.name}`.trim());
     }
   });
 
-  // Correcciones de marcas
-  const correctedBrand = findBestBrandMatch(partialQuery);
-  if (correctedBrand) {
-    const matchingVehicle = vehicles.find(v =>
-      v.brand?.name && normalizeText(v.brand.name).includes(correctedBrand)
-    );
-    if (matchingVehicle?.brand?.name) {
-      suggestions.add(matchingVehicle.brand.name);
-    }
-  }
-
-  // Sugerencias de categorías por términos coloquiales
-  const termExpansion = TERM_EXPANSIONS[normalized];
-  if (termExpansion) {
-    termExpansion.forEach(expansion => {
-      const category = vehicles.find(v =>
-        v.category?.name && normalizeText(v.category.name).includes(expansion)
-      )?.category?.name;
-      if (category) suggestions.add(category);
-    });
-  }
-
-  // Sugerencias de búsquedas comunes
-  const commonSearches = [
-    'SUV automática',
-    'Sedan económico',
-    'Camioneta 4x4',
-    'Auto familiar',
-    'Bajo 15 millones',
-    '2020 o más nuevo',
-  ];
-
-  commonSearches.forEach(search => {
-    if (normalizeText(search).includes(normalized)) {
-      suggestions.add(search);
-    }
-  });
-
-  return [...suggestions].slice(0, 8);
-};
-
-// Búsqueda inteligente v4.0
-const smartSearch = (vehicles: Vehicle[], query: string): Vehicle[] => {
-  if (!query.trim()) return vehicles;
-
-  // PASO 0: Extraer términos negativos
-  const { negativeTerms, cleanedQuery: queryWithoutNegatives } = extractNegativeTerms(query);
-
-  // PASO 1: Extraer filtros numéricos PRIMERO (precio, año, kilometraje)
-  // Esto debe ir antes de features para que "con menos de 30.000km" se procese correctamente
-  const { filters: numericFilters, cleanedQuery: queryWithoutNumeric } = extractNumericFilters(queryWithoutNegatives);
-
-  // PASO 2: Extraer búsqueda por características
-  const { features, cleanedQuery } = extractFeatureSearch(queryWithoutNumeric);
-
-  // Pre-filtrar por filtros numéricos
-  let filteredVehicles = vehicles;
-  if (numericFilters.length > 0) {
-    filteredVehicles = vehicles.filter(v => vehicleMatchesNumericFilters(v, numericFilters));
-  }
-
-  // Aplicar filtros negativos
-  if (negativeTerms.length > 0) {
-    filteredVehicles = filteredVehicles.filter(v => !vehicleMatchesNegativeTerm(v, negativeTerms));
-  }
-
-  // Aplicar filtros de características
-  if (features.length > 0) {
-    filteredVehicles = filteredVehicles.filter(v =>
-      features.every(feature => vehicleHasFeature(v, feature))
-    );
-  }
-
-  // Si solo había filtros especiales y no hay más términos, devolver filtrados
-  if (!cleanedQuery.trim()) {
-    return filteredVehicles;
-  }
-
-  // PASO 2: Pre-procesar para detectar frases compuestas
-  const processedQuery = preprocessQuery(cleanedQuery);
-
-  // Extraer términos (palabras de 2+ caracteres, excluyendo stopwords)
-  const allTerms = processedQuery
-    .split(/\s+/)
-    .filter(term => term.length >= 2);
-
-  // Filtrar stopwords
-  const searchTerms = allTerms.filter(term => !STOPWORDS.has(term));
-
-  // Si después de filtrar no quedan términos, devolver filtrados por numéricos
-  if (searchTerms.length === 0) return filteredVehicles;
-
-  // PASO 3: Calcular scores con fuzzy matching
-  const scoredVehicles = filteredVehicles.map(vehicle => ({
-    vehicle,
-    score: calculateRelevanceScore(vehicle, searchTerms),
-  }));
-
-  // Filtrar y ordenar por relevancia
-  return scoredVehicles
-    .filter(sv => sv.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .map(sv => sv.vehicle);
+  return [...suggestions].slice(0, 5);
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -1005,8 +333,36 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(true);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [autocompleteResults, setAutocompleteResults] = useState<string[]>([]);
+  const [aiFilters, setAiFilters] = useState<AIFilters>({});
+  const [isAISearching, setIsAISearching] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const activeView = 'grid'; // Fixed to grid view
+
+  // Llamar a la IA para parsear la búsqueda (con debounce)
+  useEffect(() => {
+    if (!searchQuery || searchQuery.trim().length < 3) {
+      setAiFilters({});
+      return;
+    }
+
+    const debounceTimer = setTimeout(async () => {
+      setIsAISearching(true);
+      try {
+        const result = await parseSearchQuery(searchQuery, {
+          brands: brands.map(b => ({ id: b.id, name: b.name })),
+          categories: categories.map(c => ({ id: c.id, name: c.name })),
+        });
+        setAiFilters(result.filters || {});
+      } catch (error) {
+        console.warn('AI search error, using local fallback:', error);
+        setAiFilters({});
+      } finally {
+        setIsAISearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, brands, categories]);
 
   // Generar autocompletado cuando cambia el query
   useEffect(() => {
@@ -1063,12 +419,22 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
     setSelectedCategory('all');
   };
 
-  // Filtrado de vehículos usando búsqueda inteligente local
+  // Filtrado de vehículos usando IA + búsqueda local
   const filteredVehicles = useMemo(() => {
-    // PASO 1: Aplicar búsqueda inteligente (si hay query)
-    let result = searchQuery.trim() !== ''
-      ? smartSearch(vehicles, searchQuery)
-      : vehicles;
+    let result = vehicles;
+
+    // PASO 1: Aplicar filtros de IA (si hay)
+    if (Object.keys(aiFilters).length > 0) {
+      result = applyAIFilters(result, aiFilters);
+
+      // También aplicar búsqueda de texto para términos adicionales
+      if (aiFilters.searchTerms && aiFilters.searchTerms.length > 0) {
+        result = textSearch(result, aiFilters.searchTerms);
+      }
+    } else if (searchQuery.trim()) {
+      // Fallback: búsqueda local simple mientras IA carga o si falla
+      result = localSearch(result, searchQuery);
+    }
 
     // Helper para verificar si un valor está en un filtro (soporta arrays y strings)
     const matchesFilter = (filterValue: string | string[] | undefined, vehicleValue: string | undefined): boolean => {
@@ -1162,12 +528,12 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
     }
 
     return result;
-  }, [vehicles, searchQuery, selectedCategory, filters, priceRange, sortOrder]);
+  }, [vehicles, searchQuery, selectedCategory, filters, priceRange, sortOrder, aiFilters]);
 
   // Generar sugerencias cuando no hay resultados
   const noResultsSuggestions = useMemo(() => {
     if (filteredVehicles.length === 0 && searchQuery.trim()) {
-      return generateSearchSuggestions(vehicles, searchQuery);
+      return generateAutocomplete(vehicles, searchQuery);
     }
     return [];
   }, [filteredVehicles.length, searchQuery, vehicles]);
