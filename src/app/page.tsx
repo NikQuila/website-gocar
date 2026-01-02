@@ -5,7 +5,7 @@ import ContactCTA from '@/sections/home/ContactCTA';
 import WelcomeSection from '@/sections/home/WelcomeSection';
 import WhyUs from '@/sections/home/WhyUs';
 import NewVehiclesSection from '@/sections/vehicles/new-vehicles-section';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Editor, Frame } from '@craftjs/core';
 import lz from 'lzutf8';
 import { supabase } from '@/lib/supabase';
@@ -27,9 +27,7 @@ import { FAQ, WhyChooseUs } from '@/components/builder2/sections/features';
 import { VehicleCarousel } from '@/components/builder2/sections/vehicles/VehicleCarousel';
 import { VideoEmbed } from '@/components/builder2/sections/videos/VideoEmbed';
 import HowToArrive from '@/sections/home/HowToArrive';
-// 👇 añade el nuevo
 import { VehicleGrid2 } from '@/components/builder2/sections/vehicles/VehicleGrid2';
-
 
 // =====================
 // Fallback seguro
@@ -64,13 +62,10 @@ const baseResolver: Record<string, any> = {
   VehicleCarousel,
   VideoEmbed,
   HowToArrive,
-
-  // etiquetas sueltas que pueden venir en el JSON
   div: Unknown,
   p: Unknown,
   span: Unknown,
   img: Unknown,
-
   Unknown,
 };
 
@@ -81,7 +76,7 @@ const resolver = new Proxy(baseResolver, {
 });
 
 // =====================
-// Normalizador TOTAL de Craft state
+// Normalizador de Craft state
 // =====================
 function normalizeCraftTree(raw: any) {
   if (!raw || typeof raw !== 'object') return raw;
@@ -132,14 +127,12 @@ function normalizeCraftTree(raw: any) {
     return node;
   };
 
-  // limpiar nulos y normalizar
   const validIds = Object.keys(nodes).filter((id) => nodes![id] && typeof nodes![id] === 'object');
   const map: Record<string, any> = {};
   for (const id of validIds) {
     map[id] = ensureTypeObj({ ...nodes[id] });
   }
 
-  // limpiar referencias a hijos inexistentes
   const idSet = new Set(Object.keys(map));
   for (const id of Object.keys(map)) {
     const node = map[id];
@@ -155,7 +148,6 @@ function normalizeCraftTree(raw: any) {
     }
   }
 
-  // garantizar ROOT válido
   if (!map.ROOT) {
     const referenced = new Set<string>();
     for (const id of Object.keys(map)) {
@@ -185,58 +177,17 @@ function normalizeCraftTree(raw: any) {
 }
 
 // =====================
-// CraftJSContent (usa normalizador)
+// Loader elegante
 // =====================
-function CraftJSContent() {
-  const { client, isLoading: isClientLoading } = useClientStore();
-  const [safeData, setSafeData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchState = async () => {
-      if (!client?.id) return;
-      try {
-        setIsLoading(true);
-        const { data, error } = await supabase
-          .from('client_website_config')
-          .select('elements_structure')
-          .eq('client_id', client.id)
-          .single();
-
-        if (error) throw error;
-        if (!data?.elements_structure) {
-          setError('No hay estado guardado para este cliente.');
-          setSafeData(null);
-          return;
-        }
-
-        const decompressed = JSON.parse(lz.decompress(lz.decodeBase64(data.elements_structure)));
-        const normalized = normalizeCraftTree(decompressed);
-        setSafeData(normalized);
-      } catch (err: any) {
-        setError(err.message || 'Error al cargar el estado');
-        setSafeData(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (client?.id) {
-      fetchState();
-    } else if (!isClientLoading) {
-      setIsLoading(false);
-    }
-  }, [client?.id, isClientLoading]);
-
-  if (isLoading) return null;
-  if (error || !safeData) return <TraditionalContent />;
-
+function PageLoader() {
   return (
-    <div className="min-h-screen">
-      <Editor resolver={resolver} enabled={false}>
-        <Frame data={safeData} />
-      </Editor>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-dark-bg">
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative">
+          <div className="w-12 h-12 rounded-full border-4 border-gray-200 dark:border-gray-700" />
+          <div className="absolute inset-0 w-12 h-12 rounded-full border-4 border-transparent border-t-primary animate-spin" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -257,44 +208,111 @@ function TraditionalContent() {
 }
 
 // =====================
-// Selector de contenido (is_enabled)
+// Contenido del Builder
+// =====================
+function BuilderContent({ data }: { data: any }) {
+  return (
+    <div className="min-h-screen mt-[6vh]">
+      <Editor resolver={resolver} enabled={false}>
+        <Frame data={data} />
+      </Editor>
+    </div>
+  );
+}
+
+// =====================
+// Componente principal con carga unificada
 // =====================
 function WebsiteContent() {
-  const { client } = useClientStore();
-  const [isEnabled, setIsEnabled] = useState<boolean>(false);
-  const [isConfigLoading, setIsConfigLoading] = useState<boolean>(true);
+  const { client, isLoading: isClientLoading } = useClientStore();
+  const [pageState, setPageState] = useState<{
+    status: 'loading' | 'ready';
+    mode: 'builder' | 'traditional';
+    builderData: any;
+  }>({
+    status: 'loading',
+    mode: 'traditional',
+    builderData: null,
+  });
+  const [isVisible, setIsVisible] = useState(false);
+  const hasLoadedRef = useRef(false);
 
   useEffect(() => {
-    const checkWebsiteConfig = async () => {
+    // Evitar doble carga
+    if (hasLoadedRef.current) return;
+
+    const loadEverything = async () => {
+      // Esperar a que el cliente esté listo
+      if (isClientLoading) return;
       if (!client?.id) {
-        setIsConfigLoading(false);
+        hasLoadedRef.current = true;
+        setPageState({ status: 'ready', mode: 'traditional', builderData: null });
+        // Pequeño delay para transición suave
+        requestAnimationFrame(() => setIsVisible(true));
         return;
       }
-      try {
-        const { data, error } = await supabase
-          .from('client_website_config')
-          .select('is_enabled')
-          .eq('client_id', client.id)
-          .single();
-        if (error) throw error;
-        setIsEnabled(!!data?.is_enabled);
-      } catch (err) {
-        console.error('Error checking website config:', err);
-        setIsEnabled(false);
-      } finally {
-        setIsConfigLoading(false);
-      }
-    };
-    checkWebsiteConfig();
-  }, [client?.id]);
 
-  if (isConfigLoading) return null;
-  return isEnabled ? (
-    <div className="mt-[6vh]">
-      <CraftJSContent />
+      try {
+        // Cargar config Y estructura en paralelo
+        const [configResult, structureResult] = await Promise.all([
+          supabase
+            .from('client_website_config')
+            .select('is_enabled')
+            .eq('client_id', client.id)
+            .single(),
+          supabase
+            .from('client_website_config')
+            .select('elements_structure')
+            .eq('client_id', client.id)
+            .single(),
+        ]);
+
+        const isEnabled = !!configResult.data?.is_enabled;
+
+        if (isEnabled && structureResult.data?.elements_structure) {
+          try {
+            const decompressed = JSON.parse(
+              lz.decompress(lz.decodeBase64(structureResult.data.elements_structure))
+            );
+            const normalized = normalizeCraftTree(decompressed);
+            hasLoadedRef.current = true;
+            setPageState({ status: 'ready', mode: 'builder', builderData: normalized });
+          } catch {
+            // Si falla el parsing, usar tradicional
+            hasLoadedRef.current = true;
+            setPageState({ status: 'ready', mode: 'traditional', builderData: null });
+          }
+        } else {
+          hasLoadedRef.current = true;
+          setPageState({ status: 'ready', mode: 'traditional', builderData: null });
+        }
+      } catch {
+        hasLoadedRef.current = true;
+        setPageState({ status: 'ready', mode: 'traditional', builderData: null });
+      }
+
+      // Transición suave
+      requestAnimationFrame(() => setIsVisible(true));
+    };
+
+    loadEverything();
+  }, [client?.id, isClientLoading]);
+
+  // Mostrar loader mientras carga
+  if (pageState.status === 'loading') {
+    return <PageLoader />;
+  }
+
+  return (
+    <div
+      className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+    >
+      {pageState.mode === 'builder' && pageState.builderData ? (
+        <BuilderContent data={pageState.builderData} />
+      ) : (
+        <TraditionalContent />
+      )}
     </div>
-  ) : (
-    <TraditionalContent />
   );
 }
 
