@@ -177,15 +177,37 @@ function normalizeCraftTree(raw: any) {
 }
 
 // =====================
-// Loader elegante
+// Skeleton genérico (funciona para ambos casos)
 // =====================
-function PageLoader() {
+function PageSkeleton() {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-dark-bg">
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative">
-          <div className="w-12 h-12 rounded-full border-4 border-gray-200 dark:border-gray-700" />
-          <div className="absolute inset-0 w-12 h-12 rounded-full border-4 border-transparent border-t-primary animate-spin" />
+    <div className="min-h-screen bg-white dark:bg-dark-bg pt-16">
+      {/* Hero grande */}
+      <div className="mx-auto max-w-7xl px-6 py-20 sm:py-28">
+        <div className="text-center space-y-6">
+          <div className="h-14 sm:h-[72px] max-w-2xl mx-auto rounded-2xl bg-gray-200/50 dark:bg-gray-800/40 animate-pulse" />
+          <div className="h-6 sm:h-7 max-w-lg mx-auto rounded-xl bg-gray-200/30 dark:bg-gray-800/25 animate-pulse" />
+          <div className="pt-4 max-w-2xl mx-auto">
+            <div className="h-14 w-full rounded-2xl bg-gray-100 dark:bg-gray-800/30 animate-pulse" />
+          </div>
+        </div>
+      </div>
+
+      {/* Grid de cards */}
+      <div className="bg-gray-50/50 dark:bg-dark-bg">
+        <div className="max-w-7xl mx-auto px-4 py-8 pb-20">
+          <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div key={i} className="bg-white dark:bg-[#0B0B0F] rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800/30 shadow-sm">
+                <div className="aspect-[16/9] bg-gray-100 dark:bg-gray-800/30 animate-pulse" />
+                <div className="p-4 space-y-3">
+                  <div className="h-5 w-3/4 rounded bg-gray-200/50 dark:bg-gray-800/30 animate-pulse" />
+                  <div className="h-4 w-1/2 rounded bg-gray-200/30 dark:bg-gray-800/20 animate-pulse" />
+                  <div className="h-6 w-2/5 rounded bg-gray-200/40 dark:bg-gray-800/30 animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -221,99 +243,55 @@ function BuilderContent({ data }: { data: any }) {
 }
 
 // =====================
-// Componente principal con carga unificada
+// Componente principal
 // =====================
 function WebsiteContent() {
   const { client, isLoading: isClientLoading } = useClientStore();
-  const [pageState, setPageState] = useState<{
-    status: 'loading' | 'ready';
-    mode: 'builder' | 'traditional';
-    builderData: any;
-  }>({
-    status: 'loading',
-    mode: 'traditional',
-    builderData: null,
-  });
-  const [isVisible, setIsVisible] = useState(false);
-  const hasLoadedRef = useRef(false);
+  const [content, setContent] = useState<{ type: 'loading' | 'traditional' | 'builder'; data?: any }>({ type: 'loading' });
+  const loadedRef = useRef(false);
 
   useEffect(() => {
-    // Evitar doble carga
-    if (hasLoadedRef.current) return;
+    if (loadedRef.current || isClientLoading) return;
+    loadedRef.current = true;
 
-    const loadEverything = async () => {
-      // Esperar a que el cliente esté listo
-      if (isClientLoading) return;
+    (async () => {
       if (!client?.id) {
-        hasLoadedRef.current = true;
-        setPageState({ status: 'ready', mode: 'traditional', builderData: null });
-        // Pequeño delay para transición suave
-        requestAnimationFrame(() => setIsVisible(true));
+        setContent({ type: 'traditional' });
         return;
       }
 
       try {
-        // Cargar config Y estructura en paralelo
-        const [configResult, structureResult] = await Promise.all([
-          supabase
-            .from('client_website_config')
-            .select('is_enabled')
-            .eq('client_id', client.id)
-            .single(),
-          supabase
-            .from('client_website_config')
-            .select('elements_structure')
-            .eq('client_id', client.id)
-            .single(),
-        ]);
+        const { data } = await supabase
+          .from('client_website_config')
+          .select('is_enabled, elements_structure')
+          .eq('client_id', client.id)
+          .single();
 
-        const isEnabled = !!configResult.data?.is_enabled;
-
-        if (isEnabled && structureResult.data?.elements_structure) {
-          try {
-            const decompressed = JSON.parse(
-              lz.decompress(lz.decodeBase64(structureResult.data.elements_structure))
-            );
-            const normalized = normalizeCraftTree(decompressed);
-            hasLoadedRef.current = true;
-            setPageState({ status: 'ready', mode: 'builder', builderData: normalized });
-          } catch {
-            // Si falla el parsing, usar tradicional
-            hasLoadedRef.current = true;
-            setPageState({ status: 'ready', mode: 'traditional', builderData: null });
-          }
-        } else {
-          hasLoadedRef.current = true;
-          setPageState({ status: 'ready', mode: 'traditional', builderData: null });
+        if (!data?.is_enabled || !data?.elements_structure) {
+          setContent({ type: 'traditional' });
+          return;
         }
+
+        const decompressed = JSON.parse(lz.decompress(lz.decodeBase64(data.elements_structure)));
+        setContent({ type: 'builder', data: normalizeCraftTree(decompressed) });
       } catch {
-        hasLoadedRef.current = true;
-        setPageState({ status: 'ready', mode: 'traditional', builderData: null });
+        setContent({ type: 'traditional' });
       }
-
-      // Transición suave
-      requestAnimationFrame(() => setIsVisible(true));
-    };
-
-    loadEverything();
+    })();
   }, [client?.id, isClientLoading]);
 
-  // Mostrar loader mientras carga
-  if (pageState.status === 'loading') {
-    return <PageLoader />;
+  // Loading → skeleton genérico
+  if (content.type === 'loading') {
+    return <PageSkeleton />;
   }
 
-  return (
-    <div
-      className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
-    >
-      {pageState.mode === 'builder' && pageState.builderData ? (
-        <BuilderContent data={pageState.builderData} />
-      ) : (
-        <TraditionalContent />
-      )}
-    </div>
-  );
+  // Builder → contenido del builder
+  if (content.type === 'builder') {
+    return <BuilderContent data={content.data} />;
+  }
+
+  // Tradicional → contenido tradicional
+  return <TraditionalContent />;
 }
 
 // =====================
