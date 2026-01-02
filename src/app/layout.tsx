@@ -66,6 +66,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang='es' suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var stored = localStorage.getItem('theme_mode');
+                  var theme = stored ? JSON.parse(stored).state?.theme : null;
+                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`${poppins.variable} antialiased`}>
         {process.env.NODE_ENV !== 'production' && <DebugPropGuard />}
         <HeroUIProvider>

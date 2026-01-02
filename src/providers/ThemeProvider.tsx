@@ -123,9 +123,5 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [theme, client?.theme, client?.has_dark_mode]);
 
-  return (
-    <div className='min-h-screen bg-white dark:bg-dark-bg transition-colors'>
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 }

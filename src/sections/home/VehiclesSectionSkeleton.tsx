@@ -1,82 +1,41 @@
 'use client';
-import { ScrollShadow, Chip, Button } from '@heroui/react';
+
+import { ScrollShadow, Button, Skeleton } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import VehicleCardSkeleton from '@/components/vehicles/VehicleCardSkeleton';
 
 const vehicleCategories = [
-  {
-    id: 'all',
-    name: 'Todos los Vehículos',
-    icon: 'mdi:car-multiple',
-  },
-  {
-    id: 'SUV',
-    name: 'SUV',
-    icon: 'mdi:car-suv',
-  },
-  {
-    id: 'Sedan',
-    name: 'Sedán',
-    icon: 'mdi:car',
-  },
-  {
-    id: 'Hatchback',
-    name: 'Hatchback',
-    icon: 'mdi:car-hatchback',
-  },
-  {
-    id: 'Pickup',
-    name: 'Pickup',
-    icon: 'mdi:truck-pickup',
-  },
-  {
-    id: 'Van',
-    name: 'Van',
-    icon: 'mdi:van-passenger',
-  },
-  {
-    id: 'Coupe',
-    name: 'Coupé',
-    icon: 'mdi:car-sports',
-  },
-  {
-    id: 'Wagon',
-    name: 'Wagon',
-    icon: 'mdi:car-estate',
-  },
+  { id: 'all', name: 'Todos', icon: 'mdi:car-multiple' },
+  { id: 'SUV', name: 'SUV', icon: 'mdi:car-suv' },
+  { id: 'Sedan', name: 'Sedán', icon: 'mdi:car' },
+  { id: 'Hatchback', name: 'Hatchback', icon: 'mdi:car-hatchback' },
+  { id: 'Pickup', name: 'Pickup', icon: 'mdi:truck-pickup' },
 ];
 
 const VehiclesSectionSkeleton = () => {
   return (
-    <div className='min-h-screen bg-slate-50/50 dark:bg-dark-bg'>
+    <div id='vehicles-section' className='min-h-screen bg-slate-50/50 dark:bg-dark-bg'>
       {/* Fixed Categories Navigation */}
-      <div className='sticky top-[var(--navbar-height)] z-30 bg-white dark:bg-dark-bg border-b border-slate-200/60 dark:border-dark-border'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4'>
-          <div className='flex flex-col gap-4'>
-            {/* Title and Actions */}
-            <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
-              <div>
-                <div className='h-7 w-48 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'></div>
-                <div className='h-4 w-72 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse mt-2'></div>
-              </div>
-            </div>
-
+      <div className='sticky top-[var(--navbar-height)] z-30 bg-white dark:bg-dark-bg border-b border-gray-200 dark:border-dark-border'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2'>
+          <div className='flex flex-col gap-2'>
             {/* Categories */}
             <ScrollShadow orientation='horizontal' className='w-full'>
-              <div className='flex gap-2 pb-2 min-w-max'>
-                {vehicleCategories.map((category) => (
-                  <Button
-                    key={category.id}
-                    variant='light'
-                    className='whitespace-nowrap cursor-default opacity-70'
-                    startContent={
-                      <Icon icon={category.icon} className='text-xl' />
-                    }
-                    size='sm'
-                  >
-                    {category.name}
-                  </Button>
-                ))}
+              <div className='flex justify-start lg:justify-center items-center w-full'>
+                <div className='flex gap-2 pt-2 pb-2 min-w-max'>
+                  {vehicleCategories.map((category, index) => (
+                    <Button
+                      key={category.id}
+                      variant={index === 0 ? 'solid' : 'light'}
+                      color={index === 0 ? 'primary' : 'default'}
+                      className='whitespace-nowrap px-4 py-2 rounded-full opacity-70 cursor-default'
+                      startContent={<Icon icon={category.icon} className='text-xl' />}
+                      size='md'
+                    >
+                      {category.name}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </ScrollShadow>
           </div>
@@ -84,56 +43,20 @@ const VehiclesSectionSkeleton = () => {
       </div>
 
       {/* Main Content */}
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'>
-        <div className='flex flex-col md:flex-row gap-6'>
-          {/* Filters - Desktop */}
-          <div className='hidden md:block w-80 flex-shrink-0'>
-            <div
-              className='sticky'
-              style={{ top: 'calc(var(--navbar-height) + 180px)' }}
-            >
-              {/* Filters Skeleton */}
-              <div className='bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm'>
-                <div className='h-6 w-32 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse mb-4'></div>
-
-                {/* Filter Groups */}
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className='mb-6'>
-                    <div className='h-5 w-24 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse mb-3'></div>
-                    <div className='flex flex-wrap gap-2'>
-                      {[1, 2, 3].map((j) => (
-                        <div
-                          key={j}
-                          className='h-8 w-24 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'
-                        ></div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-
-                <div className='h-10 w-full bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse mt-4'></div>
-              </div>
-            </div>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20'>
+        <div className='flex flex-col md:flex-row gap-8'>
+          {/* Botón de filtros colapsado (como en el componente real) */}
+          <div className='hidden md:block sticky top-24 h-fit shrink-0'>
+            <Skeleton className='rounded-xl dark:bg-dark-border'>
+              <div className='p-3 w-12 h-20 rounded-xl bg-white dark:bg-[#0B0B0F]' />
+            </Skeleton>
           </div>
 
           {/* Vehicles Content */}
           <div className='flex-1 min-w-0'>
-            {/* Sort and View Options */}
-            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sticky bg-slate-50/50 dark:bg-dark-bg py-2 px-4 -mx-4 sm:px-0 sm:mx-0 rounded-lg'>
-              <div className='w-24 h-9 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'></div>
-
-              <div className='flex flex-wrap items-center gap-3'>
-                <div className='w-36 h-9 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'></div>
-                <div className='hidden sm:flex border-l border-slate-200/60 dark:border-dark-border pl-3 gap-2'>
-                  <div className='w-9 h-9 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'></div>
-                  <div className='w-9 h-9 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse'></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Vehicle Cards */}
-            <div className='grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
-              {Array(9)
+            {/* Vehicle Cards - grid igual al componente real con filtros colapsados */}
+            <div className='grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4'>
+              {Array(8)
                 .fill(null)
                 .map((_, index) => (
                   <VehicleCardSkeleton key={index} />

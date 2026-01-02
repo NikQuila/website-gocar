@@ -1,16 +1,11 @@
 'use client';
 
-import {
-  ClientWebsiteConfigProvider,
-  useWebsiteConfig,
-} from '@/providers/ClientWebsiteConfigProvider';
+import { ClientWebsiteConfigProvider } from '@/providers/ClientWebsiteConfigProvider';
 import ContactCTA from '@/sections/home/ContactCTA';
-import VehiclesSectionSkeleton from '@/sections/home/VehiclesSectionSkeleton';
 import WelcomeSection from '@/sections/home/WelcomeSection';
-import WelcomeSectionSkeleton from '@/sections/home/WelcomeSectionSkeleton';
 import WhyUs from '@/sections/home/WhyUs';
 import NewVehiclesSection from '@/sections/vehicles/new-vehicles-section';
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Editor, Frame } from '@craftjs/core';
 import lz from 'lzutf8';
 import { supabase } from '@/lib/supabase';
@@ -35,32 +30,6 @@ import HowToArrive from '@/sections/home/HowToArrive';
 // 👇 añade el nuevo
 import { VehicleGrid2 } from '@/components/builder2/sections/vehicles/VehicleGrid2';
 
-// =====================
-// Skeletons
-// =====================
-function GenericSkeleton() {
-  return (
-    <div className="animate-pulse space-y-8 pt-16">
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="h-96 w-full rounded-lg bg-gray-200"></div>
-        <div className="mt-6 h-10 w-1/3 rounded bg-gray-200"></div>
-        <div className="mt-4 h-6 w-1/2 rounded bg-gray-200"></div>
-      </div>
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="h-8 w-1/4 rounded bg-gray-200"></div>
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-64 rounded-lg bg-gray-200"></div>
-          ))}
-        </div>
-      </div>
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="h-8 w-1/4 rounded bg-gray-200"></div>
-        <div className="mt-6 h-64 w-full rounded-lg bg-gray-200"></div>
-      </div>
-    </div>
-  );
-}
 
 // =====================
 // Fallback seguro
@@ -260,9 +229,8 @@ function CraftJSContent() {
     }
   }, [client?.id, isClientLoading]);
 
-  if (isLoading) return <GenericSkeleton />;
-  if (error) return <div className="p-8 text-center text-red-600">Error: {error}</div>;
-  if (!safeData) return <TraditionalContent />;
+  if (isLoading) return null;
+  if (error || !safeData) return <TraditionalContent />;
 
   return (
     <div className="min-h-screen">
@@ -277,26 +245,13 @@ function CraftJSContent() {
 // Contenido tradicional
 // =====================
 function TraditionalContent() {
-  const { websiteConfig, isLoading } = useWebsiteConfig();
-  if (isLoading) return <GenericSkeleton />;
-
   return (
     <div className="pt-16">
-      <Suspense fallback={<GenericSkeleton />}>
-        <WelcomeSection />
-      </Suspense>
-      <Suspense fallback={<GenericSkeleton />}>
-        <NewVehiclesSection minimal />
-      </Suspense>
-      <Suspense fallback={<GenericSkeleton />}>
-        <HowToArrive />
-      </Suspense>
-      <Suspense fallback={<GenericSkeleton />}>
-        <WhyUs />
-      </Suspense>
-      <Suspense fallback={<GenericSkeleton />}>
-        <ContactCTA />
-      </Suspense>
+      <WelcomeSection />
+      <NewVehiclesSection minimal />
+      <HowToArrive />
+      <WhyUs />
+      <ContactCTA />
     </div>
   );
 }
@@ -333,7 +288,7 @@ function WebsiteContent() {
     checkWebsiteConfig();
   }, [client?.id]);
 
-  if (isConfigLoading) return <GenericSkeleton />;
+  if (isConfigLoading) return null;
   return isEnabled ? (
     <div className="mt-[6vh]">
       <CraftJSContent />
@@ -347,9 +302,6 @@ function WebsiteContent() {
 // Export principal
 // =====================
 export default function Home() {
-  const { isLoading: isClientLoading } = useClientStore();
-  if (isClientLoading) return <GenericSkeleton />;
-
   return (
     <ClientWebsiteConfigProvider>
       <WebsiteContent />
