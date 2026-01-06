@@ -158,10 +158,10 @@ export const VehicleCarousel = ({
           .from('vehicles')
           .select(
             `
-            id, 
-            brand_id, 
-            model_id, 
-            year, 
+            id,
+            brand_id,
+            model_id,
+            year,
             price,
             mileage,
             main_image,
@@ -170,7 +170,7 @@ export const VehicleCarousel = ({
             created_at,
             label,
             transmission,
-            status:status_id(id, name),
+            status:status_id(id, name, show_in_web),
             brand:brand_id(id, name),
             model:model_id(id, name),
             category:category_id(id, name),
@@ -243,14 +243,23 @@ export const VehicleCarousel = ({
           threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
           threeDaysAgo.setHours(0, 0, 0, 0); // Optional: Compare against the start of the day
 
+          // Filter vehicles that should be visible on web
+          // Use show_in_web field if defined, fallback to name-based logic for backward compatibility
           const activelyFilteredVehicles = vehiclesData.filter((vehicle) => {
-            if (
-              !vehicle.status ||
-              !statusValues.includes(vehicle.status.name as any)
-            ) {
-              return false; // Filtered out by showStatuses prop
+            if (!vehicle.status) return false;
+
+            // Determine if vehicle should be shown based on show_in_web or fallback to names
+            let shouldShow = false;
+            if (typeof vehicle.status.show_in_web === 'boolean') {
+              shouldShow = vehicle.status.show_in_web;
+            } else {
+              // Fallback: use name-based filtering for legacy states without show_in_web
+              shouldShow = statusValues.includes(vehicle.status.name as any);
             }
 
+            if (!shouldShow) return false;
+
+            // Apply 3-day filter for Vendido/Reservado
             if (
               vehicle.status.name === 'Vendido' ||
               vehicle.status.name === 'Reservado'
@@ -261,7 +270,7 @@ export const VehicleCarousel = ({
               }
               return false; // If no event_date for sold/reserved, exclude it
             }
-            return true; // Keep 'Publicado' and other statuses not explicitly filtered by date
+            return true; // Keep other visible statuses
           });
 
           // Ordenar para que los vehículos con estado "Publicado" aparezcan primero y luego por precio

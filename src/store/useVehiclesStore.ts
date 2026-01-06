@@ -119,11 +119,20 @@ const useVehiclesStore = create<VehiclesStore>((set) => ({
       threeDaysAgo.setHours(0, 0, 0, 0);
 
       // Filtrar los resultados en memoria para quedarnos solo con los publicados o vendidos recientes (3 días)
+      // Use show_in_web field if defined, fallback to name-based logic for backward compatibility
       const filteredVehicles = processedData.filter((vehicle) => {
-        // Always include published vehicles
-        if (vehicle.status?.name === 'Publicado') {
-          return true;
+        if (!vehicle.status) return false;
+
+        // Determine if vehicle should be shown based on show_in_web or fallback to names
+        let shouldShow = false;
+        if (typeof vehicle.status.show_in_web === 'boolean') {
+          shouldShow = vehicle.status.show_in_web;
+        } else {
+          // Fallback: use name-based filtering for legacy states without show_in_web
+          shouldShow = ['Publicado', 'Reservado', 'Vendido'].includes(vehicle.status.name || '');
         }
+
+        if (!shouldShow) return false;
 
         // For sold or reserved vehicles, check if they are within 3 days
         if (
@@ -137,7 +146,7 @@ const useVehiclesStore = create<VehiclesStore>((set) => ({
           return false; // Exclude if sold/reserved but no event_date
         }
 
-        return false; // Exclude other statuses
+        return true; // Keep other visible statuses
       });
 
       console.log('Vehículos filtrados:', filteredVehicles.length);

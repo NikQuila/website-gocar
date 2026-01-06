@@ -49,17 +49,17 @@ export const VehicleCard2: React.FC<VehicleCardOverlayProps> = ({
     return new Date(created_at) > d;
   };
 
+  // Get status chip label and color
+  // Custom states with show_in_web=true are treated as "Disponible" unless they are Vendido/Reservado
   const getStatus = () => {
-    if (!status?.name || status.name === 'Publicado') {
-      return { label: 'Disponible', className: 'bg-emerald-600 text-white' };
-    }
-    if (status.name === 'Reservado') {
+    if (status?.name === 'Reservado') {
       return { label: 'Reservado', className: 'bg-amber-500 text-white' };
     }
-    if (status.name === 'Vendido') {
+    if (status?.name === 'Vendido') {
       return { label: 'Vendido', className: 'bg-rose-600 text-white' };
     }
-    return { label: status.name, className: 'bg-gray-700 text-white' };
+    // All other visible states (including custom ones) show as "Disponible"
+    return { label: 'Disponible', className: 'bg-emerald-600 text-white' };
   };
 
   const statusChip = getStatus();
@@ -140,8 +140,8 @@ export const VehicleCard2: React.FC<VehicleCardOverlayProps> = ({
           </span>
         </div>
 
-        {/* Badge nuevo */}
-        {showNewBadge && isNew() && status?.name === 'Publicado' && (
+        {/* Badge nuevo - show for any available state (not Vendido/Reservado) */}
+        {showNewBadge && isNew() && status?.name !== 'Vendido' && status?.name !== 'Reservado' && (
           <div className="absolute top-3 right-3">
             <Badge className="bg-emerald-100 text-emerald-700 text-[11px] font-medium px-2.5 py-1 rounded-full">
               {newBadgeText}

@@ -10,7 +10,7 @@ import { VehicleList } from './VehicleList';
 type CraftComponent<P = {}> = React.FC<P> & { craft?: any };
 
 type StatusName = 'Publicado' | 'Vendido' | 'Reservado';
-type VehicleRel = { id?: number; name?: string };
+type VehicleRel = { id?: number; name?: string; show_in_web?: boolean };
 
 // 🔸 Literal permitido por VehicleList
 type FeatureKey = 'category' | 'year' | 'fuel' | 'mileage' | 'transmission';
@@ -197,7 +197,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
           .select(`
             id, year, price, mileage, transmission, main_image,
             discount_percentage, created_at,
-            status:status_id(id, name),
+            status:status_id(id, name, show_in_web),
             brand:brand_id(id, name),
             model:model_id(id, name),
             category:category_id(id, name),
@@ -226,10 +226,17 @@ export const VehicleGrid2: CraftComponent<Props> = ({
           return { ...v, event_date };
         });
 
-        // Filtra por estados permitidos
-        const byStatus = processed.filter(
-          (v) => v.status && showStatuses.includes((v.status.name || '') as StatusName)
-        );
+        // Filter vehicles that should be visible on web
+        // Use show_in_web field if defined, fallback to name-based logic for backward compatibility
+        const byStatus = processed.filter((v) => {
+          if (!v.status) return false;
+          // If show_in_web is explicitly set, use it
+          if (typeof v.status.show_in_web === 'boolean') {
+            return v.status.show_in_web;
+          }
+          // Fallback: use name-based filtering for legacy states without show_in_web
+          return showStatuses.includes((v.status.name || '') as StatusName);
+        });
 
         // Ordena Publicado primero y luego por fecha desc
         const sorted = [...byStatus].sort((a, b) => {

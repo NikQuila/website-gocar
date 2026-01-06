@@ -137,7 +137,8 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
     displayDiscountedPrice = price * (1 - discount_percentage / 100);
   }
 
-  const isNotAvailable = status?.name && status.name !== 'Publicado';
+  // Only show banner/ribbon for Vendido and Reservado states, not for other custom visible states
+  const isNotAvailable = status?.name && (status.name === 'Vendido' || status.name === 'Reservado');
 
   const isNew = () => {
     if (!created_at) return false;

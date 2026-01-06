@@ -28,6 +28,7 @@ import useActiveBuilderFilter from '@/store/useActiveBuilderFilter';
 interface VehicleStatus {
   id: number;
   name: string;
+  show_in_web?: boolean;
 }
 
 // Extended Vehicle interface to include the nested properties
@@ -249,19 +250,19 @@ export const VehicleGrid = ({
           .from('vehicles')
           .select(
             `
-            id, 
-            brand_id, 
-            model_id, 
-            year, 
+            id,
+            brand_id,
+            model_id,
+            year,
             price,
-            mileage, 
+            mileage,
             main_image,
             status_id,
             discount_percentage,
             label,
             transmission,
             created_at,
-            status:status_id(id, name),
+            status:status_id(id, name, show_in_web),
             brand:brand_id(id, name),
             model:model_id(id, name),
             category:category_id(id, name),
@@ -333,10 +334,17 @@ export const VehicleGrid = ({
             return { ...vehicle, event_date }; // Add event_date to the vehicle object
           });
 
-          // Filter vehicles by status names (applied to data that now includes event_date)
-          const filteredByStatus = processedData.filter(
-            (vehicle) => vehicle.status && showStatuses.includes(vehicle.status.name as any)
-          );
+          // Filter vehicles that should be visible on web
+          // Use show_in_web field if defined, fallback to name-based logic for backward compatibility
+          const filteredByStatus = processedData.filter((vehicle) => {
+            if (!vehicle.status) return false;
+            // If show_in_web is explicitly set, use it
+            if (typeof vehicle.status.show_in_web === 'boolean') {
+              return vehicle.status.show_in_web;
+            }
+            // Fallback: use name-based filtering for legacy states without show_in_web
+            return showStatuses.includes(vehicle.status.name as any);
+          });
 
           // Sort vehicles to show "Publicado" status first, then by newest
           const sortedVehicles = [...filteredByStatus].sort((a, b) => {

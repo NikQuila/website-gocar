@@ -311,6 +311,7 @@ export interface ClientVehicleStatus {
   order: number;
   created_at: string;
   is_disabled: boolean;
+  show_in_web?: boolean;
 }
 
 export interface ClientWebsiteConfig {
