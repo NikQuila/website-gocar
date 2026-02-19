@@ -44,76 +44,87 @@ interface ActiveBuilderFilterState {
 }
 
 const useActiveBuilderFilter = create(
-  persist<ActiveBuilderFilterState>((set, get) => ({
-    selectedBrands: [],
-    selectedYears: [],
-    selectedTypes: [],
-    selectedFuels: [],
-    selectedConditions: [],
-    selectedColors: [],
-    availableBrands: [],
-    availableYears: [],
-    availableTypes: [],
-    availableFuels: [],
-    availableConditions: [],
-    availableColors: [],
-    priceRange: { min: 0, max: 1000000000 },
-    minMaxPrice: { min: 0, max: 1000000000 },
-    sortOrder: 'date_desc',
-    setSortOrder: (order) => set({ sortOrder: order }),
-    setSelectedBrands: (brands) =>
-      set({
-        selectedBrands:
-          typeof brands === 'function' ? brands(get().selectedBrands) : brands,
-      }),
-    setSelectedYears: (years) =>
-      set({
-        selectedYears:
-          typeof years === 'function' ? years(get().selectedYears) : years,
-      }),
-    setSelectedTypes: (types) =>
-      set({
-        selectedTypes:
-          typeof types === 'function' ? types(get().selectedTypes) : types,
-      }),
-    setSelectedFuels: (fuels) =>
-      set({
-        selectedFuels:
-          typeof fuels === 'function' ? fuels(get().selectedFuels) : fuels,
-      }),
-    setSelectedConditions: (conditions) =>
-      set({
-        selectedConditions:
-          typeof conditions === 'function'
-            ? conditions(get().selectedConditions)
-            : conditions,
-      }),
-    setSelectedColors: (colors) =>
-      set({
-        selectedColors:
-          typeof colors === 'function' ? colors(get().selectedColors) : colors,
-      }),
-    setAvailableBrands: (brands) => set({ availableBrands: brands }),
-    setAvailableYears: (years) => set({ availableYears: years }),
-    setAvailableTypes: (types) => set({ availableTypes: types }),
-    setAvailableFuels: (fuels) => set({ availableFuels: fuels }),
-    setAvailableConditions: (conditions) =>
-      set({ availableConditions: conditions }),
-    setAvailableColors: (colors) => set({ availableColors: colors }),
-    setPriceRange: (range) => set({ priceRange: range }),
-    setMinMaxPrice: (range) => set({ minMaxPrice: range }),
-    clearFilters: () =>
-      set({
-        selectedBrands: [],
-        selectedYears: [],
-        selectedTypes: [],
-        selectedFuels: [],
-        selectedConditions: [],
-        selectedColors: [],
-        priceRange: { min: 0, max: 1000000000 },
-        sortOrder: 'date_desc',
-      }),
-  }))
+  persist<ActiveBuilderFilterState>(
+    (set, get) => ({
+      selectedBrands: [],
+      selectedYears: [],
+      selectedTypes: [],
+      selectedFuels: [],
+      selectedConditions: [],
+      selectedColors: [],
+      availableBrands: [],
+      availableYears: [],
+      availableTypes: [],
+      availableFuels: [],
+      availableConditions: [],
+      availableColors: [],
+      priceRange: { min: 0, max: 1000000000 },
+      minMaxPrice: { min: 0, max: 1000000000 },
+      sortOrder: 'date_desc',
+      setSortOrder: (order) => set({ sortOrder: order }),
+      setSelectedBrands: (brands) =>
+        set({
+          selectedBrands:
+            typeof brands === 'function' ? brands(get().selectedBrands) : brands,
+        }),
+      setSelectedYears: (years) =>
+        set({
+          selectedYears:
+            typeof years === 'function' ? years(get().selectedYears) : years,
+        }),
+      setSelectedTypes: (types) =>
+        set({
+          selectedTypes:
+            typeof types === 'function' ? types(get().selectedTypes) : types,
+        }),
+      setSelectedFuels: (fuels) =>
+        set({
+          selectedFuels:
+            typeof fuels === 'function' ? fuels(get().selectedFuels) : fuels,
+        }),
+      setSelectedConditions: (conditions) =>
+        set({
+          selectedConditions:
+            typeof conditions === 'function'
+              ? conditions(get().selectedConditions)
+              : conditions,
+        }),
+      setSelectedColors: (colors) =>
+        set({
+          selectedColors:
+            typeof colors === 'function' ? colors(get().selectedColors) : colors,
+        }),
+      setAvailableBrands: (brands) => set({ availableBrands: brands }),
+      setAvailableYears: (years) => set({ availableYears: years }),
+      setAvailableTypes: (types) => set({ availableTypes: types }),
+      setAvailableFuels: (fuels) => set({ availableFuels: fuels }),
+      setAvailableConditions: (conditions) =>
+        set({ availableConditions: conditions }),
+      setAvailableColors: (colors) => set({ availableColors: colors }),
+      setPriceRange: (range) => set({ priceRange: range }),
+      setMinMaxPrice: (range) => set({ minMaxPrice: range }),
+      clearFilters: () =>
+        set({
+          selectedBrands: [],
+          selectedYears: [],
+          selectedTypes: [],
+          selectedFuels: [],
+          selectedConditions: [],
+          selectedColors: [],
+          priceRange: { min: 0, max: 1000000000 },
+          sortOrder: 'date_desc',
+        }),
+    }),
+    {
+      name: 'active-builder-filter',
+      version: 2,
+      partialize: (state) => {
+        // Excluir sortOrder de la persistencia para que siempre inicie en 'date_desc'
+        const { sortOrder, ...rest } = state;
+        return rest as ActiveBuilderFilterState;
+      },
+    }
+  )
 );
 
 export default useActiveBuilderFilter;
