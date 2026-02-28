@@ -157,6 +157,7 @@ export function useVehicleSectionsTranslations() {
       yearDesc: t('sections.vehicles.sorting.yearDesc'),
       yearAsc: t('sections.vehicles.sorting.yearAsc'),
       mileageAsc: t('sections.vehicles.sorting.mileageAsc'),
+      mileageDesc: t('sections.vehicles.sorting.mileageDesc'),
     },
   };
 }

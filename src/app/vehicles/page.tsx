@@ -117,6 +117,13 @@ const VehiclesPage: React.FC = () => {
   }, [maxPrice, priceRange, setPriceRange]);
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const ITEMS_PER_PAGE = 12;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, priceRange, searchQuery, sortOrder]);
 
   // Contador de filtros activos
   const activeFiltersCount = useMemo(() => {
@@ -133,13 +140,13 @@ const VehiclesPage: React.FC = () => {
 
   // Etiquetas con fallback (sin claves crudas)
   const sortOptions = [
-    { key: 'date_desc',   label: tx('vehicles.sorting.dateDesc',  'Más recientes'), icon: 'mdi:clock-outline' },
-    { key: 'date_asc',    label: tx('vehicles.sorting.dateAsc',   'Más antiguos'),  icon: 'mdi:clock' },
-    { key: 'price_asc',   label: tx('vehicles.sorting.priceAsc',  'Precio ↑'),      icon: 'mdi:sort-ascending' },
-    { key: 'price_desc',  label: tx('vehicles.sorting.priceDesc', 'Precio ↓'),      icon: 'mdi:sort-descending' },
-    { key: 'year_desc',   label: tx('vehicles.sorting.yearDesc',  'Año ↓'),         icon: 'mdi:calendar' },
-    { key: 'year_asc',    label: tx('vehicles.sorting.yearAsc',   'Año ↑'),         icon: 'mdi:calendar-outline' },
-    { key: 'mileage_asc', label: tx('vehicles.sorting.mileageAsc','Kilometraje ↓'), icon: 'mdi:speedometer-slow' },
+    { key: 'date_desc',    label: tx('vehicles.sorting.dateDesc',    'Destacados'),       icon: 'mdi:star-outline' },
+    { key: 'price_asc',    label: tx('vehicles.sorting.priceAsc',    'Precio ↑'),         icon: 'mdi:sort-ascending' },
+    { key: 'price_desc',   label: tx('vehicles.sorting.priceDesc',   'Precio ↓'),         icon: 'mdi:sort-descending' },
+    { key: 'year_desc',    label: tx('vehicles.sorting.yearDesc',    'Año ↓'),            icon: 'mdi:calendar' },
+    { key: 'year_asc',     label: tx('vehicles.sorting.yearAsc',     'Año ↑'),            icon: 'mdi:calendar-outline' },
+    { key: 'mileage_asc',  label: tx('vehicles.sorting.mileageAsc',  'Kilometraje ↑'),   icon: 'mdi:speedometer-slow' },
+    { key: 'mileage_desc', label: tx('vehicles.sorting.mileageDesc', 'Kilometraje ↓'),   icon: 'mdi:speedometer' },
   ] as const;
 
   const titleText = tx('pages.vehicles.title', 'Vehículos');
@@ -221,6 +228,8 @@ const VehiclesPage: React.FC = () => {
           return (a.year || 0) - (b.year || 0);
         case 'mileage_asc':
           return (a.mileage || 0) - (b.mileage || 0);
+        case 'mileage_desc':
+          return (b.mileage || 0) - (a.mileage || 0);
         default:
           return 0;
       }
@@ -275,19 +284,46 @@ const VehiclesPage: React.FC = () => {
 
   return (
     <ClientOnly>
-      {/* Botón flotante de Filtros - Solo móvil, siempre visible */}
-      <button
-        onClick={() => setIsFilterModalOpen(true)}
-        className='md:hidden fixed bottom-6 left-6 z-[99999] flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#0B0B0F] rounded-full border border-slate-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-200'
-      >
-        <Icon icon='solar:filter-linear' className='text-lg text-primary' />
-        <span className='text-sm font-medium text-gray-700 dark:text-white'>{filtersTitle}</span>
-        {activeFiltersCount > 0 && (
-          <span className='w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-medium'>
-            {activeFiltersCount}
-          </span>
-        )}
-      </button>
+      {/* Botones flotantes - Solo móvil, siempre visibles */}
+      <div className='md:hidden fixed bottom-6 left-6 z-[99999] flex items-center gap-2'>
+        <button
+          onClick={() => setIsFilterModalOpen(true)}
+          className='flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#0B0B0F] rounded-full border border-slate-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-200'
+        >
+          <Icon icon='solar:filter-linear' className='text-lg text-primary' />
+          <span className='text-sm font-medium text-gray-700 dark:text-white'>{filtersTitle}</span>
+          {activeFiltersCount > 0 && (
+            <span className='w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-medium'>
+              {activeFiltersCount}
+            </span>
+          )}
+        </button>
+
+        <Dropdown placement='top'>
+          <DropdownTrigger>
+            <button
+              className='flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#0B0B0F] rounded-full border border-slate-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-200'
+            >
+              <Icon icon='mdi:sort' className='text-lg text-primary' />
+              <span className='text-sm font-medium text-gray-700 dark:text-white'>{orderByText}</span>
+            </button>
+          </DropdownTrigger>
+          <DropdownMenu
+            selectionMode='single'
+            selectedKeys={new Set([sortOrder])}
+            onSelectionChange={(keys) => {
+              const k = Array.from(keys)[0];
+              if (k) setSortOrder(String(k));
+            }}
+          >
+            {sortOptions.map((option) => (
+              <DropdownItem key={option.key} startContent={<Icon icon={option.icon} className='text-sm' />}>
+                {option.label}
+              </DropdownItem>
+            ))}
+          </DropdownMenu>
+        </Dropdown>
+      </div>
 
       <div className="min-h-screen bg-slate-50/50 dark:bg-black">
         <main className="grid grid-cols-1 md:grid-cols-4">
@@ -476,33 +512,6 @@ const VehiclesPage: React.FC = () => {
                           />
                         </div>
 
-                        <div className="w-full sm:w-1/4 flex-1 sm:hidden">
-                          <Dropdown>
-                            <DropdownTrigger>
-                              <Button
-                                variant="light"
-                                startContent={<Icon icon="mdi:sort" className="text-base" />}
-                                className="w-full flex items-center gap-x-1 px-3 min-h-[42px] text-sm bg-white/70 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 rounded-2xl border border-slate-200/60 dark:border-neutral-800"
-                              >
-                                {sortOptions.find((o) => o.key === sortOrder)?.label || orderByText}
-                              </Button>
-                            </DropdownTrigger>
-                            <DropdownMenu
-                              selectionMode="single"
-                              selectedKeys={new Set([sortOrder])}
-                              onSelectionChange={(keys) => {
-                                const k = Array.from(keys)[0];
-                                if (k) setSortOrder(String(k));
-                              }}
-                            >
-                              {sortOptions.map((option) => (
-                                <DropdownItem key={option.key} startContent={<Icon icon={option.icon} className="text-sm" />}>
-                                  {option.label}
-                                </DropdownItem>
-                              ))}
-                            </DropdownMenu>
-                          </Dropdown>
-                        </div>
                       </div>
                     </div>
                   </div>

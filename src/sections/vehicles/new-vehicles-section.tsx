@@ -3,7 +3,7 @@
 // Vehículos vendidos y reservados se muestran solo por 3 días desde la fecha de venta/reserva
 // Sold and reserved vehicles are shown only for 3 days from the sale/reservation date
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
 import {
   Button,
@@ -12,14 +12,14 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerFooter,
-  useDisclosure,
   ScrollShadow,
 } from '@heroui/react';
+import {
+  Drawer as VaulDrawer,
+  DrawerContent as VaulDrawerContent,
+  DrawerHeader as VaulDrawerHeader,
+  DrawerTitle as VaulDrawerTitle,
+} from '@/components/ui/drawer';
 
 import { Icon } from '@iconify/react';
 import NewVehicleFilters from './new-vehicle-filters';
@@ -335,7 +335,8 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
   const [autocompleteResults, setAutocompleteResults] = useState<string[]>([]);
   const [aiFilters, setAiFilters] = useState<AIFilters>({});
   const [isAISearching, setIsAISearching] = useState(false);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const [isSortDrawerOpen, setIsSortDrawerOpen] = useState(false);
   const activeView = 'grid'; // Fixed to grid view
 
   // Llamar a la IA para parsear la búsqueda (con debounce)
@@ -405,13 +406,13 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
   );
 
   const sortOptions = [
-    { key: 'date_desc', label: t('vehicles.sorting.dateDesc'), icon: 'mdi:clock-outline' },
-    { key: 'date_asc', label: t('vehicles.sorting.dateAsc'), icon: 'mdi:clock' },
-    { key: 'price_asc', label: t('vehicles.sorting.priceAsc'), icon: 'mdi:sort-ascending' },
-    { key: 'price_desc', label: t('vehicles.sorting.priceDesc'), icon: 'mdi:sort-descending' },
-    { key: 'year_desc', label: t('vehicles.sorting.yearDesc'), icon: 'mdi:calendar' },
-    { key: 'year_asc', label: t('vehicles.sorting.yearAsc'), icon: 'mdi:calendar-outline' },
-    { key: 'mileage_asc', label: t('vehicles.sorting.mileageAsc'), icon: 'mdi:speedometer-slow' },
+    { key: 'date_desc',    label: t('vehicles.sorting.dateDesc') || 'Destacados',     icon: 'mdi:star-outline' },
+    { key: 'price_asc',    label: t('vehicles.sorting.priceAsc') || 'Precio ↑',       icon: 'mdi:sort-ascending' },
+    { key: 'price_desc',   label: t('vehicles.sorting.priceDesc') || 'Precio ↓',      icon: 'mdi:sort-descending' },
+    { key: 'year_desc',    label: t('vehicles.sorting.yearDesc') || 'Año ↓',          icon: 'mdi:calendar' },
+    { key: 'year_asc',     label: t('vehicles.sorting.yearAsc') || 'Año ↑',           icon: 'mdi:calendar-outline' },
+    { key: 'mileage_asc',  label: t('vehicles.sorting.mileageAsc') || 'Kilometraje ↑', icon: 'mdi:speedometer-slow' },
+    { key: 'mileage_desc', label: t('vehicles.sorting.mileageDesc') || 'Kilometraje ↓', icon: 'mdi:speedometer' },
   ];
 
   const clearAllFilters = () => {
@@ -518,6 +519,8 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
             return (a.year || 0) - (b.year || 0);
           case 'mileage_asc':
             return (a.mileage || 0) - (b.mileage || 0);
+          case 'mileage_desc':
+            return (b.mileage || 0) - (a.mileage || 0);
           default:
             return (
               new Date(b.created_at || 0).getTime() -
@@ -593,28 +596,40 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
         href={whatsappUrl}
         target='_blank'
         rel='noopener noreferrer'
-        className='fixed bottom-6 right-6 z-[99999] p-3 bg-[#25D366] rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200'
+        className='fixed bottom-6 right-6 z-40 p-3 bg-[#25D366] rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200'
       >
         <Icon icon='logos:whatsapp-icon' className='text-xl' />
       </a>
 
-      {/* Botón de Filtros móvil - Solo visible en sección vehículos, izquierda */}
-      <button
-        onClick={onOpen}
-        className={`md:hidden fixed bottom-6 left-6 z-[99999] flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#0B0B0F] rounded-full border border-slate-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-300 ${
+      {/* Botones flotantes móvil - Solo visibles en sección vehículos, izquierda */}
+      <div
+        className={`md:hidden fixed bottom-6 left-6 z-40 flex flex-col items-start gap-2 transition-all duration-300 ${
           showMobileButtons
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-10 pointer-events-none'
         }`}
       >
-        <Icon icon='solar:filter-linear' className='text-lg text-primary' />
-        <span className='text-sm font-medium text-gray-700 dark:text-white'>Filtros</span>
-        {activeFiltersCount > 0 && (
-          <span className='w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-medium'>
-            {activeFiltersCount}
-          </span>
-        )}
-      </button>
+        <button
+          onClick={() => setIsFilterDrawerOpen(true)}
+          className='flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#0B0B0F] rounded-full border border-slate-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-200'
+        >
+          <Icon icon='solar:filter-linear' className='text-lg text-primary' />
+          <span className='text-sm font-medium text-gray-700 dark:text-white'>Filtros</span>
+          {activeFiltersCount > 0 && (
+            <span className='w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-medium'>
+              {activeFiltersCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setIsSortDrawerOpen(true)}
+          className='flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#0B0B0F] rounded-full border border-slate-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-200'
+        >
+          <Icon icon='mdi:sort' className='text-lg text-primary' />
+          <span className='text-sm font-medium text-gray-700 dark:text-white'>{t('pages.vehicles.orderBy') || 'Ordenar'}</span>
+        </button>
+      </div>
 
       {/* Fixed Categories Navigation */}
       <div className='sticky top-[var(--navbar-height)] z-30 bg-white dark:bg-dark-bg border-b border-gray-200 dark:border-dark-border'>
@@ -804,20 +819,47 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
             </aside>
           )}
 
-          {/* Botón para expandir filtros cuando están colapsados */}
+          {/* Botones para expandir filtros y ordenar cuando están colapsados */}
           {isMd && isFiltersCollapsed && (
-            <button
-              onClick={() => setIsFiltersCollapsed(false)}
-              className='sticky top-24 h-fit shrink-0 p-3 bg-white dark:bg-[#0B0B0F] rounded-xl border border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-200 flex flex-col items-center gap-2'
-              aria-label='Mostrar filtros'
-            >
-              <Icon icon='solar:filter-linear' className='text-xl text-primary' />
-              {activeFiltersCount > 0 && (
-                <span className='w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-medium'>
-                  {activeFiltersCount}
-                </span>
-              )}
-            </button>
+            <div className='sticky top-24 h-fit shrink-0 flex flex-col items-center gap-2'>
+              <button
+                onClick={() => setIsFiltersCollapsed(false)}
+                className='p-3 bg-white dark:bg-[#0B0B0F] rounded-xl border border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-200 flex flex-col items-center gap-2'
+                aria-label='Mostrar filtros'
+              >
+                <Icon icon='solar:filter-linear' className='text-xl text-primary' />
+                {activeFiltersCount > 0 && (
+                  <span className='w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-medium'>
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </button>
+
+              <Dropdown placement='right'>
+                <DropdownTrigger>
+                  <button
+                    className='p-3 bg-white dark:bg-[#0B0B0F] rounded-xl border border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-200 flex flex-col items-center gap-2'
+                    aria-label='Ordenar'
+                  >
+                    <Icon icon='mdi:sort' className='text-xl text-primary' />
+                  </button>
+                </DropdownTrigger>
+                <DropdownMenu
+                  selectionMode='single'
+                  selectedKeys={new Set([sortOrder])}
+                  onSelectionChange={(keys) => {
+                    const k = Array.from(keys)[0];
+                    if (k) setSortOrder(String(k));
+                  }}
+                >
+                  {sortOptions.map((option) => (
+                    <DropdownItem key={option.key} startContent={<Icon icon={option.icon} className='text-sm' />}>
+                      {option.label}
+                    </DropdownItem>
+                  ))}
+                </DropdownMenu>
+              </Dropdown>
+            </div>
           )}
 
           {/* Vehicles Content */}
@@ -943,44 +985,58 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
         </div>
       </div>
 
-      {/* Mobile Filters Drawer */}
-
-      <Drawer
-        isOpen={isOpen}
-        onClose={onClose}
-        placement='bottom'
-        className='bg-white dark:bg-dark-card z-[999999]'
-        classNames={{
-          base: 'h-[90vh] rounded-t-xl z-[999999]',
-          wrapper: 'z-[999999]',
-          backdrop: 'z-[999998]',
-          header:
-            'border-b border-transparent sm:border-gray-200 dark:sm:border-dark-border',
-          body: 'p-0',
-          footer: 'border-t border-gray-200 dark:border-dark-border px-4 py-4',
-        }}
-      >
-        <DrawerContent>
-          <DrawerHeader></DrawerHeader>
-          <DrawerBody>
-            <ScrollShadow className='h-[calc(100vh-12rem)]'>
-              <div className='px-4'>
-                <NewVehicleFilters
-                  brands={brands}
-                  initialOpenAccordion={filters.color ? 'color' : undefined}
-                  availableYears={availableYears}
-                  maxPrice={maxPrice}
-                />
-              </div>
-            </ScrollShadow>
-          </DrawerBody>
-          <DrawerFooter>
-            <Button color='primary' onPress={onClose} className='w-full'>
+      {/* Mobile Filters Drawer — Vaul (arrastrable) */}
+      <VaulDrawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
+        <VaulDrawerContent className='max-h-[90vh]'>
+          <VaulDrawerHeader>
+            <VaulDrawerTitle>{t('vehicles.filters.title') || 'Filtros'}</VaulDrawerTitle>
+          </VaulDrawerHeader>
+          <div className='overflow-y-auto px-4 pb-4 flex-1'>
+            <NewVehicleFilters
+              brands={brands}
+              initialOpenAccordion={filters.color ? 'color' : undefined}
+              availableYears={availableYears}
+              maxPrice={maxPrice}
+            />
+          </div>
+          <div className='border-t border-gray-200 dark:border-neutral-800 px-4 py-4'>
+            <Button color='primary' onPress={() => setIsFilterDrawerOpen(false)} className='w-full'>
               {t('vehicles.filters.applyFilters')}
             </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+          </div>
+        </VaulDrawerContent>
+      </VaulDrawer>
+
+      {/* Mobile Sort Drawer — Vaul (arrastrable) */}
+      <VaulDrawer open={isSortDrawerOpen} onOpenChange={setIsSortDrawerOpen}>
+        <VaulDrawerContent>
+          <VaulDrawerHeader>
+            <VaulDrawerTitle>{t('pages.vehicles.orderBy') || 'Ordenar'}</VaulDrawerTitle>
+          </VaulDrawerHeader>
+          <div className='flex flex-col pb-6'>
+            {sortOptions.map((option) => (
+              <button
+                key={option.key}
+                onClick={() => {
+                  setSortOrder(option.key);
+                  setIsSortDrawerOpen(false);
+                }}
+                className={`flex items-center gap-3 px-5 py-3.5 transition-colors ${
+                  sortOrder === option.key
+                    ? 'bg-primary/10 text-primary font-medium'
+                    : 'text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-neutral-800'
+                }`}
+              >
+                <Icon icon={option.icon} className='text-lg' />
+                <span className='text-sm'>{option.label}</span>
+                {sortOrder === option.key && (
+                  <Icon icon='mdi:check' className='ml-auto text-primary text-lg' />
+                )}
+              </button>
+            ))}
+          </div>
+        </VaulDrawerContent>
+      </VaulDrawer>
     </div>
   );
 };

@@ -71,6 +71,7 @@ export const vehiclesEn = {
     yearDesc: 'Year: Newest',
     yearAsc: 'Year: Oldest',
     mileageAsc: 'Mileage: Low to High',
+    mileageDesc: 'Mileage: High to Low',
   },
 
   // Vehicle card

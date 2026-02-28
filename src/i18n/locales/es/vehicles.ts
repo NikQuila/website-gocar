@@ -71,6 +71,7 @@ export const vehiclesEs = {
     yearDesc: 'Año: Más Reciente',
     yearAsc: 'Año: Más Antiguo',
     mileageAsc: 'Kilometraje: Menor a Mayor',
+    mileageDesc: 'Kilometraje: Mayor a Menor',
   },
 
   // Card de vehículo

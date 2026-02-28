@@ -179,6 +179,7 @@ export interface TranslationKeys {
       yearDesc: string;
       yearAsc: string;
       mileageAsc: string;
+      mileageDesc: string;
     };
     card: {
       year: string;
