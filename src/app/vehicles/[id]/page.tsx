@@ -11,6 +11,7 @@ export async function generateMetadata({
   const { id } = await params;
   const headersList = await headers();
   const host = headersList.get('host') || headersList.get('x-forwarded-host') || '';
+  const baseUrl = `https://${host}`;
 
   const vehicle = await getVehicleById(id);
 
@@ -24,28 +25,32 @@ export async function generateMetadata({
   const newTitle = `${vehicle.brand?.name || ''} ${vehicle.model?.name || ''} ${vehicle.year || ''}`.trim();
   const description = vehicle.description || `${newTitle} disponible`;
 
-  // Usar imagen original de Supabase directamente
-  const ogImageUrl = vehicle.main_image;
+  // Use the custom OG image API for rich previews
+  const ogImageUrl = `${baseUrl}/api/og/${id}`;
 
   return {
     title: newTitle,
     description,
+    alternates: {
+      canonical: `/vehicles/${id}`,
+    },
     openGraph: {
       title: newTitle,
       description,
       type: 'article',
-      images: ogImageUrl ? [{
+      url: `${baseUrl}/vehicles/${id}`,
+      images: [{
         url: ogImageUrl,
         width: 1200,
         height: 630,
         alt: newTitle,
-      }] : [],
+      }],
     },
     twitter: {
       card: 'summary_large_image',
       title: newTitle,
       description,
-      images: ogImageUrl ? [ogImageUrl] : [],
+      images: [ogImageUrl],
     },
   };
 }

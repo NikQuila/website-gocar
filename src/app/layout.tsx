@@ -12,6 +12,7 @@ import { VisitTracker } from '@/components/analytics/VisitTracker';
 import RoutePrefetcher from '@/components/routing/RoutePrefetcher';
 import { ToastContainer } from 'react-toastify';
 import DebugPropGuard from './DebugPropGuard';
+import { headers } from 'next/headers';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
@@ -21,38 +22,52 @@ const poppins = Poppins({
 
 export async function generateMetadata() {
   const client = await getClient();
+  const headersList = await headers();
+  const host = headersList.get('host') || 'localhost';
+  const baseUrl = `https://${host}`;
+
+  const title = client?.seo?.title || 'Automotora';
+  const description = client?.seo?.description || 'Descripción por defecto';
+  const keywords = client?.seo?.keywords || [];
 
   return {
-    title: client?.seo?.title || 'Automotora',
-    description: client?.seo?.description || 'Descripción por defecto',
-    icons: {
-      icon: [
-        {
-          url: client?.favicon || '/favicon.ico',
-          sizes: 'any',
-          type: 'image/x-icon',
-        },
-        {
-          url: client?.favicon || '/favicon.ico',
-          sizes: '32x32',
-          type: 'image/png',
-        },
-      ],
+    metadataBase: new URL(baseUrl),
+    title: {
+      default: title,
+      template: `%s | ${title}`,
     },
+    description,
+    keywords,
+    alternates: {
+      canonical: '/',
+    },
+    icons: client?.favicon
+      ? {
+          icon: [
+            { url: client.favicon, sizes: 'any', type: 'image/x-icon' },
+            { url: client.favicon, sizes: '32x32', type: 'image/png' },
+          ],
+        }
+      : undefined,
     verification: {
       google: 'mM5DNzGoLlVxLaeEWPJsO2lRxjqYdwjGjTVqSGKhxQ8',
     },
     openGraph: {
-      title: client?.seo?.title,
-      description: client?.seo?.description,
-      images: [client?.logo],
+      title,
+      description,
+      url: baseUrl,
+      siteName: title,
+      images: (client?.logo || client?.favicon)
+        ? [{ url: client.logo || client.favicon, width: 800, height: 600, alt: title }]
+        : [],
       type: 'website',
+      locale: 'es_CL',
     },
     twitter: {
       card: 'summary_large_image',
-      title: client?.seo?.title,
-      description: client?.seo?.description,
-      images: [client?.logo],
+      title,
+      description,
+      images: (client?.logo || client?.favicon) ? [client.logo || client.favicon] : [],
     },
   };
 }
