@@ -1,37 +1,15 @@
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
+import { getVehicleById } from '@/lib/vehicles';
 
-export const runtime = 'edge';
-
-async function getVehicle(id: string) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) return null;
-
-  try {
-    const response = await fetch(
-      `${supabaseUrl}/rest/v1/vehicles?id=eq.${id}&select=*,brand:brand_id(name),model:model_id(name)`,
-      {
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-        },
-      }
-    );
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data?.[0] || null;
-  } catch {
-    return null;
-  }
-}
+// Using nodejs runtime for better Supabase client compatibility
+export const runtime = 'nodejs';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const vehicle = await getVehicle(params.id);
+  const vehicle = await getVehicleById(params.id);
 
   const width = 1200;
   const height = 630;
