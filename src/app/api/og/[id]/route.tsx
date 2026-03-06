@@ -1,8 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
 
-export const runtime = 'edge';
-
 async function getVehicle(id: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
@@ -28,10 +26,11 @@ async function getVehicle(id: string) {
 }
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const vehicle = await getVehicle(params.id);
+  const { id } = await params;
+  const vehicle = await getVehicle(id);
 
   const width = 1200;
   const height = 630;

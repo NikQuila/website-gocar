@@ -10,11 +10,6 @@ const nextConfig: NextConfig = {
     // Disable TypeScript errors during production builds
     ignoreBuildErrors: true,
   },
-  // Explicitly expose env vars to edge runtime
-  env: {
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_KEY: process.env.NEXT_PUBLIC_SUPABASE_KEY,
-  },
 };
 
 export default nextConfig;
