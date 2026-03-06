@@ -47,9 +47,10 @@ async function getVehicle(id: string) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const vehicle = await getVehicle(params.id);
+  const { id } = await params;
+  const vehicle = await getVehicle(id);
 
   const width = 1200;
   const height = 630;
