@@ -7,22 +7,40 @@ async function getVehicle(id: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
 
-  if (!supabaseUrl || !supabaseKey) return null;
+  console.log('OG Debug - ID:', id);
+  console.log('OG Debug - Supabase URL exists:', !!supabaseUrl);
+  console.log('OG Debug - Supabase Key exists:', !!supabaseKey);
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.log('OG Debug - Missing env vars');
+    return null;
+  }
 
   try {
-    const response = await fetch(
-      `${supabaseUrl}/rest/v1/vehicles?id=eq.${id}&select=*,brand:brand_id(name),model:model_id(name)`,
-      {
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-        },
-      }
-    );
-    if (!response.ok) return null;
+    const url = `${supabaseUrl}/rest/v1/vehicles?id=eq.${id}&select=*,brand:brand_id(name),model:model_id(name)`;
+    console.log('OG Debug - Fetching URL:', url);
+    
+    const response = await fetch(url, {
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+      },
+    });
+    
+    console.log('OG Debug - Response status:', response.status);
+    
+    if (!response.ok) {
+      console.log('OG Debug - Response not ok');
+      return null;
+    }
+    
     const data = await response.json();
+    console.log('OG Debug - Data length:', data?.length);
+    console.log('OG Debug - First item:', data?.[0] ? 'exists' : 'null');
+    
     return data?.[0] || null;
-  } catch {
+  } catch (error) {
+    console.log('OG Debug - Error:', error);
     return null;
   }
 }
