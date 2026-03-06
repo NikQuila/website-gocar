@@ -3,44 +3,25 @@ import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
 
+// TEMPORARY: Hardcoded for debugging - will remove after test
+const SUPABASE_URL = 'https://miuiujntdjrjhhcysiba.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pdWl1am50ZGpyamhoY3lzaWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUwODEzNjcsImV4cCI6MjA1MDY1NzM2N30.CqgUmrnmGSLDc6tg2aCHdD7tB-q9YL2utHPzXSIo6gI';
+
 async function getVehicle(id: string) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
-
-  console.log('OG Debug - ID:', id);
-  console.log('OG Debug - Supabase URL exists:', !!supabaseUrl);
-  console.log('OG Debug - Supabase Key exists:', !!supabaseKey);
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.log('OG Debug - Missing env vars');
-    return null;
-  }
-
   try {
-    const url = `${supabaseUrl}/rest/v1/vehicles?id=eq.${id}&select=*,brand:brand_id(name),model:model_id(name)`;
-    console.log('OG Debug - Fetching URL:', url);
-    
-    const response = await fetch(url, {
-      headers: {
-        apikey: supabaseKey,
-        Authorization: `Bearer ${supabaseKey}`,
-      },
-    });
-    
-    console.log('OG Debug - Response status:', response.status);
-    
-    if (!response.ok) {
-      console.log('OG Debug - Response not ok');
-      return null;
-    }
-    
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/vehicles?id=eq.${id}&select=*,brand:brand_id(name),model:model_id(name)`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+      }
+    );
+    if (!response.ok) return null;
     const data = await response.json();
-    console.log('OG Debug - Data length:', data?.length);
-    console.log('OG Debug - First item:', data?.[0] ? 'exists' : 'null');
-    
     return data?.[0] || null;
-  } catch (error) {
-    console.log('OG Debug - Error:', error);
+  } catch {
     return null;
   }
 }
