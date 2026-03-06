@@ -25,8 +25,9 @@ export async function generateMetadata({
   const newTitle = `${vehicle.brand?.name || ''} ${vehicle.model?.name || ''} ${vehicle.year || ''}`.trim();
   const description = vehicle.description || `${newTitle} disponible`;
 
-  // Use the custom OG image API for rich previews
-  const ogImageUrl = `${baseUrl}/api/og/${id}`;
+  // Use vehicle's main image directly for fast OG previews
+  // The dynamic ImageResponse API was too slow (3-5s) causing WhatsApp timeouts
+  const ogImageUrl = vehicle.main_image || `${baseUrl}/api/og/${id}`;
 
   return {
     title: newTitle,
@@ -41,8 +42,6 @@ export async function generateMetadata({
       url: `${baseUrl}/vehicles/${id}`,
       images: [{
         url: ogImageUrl,
-        width: 1200,
-        height: 630,
         alt: newTitle,
       }],
     },
