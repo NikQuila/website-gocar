@@ -3,18 +3,19 @@ import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
 
-// TEMPORARY: Hardcoded for debugging - will remove after test
-const SUPABASE_URL = 'https://miuiujntdjrjhhcysiba.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pdWl1am50ZGpyamhoY3lzaWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUwODEzNjcsImV4cCI6MjA1MDY1NzM2N30.CqgUmrnmGSLDc6tg2aCHdD7tB-q9YL2utHPzXSIo6gI';
-
 async function getVehicle(id: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) return null;
+
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/vehicles?id=eq.${id}&select=*,brand:brand_id(name),model:model_id(name)`,
+      `${supabaseUrl}/rest/v1/vehicles?id=eq.${id}&select=*,brand:brand_id(name),model:model_id(name)`,
       {
         headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
         },
       }
     );
@@ -28,10 +29,9 @@ async function getVehicle(id: string) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
-  const vehicle = await getVehicle(id);
+  const vehicle = await getVehicle(params.id);
 
   const width = 1200;
   const height = 630;
