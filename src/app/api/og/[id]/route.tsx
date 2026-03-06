@@ -7,12 +7,20 @@ export const runtime = 'nodejs';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const vehicle = await getVehicleById(params.id);
-
+  const { id } = await params;
+  
   const width = 1200;
   const height = 630;
+
+  let vehicle;
+  try {
+    vehicle = await getVehicleById(id);
+  } catch (error) {
+    console.error('Error fetching vehicle for OG image:', error);
+    vehicle = null;
+  }
 
   if (!vehicle) {
     return new ImageResponse(
