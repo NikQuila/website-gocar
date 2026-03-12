@@ -40,6 +40,7 @@ export const VehicleCard2: React.FC<VehicleCardOverlayProps> = ({
     created_at,
     discount_percentage,
     fuel_type,
+    label,
   } = vehicle;
 
   const isNew = () => {
@@ -140,11 +141,11 @@ export const VehicleCard2: React.FC<VehicleCardOverlayProps> = ({
           </span>
         </div>
 
-        {/* Badge nuevo - show for any available state (not Vendido/Reservado) */}
-        {showNewBadge && isNew() && status?.name !== 'Vendido' && status?.name !== 'Reservado' && (
+        {/* Badge label - only show explicit labels from DB */}
+        {label && status?.name !== 'Vendido' && status?.name !== 'Reservado' && (
           <div className="absolute top-3 right-3">
             <Badge className="bg-emerald-100 text-emerald-700 text-[11px] font-medium px-2.5 py-1 rounded-full">
-              {newBadgeText}
+              {label}
             </Badge>
           </div>
         )}

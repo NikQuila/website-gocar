@@ -48,7 +48,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
   cardButtonTextColor = '#ffffff',
   detailsButtonText = 'Ver detalles',
   bannerPosition = 'right',
-  newBadgeText = 'Nuevo', // Default text
+  newBadgeText = 'Recién publicado', // Default text
   pricePosition = 'overlay',
   // 🔧 Fallback por defecto (se mantiene)
   featuresConfig = {
@@ -266,10 +266,10 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({
           </div>
         )}
 
-        {(label || (isNew() && !isNotAvailable)) && (
+        {label && !isNotAvailable && (
           <div className='absolute top-2 right-2 z-10'>
             <Badge className='bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full'>
-              {label || newBadgeText}
+              {label}
             </Badge>
           </div>
         )}
