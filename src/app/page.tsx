@@ -1,7 +1,7 @@
 'use client';
 
 import { ClientWebsiteConfigProvider } from '@/providers/ClientWebsiteConfigProvider';
-import ContactCTA from '@/sections/home/ContactCTA';
+import TraditionalContactCTA from '@/sections/home/ContactCTA';
 import WelcomeSection from '@/sections/home/WelcomeSection';
 import WhyUs from '@/sections/home/WhyUs';
 import NewVehiclesSection from '@/sections/vehicles/new-vehicles-section';
@@ -19,7 +19,7 @@ export const runtime = 'nodejs';
 import { Container } from '@/components/builder2/userComponents/Container';
 import { Text } from '@/components/builder2/userComponents/Text';
 import { Image } from '@/components/builder2/userComponents/Image';
-import { HeroBasic, HeroWithBackground, HeroWithLogo } from '@/components/builder2/sections/initialfold';
+import { HeroBasic, HeroWithBackground, HeroWithLogo, HeroWelcome } from '@/components/builder2/sections/initialfold';
 import { VehicleGrid } from '@/components/builder2/sections/vehicles';
 import { HeroMinimalistic } from '@/components/builder2/sections/initialfold/HeroMinimalistic';
 import { Testimonials } from '@/components/builder2/sections/testimonials';
@@ -28,6 +28,7 @@ import { VehicleCarousel } from '@/components/builder2/sections/vehicles/Vehicle
 import { VideoEmbed } from '@/components/builder2/sections/videos/VideoEmbed';
 import HowToArrive from '@/sections/home/HowToArrive';
 import { VehicleGrid2 } from '@/components/builder2/sections/vehicles/VehicleGrid2';
+import { ContactCTA } from '@/components/builder2/sections/contact/ContactCTA';
 
 // =====================
 // Fallback seguro
@@ -53,6 +54,7 @@ const baseResolver: Record<string, any> = {
   HeroBasic,
   HeroWithBackground,
   HeroWithLogo,
+  HeroWelcome,
   VehicleGrid,
   VehicleGrid2,
   HeroMinimalistic,
@@ -62,6 +64,7 @@ const baseResolver: Record<string, any> = {
   VehicleCarousel,
   VideoEmbed,
   HowToArrive,
+  ContactCTA,
   div: Unknown,
   p: Unknown,
   span: Unknown,
@@ -224,7 +227,7 @@ function TraditionalContent() {
       <NewVehiclesSection minimal />
       <HowToArrive />
       <WhyUs />
-      <ContactCTA />
+      <TraditionalContactCTA />
     </div>
   );
 }
