@@ -139,10 +139,14 @@ export default function HowToArrive({
           .select('*')
           .eq('client_id', client.id);
 
-        if (data && data.length > 0) {
-          setDealerships(data);
-          setSelectedDealership(data[0]);
-        } else if (client.location) {
+        // Filter out dealerships with invalid/missing location
+        const valid = (data || []).filter(
+          (d: any) => d.location && d.location.lat != null && d.location.lng != null
+        );
+        if (valid.length > 0) {
+          setDealerships(valid);
+          setSelectedDealership(valid[0]);
+        } else if (client.location?.lat != null && client.location?.lng != null) {
           const defaultDealership: Dealership = {
             id: 'default',
             client_id: client.id,
@@ -326,17 +330,17 @@ export default function HowToArrive({
               <GoogleMap
                 zoom={15}
                 center={
-                  selectedDealership
+                  selectedDealership?.location
                     ? {
                         lat: Number(selectedDealership.location.lat),
                         lng: Number(selectedDealership.location.lng),
                       }
-                    : undefined
+                    : { lat: -33.45, lng: -70.65 }
                 }
                 mapContainerStyle={{ width: '100%', height: '100%' }}
                 options={mapOptions}
               >
-                {dealerships.map((dealership) => (
+                {dealerships.filter(d => d.location).map((dealership) => (
                   <OverlayView
                     key={dealership.id}
                     position={{
