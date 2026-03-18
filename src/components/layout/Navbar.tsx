@@ -70,10 +70,10 @@ const Navbar = () => {
       <NextUINavbar
         isMenuOpen={isMenuOpen}
         onMenuOpenChange={setIsMenuOpen}
-        className={`transition-colors duration-300 fixed top-0 z-50 ${
+        className={`transition-all duration-300 fixed top-0 z-50 ${
           isScrolled
             ? 'bg-white/90 dark:bg-black/90 shadow-sm supports-[backdrop-filter]:backdrop-blur-md'
-            : 'bg-white dark:bg-dark-bg'
+            : 'bg-transparent'
         }`}
         maxWidth="xl"
       >

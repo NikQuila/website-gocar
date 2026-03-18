@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { Icon } from '@iconify/react';
 import { useWebsiteConfig } from '@/providers/ClientWebsiteConfigProvider';
-import useClientStore from '@/store/useClientStore';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 interface WhyUsItem {
@@ -13,163 +12,45 @@ interface WhyUsItem {
   description: string;
 }
 
-interface WhyUsConfig {
-  title: string;
-  subtitle?: string;
-  items: WhyUsItem[];
-}
-
-const defaultItems = [
-  {
-    id: '1',
-    title: 'Garantía',
-    description: 'Todos nuestros vehículos cuentan con garantía',
-    icon: 'mdi:shield-check',
-  },
-  {
-    id: '2',
-    title: 'Financiamiento',
-    description: 'Opciones de financiamiento flexibles',
-    icon: 'mdi:cash-multiple',
-  },
-  {
-    id: '3',
-    title: 'Calidad',
-    description: 'Vehículos seleccionados y certificados',
-    icon: 'mdi:certificate',
-  },
+const defaultItems: WhyUsItem[] = [
+  { id: '1', title: 'Garantía', description: 'Todos nuestros vehículos cuentan con garantía', icon: 'mdi:shield-check' },
+  { id: '2', title: 'Financiamiento', description: 'Opciones de financiamiento flexibles', icon: 'mdi:cash-multiple' },
+  { id: '3', title: 'Calidad', description: 'Vehículos seleccionados y certificados', icon: 'mdi:certificate' },
 ];
 
 const WhyUs = () => {
-  const { client } = useClientStore();
-  const { websiteConfig, isLoading: isConfigLoading } = useWebsiteConfig();
-  const [config, setConfig] = useState<WhyUsConfig | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { websiteConfig, isLoading } = useWebsiteConfig();
   const { t } = useTranslation();
 
-  useEffect(() => {
-    if (isConfigLoading) return;
+  const config = useMemo(() => {
+    if (isLoading) return null;
 
-    try {
-      // Process the configuration from the context
-      if (websiteConfig) {
-        console.log('Processing website config for WhyUs:', websiteConfig);
+    const sectionTitle = websiteConfig?.content?.why_us_title || t('home.whyUs.title');
+    const sectionSubtitle = websiteConfig?.content?.why_us_subtitle;
 
-        // Check if we have why_us_items in the config
-        let whyUsConfig: WhyUsConfig | null = null;
+    const items =
+      websiteConfig?.why_us_items && Array.isArray(websiteConfig.why_us_items)
+        ? websiteConfig.why_us_items
+        : defaultItems;
 
-        // Get section title from config or use default
-        const sectionTitle =
-          websiteConfig.content?.why_us_title || t('home.whyUs.title');
-        const sectionSubtitle = websiteConfig.content?.why_us_subtitle;
+    return { title: sectionTitle, subtitle: sectionSubtitle, items };
+  }, [websiteConfig?.content?.why_us_title, websiteConfig?.content?.why_us_subtitle, websiteConfig?.why_us_items, isLoading, t]);
 
-        if (
-          websiteConfig.why_us_items &&
-          Array.isArray(websiteConfig.why_us_items)
-        ) {
-          whyUsConfig = {
-            title: sectionTitle,
-            subtitle: sectionSubtitle,
-            items: websiteConfig.why_us_items,
-          };
-          console.log('Using why_us_items from config:', whyUsConfig);
-        } else {
-          // Use default items
-          whyUsConfig = {
-            title: sectionTitle,
-            subtitle: sectionSubtitle,
-            items: defaultItems,
-          };
-          console.log('Using default items for WhyUs section');
-        }
+  const items = config?.items || defaultItems;
+  const title = config?.title || t('home.whyUs.title');
+  const subtitle = config?.subtitle || t('home.whyUs.subtitle');
 
-        if (whyUsConfig) {
-          console.log('Final WhyUs configuration:', whyUsConfig);
-          setConfig(whyUsConfig);
-        } else {
-          console.warn('No valid configuration found for WhyUs section');
-        }
-      }
-    } catch (error) {
-      console.error('Error processing WhyUs configuration:', error);
-    }
-
-    setIsLoading(false);
-  }, [websiteConfig, isConfigLoading, t]);
-
-  // If there's no configuration or it's loading, show the default design
-  if (isLoading || !config) {
-    const translatedDefaultItems = [
-      {
-        id: '1',
-        title: t('home.whyUs.defaultFeatures.quality.title'),
-        description: t('home.whyUs.defaultFeatures.quality.description'),
-        icon: 'mdi:shield-check',
-      },
-      {
-        id: '2',
-        title: t('home.whyUs.defaultFeatures.experience.title'),
-        description: t('home.whyUs.defaultFeatures.experience.description'),
-        icon: 'mdi:cash-multiple',
-      },
-      {
-        id: '3',
-        title: t('home.whyUs.defaultFeatures.service.title'),
-        description: t('home.whyUs.defaultFeatures.service.description'),
-        icon: 'mdi:certificate',
-      },
-    ];
-    return (
-      <section className='bg-slate-50/50 dark:bg-dark-bg py-16'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <h2 className='text-3xl font-bold text-gray-900 dark:text-dark-text text-center mb-4'>
-            {t('home.whyUs.title')}
-          </h2>
-          {/* Default subtitle placeholder */}
-          <p className='text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto'>
-            {t('home.whyUs.subtitle')}
-          </p>
-          <div className='grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3'>
-            {translatedDefaultItems.map((feature, i) => (
-              <div
-                key={i}
-                className='text-center p-6 bg-white dark:bg-[#0B0B0F] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200'
-              >
-                <div className='flex justify-center mb-4'>
-                  <Icon
-                    icon={feature.icon}
-                    className='w-12 h-12 text-primary'
-                  />
-                </div>
-                <h3 className='text-lg font-medium text-gray-900 dark:text-dark-text'>
-                  {feature.title}
-                </h3>
-                <p className='mt-2 text-base text-gray-500 dark:text-gray-400'>
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Show the section with the custom configuration
   return (
     <section className='bg-slate-50/50 dark:bg-dark-bg py-16'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <h2 className='text-4xl font-semibold text-gray-900 dark:text-dark-text text-center mb-4'>
-          {config.title}
+        <h2 className='text-3xl font-bold text-gray-900 dark:text-dark-text text-center mb-4'>
+          {title}
         </h2>
-        {config.subtitle && (
-          <p className='text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto'>
-            {config.subtitle}
-          </p>
-        )}
-        {!config.subtitle && <div className='mb-8'></div>}
+        <p className='text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto'>
+          {subtitle}
+        </p>
         <div className='grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3'>
-          {config.items.map((item, i) => (
+          {items.map((item, i) => (
             <div
               key={item.id || i}
               className='text-center p-6 bg-white dark:bg-[#0B0B0F] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200'

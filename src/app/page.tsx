@@ -5,7 +5,7 @@ import TraditionalContactCTA from '@/sections/home/ContactCTA';
 import WelcomeSection from '@/sections/home/WelcomeSection';
 import WhyUs from '@/sections/home/WhyUs';
 import NewVehiclesSection from '@/sections/vehicles/new-vehicles-section';
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Editor, Frame } from '@craftjs/core';
 import lz from 'lzutf8';
 import { supabase } from '@/lib/supabase';
@@ -20,15 +20,37 @@ import { Container } from '@/components/builder2/userComponents/Container';
 import { Text } from '@/components/builder2/userComponents/Text';
 import { Image } from '@/components/builder2/userComponents/Image';
 import { HeroBasic, HeroWithBackground, HeroWithLogo, HeroWelcome } from '@/components/builder2/sections/initialfold';
-import { VehicleGrid } from '@/components/builder2/sections/vehicles';
 import { HeroMinimalistic } from '@/components/builder2/sections/initialfold/HeroMinimalistic';
+import { VehicleGrid } from '@/components/builder2/sections/vehicles';
+import { VehicleGrid2 } from '@/components/builder2/sections/vehicles/VehicleGrid2';
+import { VehicleCarousel } from '@/components/builder2/sections/vehicles/VehicleCarousel';
+import { TraditionalVehicleGrid } from '@/components/builder2/sections/vehicles/TraditionalVehicleGrid';
 import { Testimonials } from '@/components/builder2/sections/testimonials';
 import { FAQ, WhyChooseUs } from '@/components/builder2/sections/features';
-import { VehicleCarousel } from '@/components/builder2/sections/vehicles/VehicleCarousel';
+import { TraditionalWhyUs } from '@/components/builder2/sections/features/TraditionalWhyUs';
 import { VideoEmbed } from '@/components/builder2/sections/videos/VideoEmbed';
-import HowToArrive from '@/sections/home/HowToArrive';
-import { VehicleGrid2 } from '@/components/builder2/sections/vehicles/VehicleGrid2';
 import { ContactCTA } from '@/components/builder2/sections/contact/ContactCTA';
+import { TraditionalContactCTA as BuilderTraditionalContactCTA } from '@/components/builder2/sections/contact/TraditionalContactCTA';
+import HowToArrive from '@/sections/home/HowToArrive';
+import { TraditionalHowToArrive } from '@/components/builder2/sections/contact/TraditionalHowToArrive';
+// Moderna sections
+import { HeroModerno } from '@/components/builder2/sections/moderna/HeroModerno';
+import { StatsModerno } from '@/components/builder2/sections/moderna/StatsModerno';
+import { TestimonialsModerno } from '@/components/builder2/sections/moderna/TestimonialsModerno';
+import { CTAModerno } from '@/components/builder2/sections/moderna/CTAModerno';
+import { FooterModerno } from '@/components/builder2/sections/moderna/FooterModerno';
+// Premium sections
+import { HeroPremium } from '@/components/builder2/sections/premium/HeroPremium';
+import { FeatureShowcase } from '@/components/builder2/sections/premium/FeatureShowcase';
+import { TestimonialsPremium } from '@/components/builder2/sections/premium/TestimonialsPremium';
+import { GalleryPremium } from '@/components/builder2/sections/premium/GalleryPremium';
+import { CTAPremium } from '@/components/builder2/sections/premium/CTAPremium';
+// Additional sections
+import { Footer } from '@/components/builder2/sections/layout/Footer';
+import { StatsCounter } from '@/components/builder2/sections/marketing/StatsCounter';
+import { PromoBanner } from '@/components/builder2/sections/marketing/PromoBanner';
+import { PhotoGallery } from '@/components/builder2/sections/media/PhotoGallery';
+import { TeamMembers } from '@/components/builder2/sections/team/TeamMembers';
 
 // =====================
 // Fallback seguro
@@ -48,23 +70,52 @@ const Unknown: React.FC<React.PropsWithChildren<{}>> = ({ children }) => (
 // Resolver con Proxy
 // =====================
 const baseResolver: Record<string, any> = {
+  // User components
   Container,
   Text,
   Image,
+  // Hero sections
   HeroBasic,
   HeroWithBackground,
   HeroWithLogo,
   HeroWelcome,
+  HeroMinimalistic,
+  // Vehicle sections
   VehicleGrid,
   VehicleGrid2,
-  HeroMinimalistic,
-  Testimonials,
-  FAQ,
-  WhyChooseUs,
   VehicleCarousel,
-  VideoEmbed,
-  HowToArrive,
+  TraditionalVehicleGrid,
+  // Feature sections
+  WhyChooseUs,
+  FAQ,
+  Testimonials,
+  TraditionalWhyUs,
+  // Contact sections
   ContactCTA,
+  TraditionalContactCTA: BuilderTraditionalContactCTA,
+  HowToArrive,
+  TraditionalHowToArrive,
+  // Media
+  VideoEmbed,
+  // Moderna sections
+  HeroModerno,
+  StatsModerno,
+  TestimonialsModerno,
+  CTAModerno,
+  FooterModerno,
+  // Premium sections
+  HeroPremium,
+  FeatureShowcase,
+  TestimonialsPremium,
+  GalleryPremium,
+  CTAPremium,
+  // Additional sections
+  Footer,
+  StatsCounter,
+  PromoBanner,
+  PhotoGallery,
+  TeamMembers,
+  // Fallback
   div: Unknown,
   p: Unknown,
   span: Unknown,
@@ -79,17 +130,76 @@ const resolver = new Proxy(baseResolver, {
 });
 
 // =====================
-// Normalizador de Craft state
+// Sanitizador simple de Craft state
+// =====================
+function sanitizeCraftData(state: any): any {
+  if (!state || typeof state !== 'object') return state;
+
+  // Get nodes - either wrapped in .nodes or flat
+  const isWrapped = state.nodes && typeof state.nodes === 'object';
+  const nodes: Record<string, any> = isWrapped ? { ...state.nodes } : { ...state };
+
+  // Fix each node
+  for (const [id, node] of Object.entries(nodes)) {
+    if (!node || typeof node !== 'object') { delete nodes[id]; continue; }
+    const rn = node.type?.resolvedName;
+    if (!rn || typeof rn !== 'string' || !(rn in baseResolver)) {
+      if (id === 'ROOT') {
+        node.type = { resolvedName: 'div' };
+      } else {
+        // Remove invalid nodes
+        delete nodes[id];
+        continue;
+      }
+    }
+    if (!Array.isArray(node.nodes)) node.nodes = [];
+    if (!node.linkedNodes || typeof node.linkedNodes !== 'object') node.linkedNodes = {};
+  }
+
+  // Ensure ROOT exists
+  if (!nodes.ROOT) {
+    const childIds = Object.keys(nodes);
+    nodes.ROOT = {
+      type: { resolvedName: 'div' }, isCanvas: true, props: {},
+      displayName: 'App Canvas', custom: {}, parent: null,
+      nodes: childIds, linkedNodes: {},
+    };
+  }
+  nodes.ROOT.isCanvas = true;
+  nodes.ROOT.parent = null;
+
+  // Clean child references
+  const validIds = new Set(Object.keys(nodes));
+  for (const node of Object.values(nodes)) {
+    if (Array.isArray((node as any).nodes)) {
+      (node as any).nodes = (node as any).nodes.filter((c: string) => validIds.has(c));
+    }
+  }
+
+  return isWrapped ? { ...state, nodes } : nodes;
+}
+
+// =====================
+// Normalizador legacy (unused, kept for reference)
 // =====================
 function normalizeCraftTree(raw: any) {
   if (!raw || typeof raw !== 'object') return raw;
+
+  // If it's somehow still a string, parse it
+  if (typeof raw === 'string') {
+    try { raw = JSON.parse(raw); } catch { return raw; }
+  }
 
   let nodes: Record<string, any> | null = null;
 
   if (raw.nodes && typeof raw.nodes === 'object') {
     nodes = { ...raw.nodes };
   } else {
-    const keys = Object.keys(raw).filter((k) => k === 'ROOT' || k.startsWith('node'));
+    // Accept any key that has a "type" property (craft.js node) or is ROOT
+    const keys = Object.keys(raw).filter((k) => {
+      const v = raw[k];
+      return k === 'ROOT' || (v && typeof v === 'object' && ('type' in v || 'props' in v));
+    });
     if (keys.length) {
       nodes = {};
       for (const k of keys) nodes[k] = { ...(raw as any)[k] };
@@ -102,12 +212,15 @@ function normalizeCraftTree(raw: any) {
     if (!node) return node;
 
     const t = node.type;
-    if (typeof t === 'string') {
+    if (!t || t === 'undefined') {
+      node.type = { resolvedName: 'Unknown' };
+      node.displayName = 'Unknown';
+    } else if (typeof t === 'string') {
       node.type = { resolvedName: t };
       node.displayName = t;
     } else if (typeof t === 'object' && t !== null) {
       const rn = t.resolvedName;
-      if (!rn || typeof rn !== 'string') {
+      if (!rn || typeof rn !== 'string' || rn === 'undefined') {
         node.type = { resolvedName: 'Unknown' };
         node.displayName = 'Unknown';
       } else {
@@ -130,10 +243,19 @@ function normalizeCraftTree(raw: any) {
     return node;
   };
 
+  // List of real component names in the resolver
+  const resolverNames = new Set(Object.keys(baseResolver));
+
   const validIds = Object.keys(nodes).filter((id) => nodes![id] && typeof nodes![id] === 'object');
   const map: Record<string, any> = {};
   for (const id of validIds) {
-    map[id] = ensureTypeObj({ ...nodes[id] });
+    const node = ensureTypeObj({ ...nodes[id] });
+    const rn = node?.type?.resolvedName;
+    // Only keep nodes with valid resolver names (or ROOT which is always 'div')
+    if (id === 'ROOT' || (rn && resolverNames.has(rn))) {
+      map[id] = node;
+    }
+    // else: skip this node entirely — it will be cleaned from parent's children below
   }
 
   const idSet = new Set(Object.keys(map));
@@ -170,11 +292,17 @@ function normalizeCraftTree(raw: any) {
       parent: null,
     };
   } else {
-    map.ROOT = ensureTypeObj({ ...map.ROOT });
-    map.ROOT.isCanvas = true;
+    map.ROOT = { ...map.ROOT };
     map.ROOT.nodes = Array.isArray(map.ROOT.nodes) ? map.ROOT.nodes : [];
     map.ROOT.linkedNodes = map.ROOT.linkedNodes || {};
   }
+
+  // ROOT must always be 'div' with isCanvas
+  map.ROOT.type = { resolvedName: 'div' };
+  map.ROOT.displayName = map.ROOT.displayName || 'App Canvas';
+  map.ROOT.isCanvas = true;
+  map.ROOT.parent = null;
+  if (!map.ROOT.props) map.ROOT.props = {};
 
   return { nodes: map };
 }
@@ -233,14 +361,36 @@ function TraditionalContent() {
 }
 
 // =====================
+// Error Boundary para Builder
+// =====================
+class BuilderErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
+
+// =====================
 // Contenido del Builder
 // =====================
 function BuilderContent({ data }: { data: any }) {
   return (
-    <div className="min-h-screen mt-[6vh]">
-      <Editor resolver={resolver} enabled={false}>
-        <Frame data={data} />
-      </Editor>
+    <div className="min-h-screen">
+      <BuilderErrorBoundary fallback={<TraditionalContent />}>
+        <Editor resolver={resolver} enabled={false}>
+          <Frame data={data} />
+        </Editor>
+      </BuilderErrorBoundary>
     </div>
   );
 }
@@ -251,18 +401,18 @@ function BuilderContent({ data }: { data: any }) {
 function WebsiteContent() {
   const { client, isLoading: isClientLoading } = useClientStore();
   const [content, setContent] = useState<{ type: 'loading' | 'traditional' | 'builder'; data?: any }>({ type: 'loading' });
-  const loadedRef = useRef(false);
 
   useEffect(() => {
-    if (loadedRef.current || isClientLoading) return;
-    loadedRef.current = true;
+    // Wait until client is loaded
+    if (isClientLoading) return;
+    if (!client?.id) {
+      setContent({ type: 'traditional' });
+      return;
+    }
+
+    let cancelled = false;
 
     (async () => {
-      if (!client?.id) {
-        setContent({ type: 'traditional' });
-        return;
-      }
-
       try {
         const { data } = await supabase
           .from('client_website_config')
@@ -270,17 +420,33 @@ function WebsiteContent() {
           .eq('client_id', client.id)
           .single();
 
+        if (cancelled) return;
+
         if (!data?.is_enabled || !data?.elements_structure) {
           setContent({ type: 'traditional' });
           return;
         }
 
-        const decompressed = JSON.parse(lz.decompress(lz.decodeBase64(data.elements_structure)));
-        setContent({ type: 'builder', data: normalizeCraftTree(decompressed) });
+        // Decompress and parse
+        let parsed: any = lz.decompress(lz.decodeBase64(data.elements_structure));
+        while (typeof parsed === 'string') {
+          try { parsed = JSON.parse(parsed); } catch { break; }
+        }
+
+        if (typeof parsed !== 'object' || !parsed) {
+          setContent({ type: 'traditional' });
+          return;
+        }
+
+        // Sanitize: ensure all nodes have valid resolvedName, fix ROOT
+        const sanitized = sanitizeCraftData(parsed);
+        if (!cancelled) setContent({ type: 'builder', data: sanitized });
       } catch {
-        setContent({ type: 'traditional' });
+        if (!cancelled) setContent({ type: 'traditional' });
       }
     })();
+
+    return () => { cancelled = true; };
   }, [client?.id, isClientLoading]);
 
   // Loading → skeleton genérico

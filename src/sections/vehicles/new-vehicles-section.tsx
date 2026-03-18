@@ -590,7 +590,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
   }, [maxPrice]);
 
   return (
-    <div id='vehicles-section' className='min-h-screen bg-slate-50/50 dark:bg-dark-bg'>
+    <div id='vehicles-section' className='bg-slate-50/50 dark:bg-dark-bg'>
       {/* Botón de WhatsApp - Siempre visible, derecha */}
       <a
         href={whatsappUrl}

@@ -24,9 +24,9 @@ interface HeroWelcomeProps {
 }
 
 export const HeroWelcome = ({
-  title = 'Bienvenido a',
+  title = 'Encuentra tu próximo vehículo en',
   highlightedText,
-  subtitle = 'Encuentra tu próximo vehículo con nuestra búsqueda inteligente',
+  subtitle = 'Describe el vehículo de tus sueños y deja que nuestra IA encuentre las mejores opciones para ti.',
   searchPlaceholder,
   bgColor = '#ffffff',
   textColor = '#111827',
@@ -111,18 +111,16 @@ export const HeroWelcome = ({
               className='text-5xl font-bold tracking-tight sm:text-6xl max-w-3xl mx-auto'
               style={{ color: textColor, lineHeight: '1.1' }}
             >
-              {title}{' '}
-              <span style={{ color: finalHighlightColor }}>
-                {finalHighlightedText}
-              </span>
+              <span dangerouslySetInnerHTML={{ __html: title || '' }} />{' '}
+              <span style={{ color: finalHighlightColor }}
+                dangerouslySetInnerHTML={{ __html: finalHighlightedText || '' }} />
             </h1>
 
             <p
               className='mt-6 text-xl leading-8 max-w-2xl mx-auto'
               style={{ color: textColor, opacity: 0.7 }}
-            >
-              {subtitle}
-            </p>
+              dangerouslySetInnerHTML={{ __html: subtitle || '' }}
+            />
 
             {/* Functional search bar */}
             <div className='mt-10 max-w-3xl mx-auto'>
@@ -174,9 +172,9 @@ export const HeroWelcome = ({
 (HeroWelcome as any).craft = {
   displayName: 'HeroWelcome',
   props: {
-    title: 'Bienvenido a',
+    title: 'Encuentra tu próximo vehículo en',
     highlightedText: '',
-    subtitle: 'Encuentra tu próximo vehículo con nuestra búsqueda inteligente',
+    subtitle: 'Describe el vehículo de tus sueños y deja que nuestra IA encuentre las mejores opciones para ti.',
     searchPlaceholder: 'Toyota Corolla blanco',
     bgColor: '#ffffff',
     textColor: '#111827',

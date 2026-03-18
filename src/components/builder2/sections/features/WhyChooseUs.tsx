@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNode } from '@craftjs/core';
+import { useNode, useEditor } from '@craftjs/core';
 import {
   IconCheck,
   IconCurrencyDollar,
@@ -19,126 +19,83 @@ interface FeatureCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
+  link?: string;
   cardBgColor: string;
   cardTextColor: string;
   descriptionColor: string;
-  link?: string;
+  cardStyle: string;
+  iconColor: string;
 }
 
 const FeatureCard = ({
   icon,
   title,
   description,
+  link,
   cardBgColor,
   cardTextColor,
   descriptionColor,
-  link,
+  cardStyle,
+  iconColor,
 }: FeatureCardProps) => {
-  const scrollToSection = (sectionId: string) => {
-    // Detectar si es un número de teléfono (WhatsApp)
-    const phoneRegex = /^(\+?[\d\s\-\(\)]+)$/;
-    if (phoneRegex.test(sectionId.trim())) {
-      let cleanNumber = sectionId.replace(/[\s\-\(\)]/g, '');
-      if (cleanNumber.startsWith('+569')) {
-        const whatsappUrl = `https://wa.me/${cleanNumber}`;
-        window.open(whatsappUrl, '_blank');
-      } else if (cleanNumber.startsWith('569')) {
-        const whatsappUrl = `https://wa.me/+${cleanNumber}`;
-        window.open(whatsappUrl, '_blank');
-      } else if (cleanNumber.startsWith('9') && cleanNumber.length === 9) {
-        const whatsappUrl = `https://wa.me/+56${cleanNumber}`;
-        window.open(whatsappUrl, '_blank');
-      } else if (cleanNumber.length >= 8 && cleanNumber.length <= 10) {
-        const whatsappUrl = `https://wa.me/+569${cleanNumber}`;
-        window.open(whatsappUrl, '_blank');
-      } else {
-        const whatsappUrl = `https://wa.me/${cleanNumber}`;
-        window.open(whatsappUrl, '_blank');
-      }
-      return;
-    }
-
-    // Detectar si es una URL completa
-    if (sectionId.startsWith('http://') || sectionId.startsWith('https://')) {
-      window.open(sectionId, '_blank');
-      return;
-    }
-
-    // Detectar URLs de redes sociales sin protocolo
-    const socialRegex =
-      /^(www\.|wa\.me|instagram\.com|facebook\.com|twitter\.com|x\.com|linkedin\.com|youtube\.com|tiktok\.com)/i;
-    if (socialRegex.test(sectionId)) {
-      const fullUrl = sectionId.startsWith('www.')
-        ? `https://${sectionId}`
-        : `https://${sectionId}`;
-      window.open(fullUrl, '_blank');
-      return;
-    }
-
-    // Detectar hash links (navegación interna)
-    if (sectionId.startsWith('#')) {
-      const targetId = sectionId.substring(1); // Remover el # inicial
-
-      // Buscar por ID
-      const section = document.getElementById(targetId);
-
-      // Si no encuentra por ID, buscar por clase o por atributo data-section
-      const alternativeSection =
-        section ||
-        document.querySelector(`[data-section="${targetId}"]`) ||
-        document.querySelector(`.section-${targetId}`);
-
-      if (alternativeSection) {
-        alternativeSection.scrollIntoView({ behavior: 'smooth' });
-        console.log(`Scrolling to section: ${targetId}`);
-        return;
-      }
-
-      // Si no hemos encontrado la sección, intentamos buscar componentes con nombres similares
-      const possibleSections = document.querySelectorAll(
-        '[class*="vehicle"], [id*="vehicle"], [data-section*="vehicle"]'
-      );
-      if (possibleSections.length > 0) {
-        possibleSections[0].scrollIntoView({ behavior: 'smooth' });
-        console.log(`Scrolling to vehicle section via fuzzy match`);
-        return;
-      }
-
-      console.log(
-        `Section ${targetId} not found. This is normal in editor mode.`
-      );
-      return;
-    }
-
-    // Detectar rutas internas
-    if (sectionId.startsWith('/')) {
-      window.location.href = sectionId;
-      return;
-    }
-
-    // Si no es ninguno de los anteriores, tratar como URL externa
-    window.open(sectionId, '_blank');
-  };
+  const { isEnabled } = useEditor((state) => ({
+    isEnabled: state.options.enabled,
+  }));
 
   const handleClick = () => {
-    if (link) {
-      scrollToSection(link);
+    if (isEnabled || !link) return;
+
+    // Phone/WhatsApp detection
+    const phoneRegex = /^(\+?[\d\s\-\(\)]+)$/;
+    if (phoneRegex.test(link.trim())) {
+      const clean = link.replace(/[\s\-\(\)]/g, '');
+      const num = clean.startsWith('+') ? clean : clean.startsWith('56') ? `+${clean}` : `+56${clean}`;
+      window.open(`https://wa.me/${num}`, '_blank');
+      return;
+    }
+
+    if (link.startsWith('http://') || link.startsWith('https://')) {
+      window.open(link, '_blank');
+    } else if (link.startsWith('#')) {
+      document.querySelector(link)?.scrollIntoView({ behavior: 'smooth' });
+    } else if (link.startsWith('/')) {
+      window.location.href = link;
+    } else {
+      window.open(`https://${link}`, '_blank');
+    }
+  };
+
+  const getCardClasses = () => {
+    const base = 'rounded-xl p-8 flex flex-col items-center text-center transition-all duration-300';
+    switch (cardStyle) {
+      case 'elevated':
+        return `${base} shadow-md hover:shadow-xl hover:-translate-y-1`;
+      case 'bordered':
+        return `${base} border border-gray-200 hover:border-gray-300 hover:shadow-lg hover:-translate-y-1`;
+      case 'glass':
+        return `${base} backdrop-blur-sm border border-white/20 hover:shadow-lg hover:-translate-y-1`;
+      case 'flat':
+      default:
+        return `${base} hover:shadow-lg hover:-translate-y-1`;
     }
   };
 
   return (
     <div
-      className={`rounded-lg p-6 flex flex-col items-center text-center transition-all duration-200 ${
-        link ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : ''
-      }`}
-      style={{ backgroundColor: cardBgColor }}
-      onClick={handleClick}
+      className={getCardClasses()}
+      style={{ backgroundColor: cardBgColor, cursor: link && !isEnabled ? 'pointer' : undefined }}
+      onClick={link && !isEnabled ? handleClick : undefined}
     >
-      <div className='mb-4 flex justify-center'>{icon}</div>
-      <h3 className='text-xl font-bold mb-2' style={{ color: cardTextColor }}>
-        {title}
-      </h3>
-      <p style={{ color: descriptionColor }}>{description}</p>
+      <div
+        className='mb-5 w-16 h-16 rounded-2xl flex items-center justify-center'
+        style={{ backgroundColor: `${iconColor}12` }}
+      >
+        {icon}
+      </div>
+      <h3 className='text-xl font-semibold mb-3' style={{ color: cardTextColor }}
+        dangerouslySetInnerHTML={{ __html: title || '' }} />
+      <p className='text-sm leading-relaxed' style={{ color: descriptionColor }}
+        dangerouslySetInnerHTML={{ __html: description || '' }} />
     </div>
   );
 };
@@ -158,6 +115,8 @@ interface WhyChooseUsProps {
   cardTextColor?: string;
   iconColor?: string;
   descriptionColor?: string;
+  cardStyle?: 'flat' | 'elevated' | 'bordered' | 'glass';
+  columns?: 2 | 3 | 4;
 }
 
 export const WhyChooseUs = ({
@@ -167,62 +126,62 @@ export const WhyChooseUs = ({
     {
       icon: 'check',
       title: 'Autos inspeccionados y garantizados',
-      description: 'Seguridad y calidad aseguradas',
+      description: 'Cada vehículo pasa por un riguroso proceso de inspección para garantizar tu seguridad y tranquilidad.',
+      link: '#garantia',
     },
     {
       icon: 'dollar',
       title: 'Financiamiento a tu medida',
-      description: 'Diseñado según tus necesidades',
+      description: 'Planes de financiamiento flexibles diseñados para adaptarse a tus necesidades y presupuesto.',
+      link: '#financiamiento',
     },
     {
       icon: 'user',
       title: 'Atención personalizada',
-      description: 'Un asesor te acompaña en todo el proceso',
+      description: 'Un asesor dedicado te acompaña en cada paso del proceso de compra.',
+      link: '#contacto',
     },
   ],
-  bgColor = '#000000',
-  textColor = '#ffffff',
-  cardBgColor = '#1A1A1A',
-  cardTextColor = '#ffffff',
-  iconColor = '#3b82f6',
-  descriptionColor = '#9ca3af',
+  bgColor = '#ffffff',
+  textColor = '#111827',
+  cardBgColor = '#f9fafb',
+  cardTextColor = '#111827',
+  iconColor,
+  descriptionColor = '#6b7280',
+  cardStyle = 'bordered',
+  columns = 3,
 }: WhyChooseUsProps) => {
-  const { connectors, selected } = useNode((state) => ({
+  const { connectors, selected, id } = useNode((state) => ({
     selected: state.events.selected,
   }));
 
-  const getIcon = (iconType: string, size = 48) => {
-    const iconProps = { size, style: { color: iconColor } };
+  const finalIconColor = iconColor || '#3b82f6';
+
+  const getIcon = (iconType: string, size = 32) => {
+    const iconProps = { size, style: { color: finalIconColor } };
 
     switch (iconType) {
-      case 'check':
-        return <IconCheck {...iconProps} />;
-      case 'dollar':
-        return <IconCurrencyDollar {...iconProps} />;
-      case 'user':
-        return <IconUserCircle {...iconProps} />;
-      case 'car':
-        return <IconCar {...iconProps} />;
-      case 'star':
-        return <IconStar {...iconProps} />;
-      case 'shield':
-        return <IconShield {...iconProps} />;
-      case 'home':
-        return <IconHome {...iconProps} />;
-      case 'clock':
-        return <IconClock {...iconProps} />;
-      case 'settings':
-        return <IconSettings {...iconProps} />;
-      case 'phone':
-        return <IconPhone {...iconProps} />;
-      case 'mail':
-        return <IconMail {...iconProps} />;
-      case 'map':
-        return <IconMap {...iconProps} />;
-      default:
-        return <IconCheck {...iconProps} />;
+      case 'check': return <IconCheck {...iconProps} />;
+      case 'dollar': return <IconCurrencyDollar {...iconProps} />;
+      case 'user': return <IconUserCircle {...iconProps} />;
+      case 'car': return <IconCar {...iconProps} />;
+      case 'star': return <IconStar {...iconProps} />;
+      case 'shield': return <IconShield {...iconProps} />;
+      case 'home': return <IconHome {...iconProps} />;
+      case 'clock': return <IconClock {...iconProps} />;
+      case 'settings': return <IconSettings {...iconProps} />;
+      case 'phone': return <IconPhone {...iconProps} />;
+      case 'mail': return <IconMail {...iconProps} />;
+      case 'map': return <IconMap {...iconProps} />;
+      default: return <IconCheck {...iconProps} />;
     }
   };
+
+  const columnClass = {
+    2: 'grid-cols-1 md:grid-cols-2',
+    3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+    4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+  }[columns] || 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
 
   return (
     <div
@@ -232,32 +191,37 @@ export const WhyChooseUs = ({
         color: textColor,
         padding: '80px 20px',
         position: 'relative',
-        border: selected ? '1px dashed #1e88e5' : '1px solid transparent',
+        border: selected ? '2px dashed #666666' : '1px solid transparent',
+        outline: selected ? '1px dashed #999999' : 'none',
+        outlineOffset: selected ? '2px' : '0px',
       }}
       className='w-full'
     >
       <div className='max-w-6xl mx-auto'>
-        <h2
-          className='text-4xl font-bold mb-16'
-          style={{
-            color: textColor,
-            textAlign: titleAlignment,
-          }}
-        >
-          {sectionTitle}
-        </h2>
+        <div className='text-center mb-14'>
+          <p className='text-sm font-semibold uppercase tracking-widest mb-3' style={{ color: finalIconColor }}>
+            Nuestras ventajas
+          </p>
+          <h2
+            className='text-3xl md:text-4xl lg:text-5xl font-bold'
+            style={{ color: textColor, textAlign: titleAlignment }}
+            dangerouslySetInnerHTML={{ __html: sectionTitle || '' }}
+          />
+        </div>
 
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
+        <div className={`grid gap-6 ${columnClass}`}>
           {features.map((feature, index) => (
             <FeatureCard
               key={index}
               icon={getIcon(feature.icon)}
               title={feature.title}
               description={feature.description}
+              link={feature.link}
               cardBgColor={cardBgColor}
               cardTextColor={cardTextColor}
               descriptionColor={descriptionColor}
-              link={feature.link}
+              cardStyle={cardStyle}
+              iconColor={finalIconColor}
             />
           ))}
         </div>
@@ -275,28 +239,30 @@ WhyChooseUs.craft = {
       {
         icon: 'check',
         title: 'Autos inspeccionados y garantizados',
-        description: 'Seguridad y calidad aseguradas',
-        link: '',
+        description: 'Cada vehículo pasa por un riguroso proceso de inspección para garantizar tu seguridad y tranquilidad.',
+        link: '#garantia',
       },
       {
         icon: 'dollar',
         title: 'Financiamiento a tu medida',
-        description: 'Diseñado según tus necesidades',
-        link: '',
+        description: 'Planes de financiamiento flexibles diseñados para adaptarse a tus necesidades y presupuesto.',
+        link: '#financiamiento',
       },
       {
         icon: 'user',
         title: 'Atención personalizada',
-        description: 'Un asesor te acompaña en todo el proceso',
-        link: '',
+        description: 'Un asesor dedicado te acompaña en cada paso del proceso de compra.',
+        link: '#contacto',
       },
     ],
-    bgColor: '#000000',
-    textColor: '#ffffff',
-    cardBgColor: '#1A1A1A',
-    cardTextColor: '#ffffff',
+    bgColor: '#ffffff',
+    textColor: '#111827',
+    cardBgColor: '#f9fafb',
+    cardTextColor: '#111827',
     iconColor: '#3b82f6',
-    descriptionColor: '#9ca3af',
+    descriptionColor: '#6b7280',
+    cardStyle: 'bordered',
+    columns: 3,
   },
   rules: {
     canDrag: () => true,

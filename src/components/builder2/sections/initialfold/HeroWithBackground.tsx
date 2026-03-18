@@ -146,12 +146,11 @@ export const HeroWithBackground = ({
           <h1
             style={{ color: textColor }}
             className='text-4xl md:text-5xl font-bold mb-4'
-          >
-            {title}
-          </h1>
-          <p style={{ color: textColor }} className='text-lg md:text-xl mb-8'>
-            {subtitle}
-          </p>
+            dangerouslySetInnerHTML={{ __html: title || '' }}
+          />
+          <p style={{ color: textColor }} className='text-lg md:text-xl mb-8'
+            dangerouslySetInnerHTML={{ __html: subtitle || '' }}
+          />
           <div className='flex flex-wrap gap-4 justify-center'>
             <Button
               className='px-8 py-3 rounded-md transition-colors'
@@ -161,7 +160,7 @@ export const HeroWithBackground = ({
               }}
               onClick={scrollToVehicles}
             >
-              {buttonText}
+              <span dangerouslySetInnerHTML={{ __html: buttonText || '' }} />
             </Button>
             <Button
               asChild
@@ -173,7 +172,7 @@ export const HeroWithBackground = ({
                 borderColor: buttonSecondaryTextColor,
               }}
             >
-              <a href={buttonLinkSecondary}>{buttonTextSecondary}</a>
+              <a href={buttonLinkSecondary} dangerouslySetInnerHTML={{ __html: buttonTextSecondary || '' }} />
             </Button>
           </div>
 

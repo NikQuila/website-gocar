@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNode } from '@craftjs/core';
-import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
+import { ChevronDown } from 'lucide-react';
 
 interface FAQItemProps {
   question: string;
@@ -10,6 +10,8 @@ interface FAQItemProps {
   questionColor: string;
   answerColor: string;
   accentColor: string;
+  style: string;
+  borderColor: string;
 }
 
 const FAQItem = ({
@@ -20,27 +22,57 @@ const FAQItem = ({
   questionColor,
   answerColor,
   accentColor,
+  style: faqStyle,
+  borderColor,
 }: FAQItemProps) => {
+  const getContainerClass = () => {
+    const base = 'transition-all duration-200 overflow-hidden';
+    switch (faqStyle) {
+      case 'bordered':
+        return `${base} border rounded-xl px-6`;
+      case 'cards':
+        return `${base} border rounded-xl px-6 shadow-sm hover:shadow-md`;
+      case 'minimal':
+      default:
+        return `${base} border-b px-2`;
+    }
+  };
+
   return (
-    <div className='border-b border-gray-700 pb-4 mb-4 last:border-0 last:mb-0'>
+    <div
+      className={getContainerClass()}
+      style={{
+        borderColor: faqStyle === 'minimal' ? `${borderColor}30` : borderColor,
+        backgroundColor: faqStyle === 'cards' ? '#ffffff' : 'transparent',
+        marginBottom: faqStyle === 'minimal' ? 0 : '12px',
+      }}
+    >
       <button
-        className='w-full flex justify-between items-center text-left focus:outline-none'
+        className='w-full flex justify-between items-center text-left focus:outline-none py-5 gap-4'
         onClick={onToggle}
       >
-        <h3 className='text-xl font-medium' style={{ color: questionColor }}>
-          {question}
-        </h3>
-        {isOpen ? (
-          <IconChevronUp style={{ color: accentColor }} size={24} />
-        ) : (
-          <IconChevronDown style={{ color: accentColor }} size={24} />
-        )}
-      </button>
-      {isOpen && (
-        <div className='mt-3 text-base' style={{ color: answerColor }}>
-          {answer}
+        <h3 className='text-lg font-medium flex-1' style={{ color: questionColor }}
+          dangerouslySetInnerHTML={{ __html: question || '' }} />
+        <div
+          className='flex-shrink-0 transition-transform duration-300'
+          style={{
+            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+          }}
+        >
+          <ChevronDown size={20} style={{ color: accentColor }} />
         </div>
-      )}
+      </button>
+      <div
+        className='transition-all duration-300 ease-in-out'
+        style={{
+          maxHeight: isOpen ? '500px' : '0px',
+          opacity: isOpen ? 1 : 0,
+          overflow: 'hidden',
+        }}
+      >
+        <div className='pb-5 text-base leading-relaxed' style={{ color: answerColor }}
+          dangerouslySetInnerHTML={{ __html: answer || '' }} />
+      </div>
     </div>
   );
 };
@@ -57,6 +89,7 @@ interface FAQProps {
   questionColor?: string;
   answerColor?: string;
   accentColor?: string;
+  style?: 'minimal' | 'bordered' | 'cards';
 }
 
 export const FAQ = ({
@@ -79,18 +112,20 @@ export const FAQ = ({
         'Sí, todos nuestros vehículos incluyen garantía. La duración y cobertura pueden variar según el modelo, año y estado del vehículo. Consulta con nuestros asesores para más detalles.',
     },
   ],
-  bgColor = '#000000',
-  titleColor = '#ffffff',
-  questionColor = '#ffffff',
-  answerColor = '#9ca3af',
-  accentColor = '#3b82f6',
+  bgColor = '#ffffff',
+  titleColor = '#111827',
+  questionColor = '#111827',
+  answerColor = '#6b7280',
+  accentColor,
+  style = 'bordered',
 }: FAQProps) => {
-  const { connectors, selected } = useNode((state) => ({
+  const { connectors, selected, id } = useNode((state) => ({
     selected: state.events.selected,
   }));
 
-  // State to track which FAQ items are open
-  const [openItems, setOpenItems] = useState<number[]>([0]); // First item open by default
+  const finalAccentColor = accentColor || '#3b82f6';
+
+  const [openItems, setOpenItems] = useState<number[]>([0]);
 
   const toggleItem = (index: number) => {
     if (openItems.includes(index)) {
@@ -100,36 +135,32 @@ export const FAQ = ({
     }
   };
 
-  // Create a ref callback that handles null safely for TypeScript
-  const connectRef = (element: HTMLDivElement | null) => {
-    if (element) {
-      connectors.connect(element);
-    }
-  };
-
   return (
     <div
-      ref={connectRef}
+      ref={connectors.connect}
       style={{
         background: bgColor,
         padding: '80px 20px',
         position: 'relative',
-        border: selected ? '1px dashed #1e88e5' : '1px solid transparent',
+        border: selected ? '2px dashed #666666' : '1px solid transparent',
+        outline: selected ? '1px dashed #999999' : 'none',
+        outlineOffset: selected ? '2px' : '0px',
       }}
       className='w-full'
     >
-      <div className='max-w-4xl mx-auto'>
-        <h2
-          className='text-4xl font-bold mb-16'
-          style={{
-            color: titleColor,
-            textAlign: titleAlignment,
-          }}
-        >
-          {sectionTitle}
-        </h2>
+      <div className='max-w-3xl mx-auto'>
+        <div className='text-center mb-14'>
+          <p className='text-sm font-semibold uppercase tracking-widest mb-3' style={{ color: finalAccentColor }}>
+            Preguntas frecuentes
+          </p>
+          <h2
+            className='text-3xl md:text-4xl lg:text-5xl font-bold'
+            style={{ color: titleColor, textAlign: titleAlignment }}
+            dangerouslySetInnerHTML={{ __html: sectionTitle || '' }}
+          />
+        </div>
 
-        <div className='space-y-6'>
+        <div className={style === 'minimal' ? 'divide-y-0' : 'space-y-0'}>
           {questions.map((item, index) => (
             <FAQItem
               key={index}
@@ -139,7 +170,9 @@ export const FAQ = ({
               onToggle={() => toggleItem(index)}
               questionColor={questionColor}
               answerColor={answerColor}
-              accentColor={accentColor}
+              accentColor={finalAccentColor}
+              style={style}
+              borderColor='#e5e7eb'
             />
           ))}
         </div>
@@ -170,11 +203,12 @@ FAQ.craft = {
           'Sí, todos nuestros vehículos incluyen garantía. La duración y cobertura pueden variar según el modelo, año y estado del vehículo. Consulta con nuestros asesores para más detalles.',
       },
     ],
-    bgColor: '#000000',
-    titleColor: '#ffffff',
-    questionColor: '#ffffff',
-    answerColor: '#9ca3af',
+    bgColor: '#ffffff',
+    titleColor: '#111827',
+    questionColor: '#111827',
+    answerColor: '#6b7280',
     accentColor: '#3b82f6',
+    style: 'bordered',
   },
   rules: {
     canDrag: () => true,

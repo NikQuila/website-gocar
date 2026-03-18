@@ -372,7 +372,7 @@ export const VehicleCarousel = ({
               className='hover:opacity-90 transition-opacity'
               asChild
             >
-              <a href={buttonLink}>{buttonText}</a>
+              <a href={buttonLink} dangerouslySetInnerHTML={{ __html: buttonText || '' }} />
             </Button>
           </div>
         </div>

@@ -457,9 +457,9 @@ export const VehicleGrid2: CraftComponent<Props> = ({
               {/* Título */}
               <div className="text-center mb-5 pt-6 sm:pt-8">
                 <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-                  {resolvedTitle || 'Explora nuestro stock'}
+                  <span dangerouslySetInnerHTML={{ __html: resolvedTitle || 'Explora nuestro stock' }} />
                 </h2>
-                {subtitle ? <p className="text-white/80 mt-2 text-sm sm:text-base">{subtitle}</p> : null}
+                {subtitle ? <p className="text-white/80 mt-2 text-sm sm:text-base" dangerouslySetInnerHTML={{ __html: subtitle }} /> : null}
               </div>
 
               {/* Categorías – mobile */}

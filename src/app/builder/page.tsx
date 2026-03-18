@@ -24,6 +24,28 @@ import { VehicleCarousel } from '@/components/builder2/sections/vehicles/Vehicle
 import { VideoEmbed } from '@/components/builder2/sections/videos/VideoEmbed';
 import HowToArrive from '@/sections/home/HowToArrive';
 
+// User components
+import { Button } from '@/components/builder2/userComponents/Button';
+import { Heading } from '@/components/builder2/userComponents/Heading';
+import { Divider } from '@/components/builder2/userComponents/Divider';
+import { Spacer } from '@/components/builder2/userComponents/Spacer';
+import { SocialLinks } from '@/components/builder2/userComponents/SocialLinks';
+import { Icon } from '@/components/builder2/userComponents/Icon';
+
+// New sections
+import { Footer } from '@/components/builder2/sections/layout/Footer';
+import { StatsCounter } from '@/components/builder2/sections/marketing/StatsCounter';
+import { PromoBanner } from '@/components/builder2/sections/marketing/PromoBanner';
+import { PhotoGallery } from '@/components/builder2/sections/media/PhotoGallery';
+import { TeamMembers } from '@/components/builder2/sections/team/TeamMembers';
+
+// Moderna sections
+import { HeroModerno } from '@/components/builder2/sections/moderna/HeroModerno';
+import { StatsModerno } from '@/components/builder2/sections/moderna/StatsModerno';
+import { TestimonialsModerno } from '@/components/builder2/sections/moderna/TestimonialsModerno';
+import { CTAModerno } from '@/components/builder2/sections/moderna/CTAModerno';
+import { FooterModerno } from '@/components/builder2/sections/moderna/FooterModerno';
+
 // 👈 Importa VehicleGrid2 por su ruta real
 import { VehicleGrid2 } from '@/components/builder2/sections/vehicles/VehicleGrid2';
 
@@ -56,6 +78,28 @@ const resolver = {
   VehicleCarousel,
   VideoEmbed,
   HowToArrive,
+
+  // User components
+  Button,
+  Heading,
+  Divider,
+  Spacer,
+  SocialLinks,
+  Icon,
+
+  // New sections
+  Footer,
+  StatsCounter,
+  PromoBanner,
+  PhotoGallery,
+  TeamMembers,
+
+  // Moderna sections
+  HeroModerno,
+  StatsModerno,
+  TestimonialsModerno,
+  CTAModerno,
+  FooterModerno,
 
   // Fallbacks por si en el JSON vienen etiquetas sueltas
   div: Unknown,

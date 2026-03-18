@@ -1,0 +1,157 @@
+'use client';
+
+import React from 'react';
+import { useNode } from '@craftjs/core';
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+
+interface HeroPremiumProps {
+  title?: string;
+  highlightText?: string;
+  subtitle?: string;
+  buttonText?: string;
+  buttonLink?: string;
+  bgColor?: string;
+  textColor?: string;
+  accentColor?: string;
+}
+
+export const HeroPremium = ({
+  title = 'Experiencia automotriz',
+  highlightText = '',
+  subtitle = 'Veh\u00edculos seleccionados para quienes exigen lo extraordinario.',
+  buttonText = 'Explorar veh\u00edculos',
+  buttonLink = '#vehicles',
+  bgColor = '#0a0a0a',
+  textColor = '#ffffff',
+  accentColor = '',
+}: HeroPremiumProps) => {
+  const { connectors } = useNode();
+  const accent = accentColor || '#3b82f6';
+  const highlight = highlightText || 'Premium';
+
+  return (
+    <div
+      ref={connectors.connect}
+      style={{
+        backgroundColor: bgColor,
+        color: textColor,
+        position: 'relative',
+      }}
+      className="w-full min-h-[700px] flex items-center justify-center"
+    >
+      {/* Noise overlay */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        backgroundSize: '128px 128px',
+      }} />
+
+      {/* Glow orb */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5 }}
+        style={{
+          background: `radial-gradient(ellipse at 50% 40%, ${hexToRgba(accent, 0.12)} 0%, transparent 60%)`,
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 max-w-5xl mx-auto px-6 py-24 text-center">
+        <div className="space-y-8">
+          {/* Eyebrow line */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0 }}
+            className="flex items-center justify-center gap-4"
+          >
+            <div className="h-px w-12" style={{ backgroundColor: hexToRgba(textColor, 0.2) }} />
+            <span className="text-xs font-medium uppercase tracking-[0.3em]" style={{ color: hexToRgba(textColor, 0.4) }}>Premium Collection</span>
+            <div className="h-px w-12" style={{ backgroundColor: hexToRgba(textColor, 0.2) }} />
+          </motion.div>
+
+          {/* Title */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.15 }}
+            className="text-[3rem] sm:text-[4rem] lg:text-[5rem] font-bold leading-[0.95]"
+            style={{ color: textColor, letterSpacing: '-0.04em' }}
+            dangerouslySetInnerHTML={{ __html: title }}
+          />
+
+          {/* Highlight text with glow */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="text-[3rem] sm:text-[4rem] lg:text-[5rem] font-bold leading-[0.95]"
+            style={{
+              color: accent,
+              letterSpacing: '-0.04em',
+              textShadow: `0 0 60px ${hexToRgba(accent, 0.4)}, 0 0 120px ${hexToRgba(accent, 0.15)}`,
+            }}
+            dangerouslySetInnerHTML={{ __html: highlight }}
+          />
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.45 }}
+            className="text-lg sm:text-xl max-w-xl mx-auto"
+            style={{ color: hexToRgba(textColor, 0.5), lineHeight: '1.7' }}
+            dangerouslySetInnerHTML={{ __html: subtitle }}
+          />
+
+          {/* CTA - glassmorphic button */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="pt-4"
+          >
+            <a
+              href={buttonLink}
+              className="group inline-flex items-center gap-3 h-14 px-8 rounded-full text-[15px] font-medium transition-all duration-300 hover:scale-[1.03]"
+              style={{
+                backgroundColor: hexToRgba(accent, 0.1),
+                border: `1px solid ${hexToRgba(accent, 0.3)}`,
+                color: accent,
+                backdropFilter: 'blur(12px)',
+                boxShadow: `0 0 30px ${hexToRgba(accent, 0.1)}`,
+              }}
+            >
+              <span dangerouslySetInnerHTML={{ __html: buttonText }} />
+              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            </a>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+function hexToRgba(hex: string, alpha: number): string {
+  const clean = hex.replace('#', '');
+  if (clean.length !== 6) return `rgba(255,255,255,${alpha})`;
+  const num = parseInt(clean, 16);
+  return `rgba(${(num >> 16) & 0xff},${(num >> 8) & 0xff},${num & 0xff},${alpha})`;
+}
+
+HeroPremium.craft = {
+  displayName: 'HeroPremium',
+  props: {
+    title: 'Experiencia automotriz', highlightText: '', subtitle: 'Veh\u00edculos seleccionados para quienes exigen lo extraordinario.',
+    buttonText: 'Explorar veh\u00edculos', buttonLink: '#vehicles',
+    bgColor: '#0a0a0a', textColor: '#ffffff', accentColor: '',
+  },
+  rules: { canDrag: () => true, canDrop: () => true, canMoveIn: () => false },
+};

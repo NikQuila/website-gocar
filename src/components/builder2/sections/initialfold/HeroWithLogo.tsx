@@ -187,9 +187,8 @@ export const HeroWithLogo = ({
                   transform: `scale(${logoScale})`,
                   transition: 'transform 0.3s ease-in-out',
                 }}
-              >
-                {logoText}
-              </h1>
+                dangerouslySetInnerHTML={{ __html: logoText || '' }}
+              />
             )}
           </div>
 
@@ -212,7 +211,7 @@ export const HeroWithLogo = ({
               }}
               onClick={navigateToVehicles}
             >
-              {buttonText}
+              <span dangerouslySetInnerHTML={{ __html: buttonText || '' }} />
             </Button>
           </div>
 
