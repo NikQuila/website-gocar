@@ -46,7 +46,7 @@ export const HeroModerno = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{ backgroundColor: bgColor, color: textColor, position: 'relative' }}
       className="w-full min-h-[100vh] flex items-center"
     >

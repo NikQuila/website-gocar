@@ -137,7 +137,7 @@ export const FAQ = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{
         background: bgColor,
         padding: '80px 20px',

@@ -59,6 +59,8 @@ export interface Client {
   };
   dealerships: Dealership[];
   has_dark_mode: boolean;
+  has_language_selector?: boolean;
+  default_language?: 'es' | 'en' | 'pt';
   client_website_config: ClientWebsiteConfig;
   currency: 'CLP' | 'USD';
 }

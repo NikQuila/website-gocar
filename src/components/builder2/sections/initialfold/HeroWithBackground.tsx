@@ -122,7 +122,7 @@ export const HeroWithBackground = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',

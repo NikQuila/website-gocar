@@ -5,8 +5,8 @@ import { getClient } from '../hooks/useClient';
 import { HeroUIProvider } from '@/providers/HeroUIProvider';
 import { ClientProvider } from '@/providers/ClientProvider';
 import { I18nProvider } from '@/providers/I18nProvider';
-import Navbar from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
+import ConditionalNavbar from '@/components/layout/ConditionalNavbar';
+import ConditionalFooter from '@/components/layout/ConditionalFooter';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
 import RoutePrefetcher from '@/components/routing/RoutePrefetcher';
@@ -114,9 +114,9 @@ export default function RootLayout({
                   />
                   <VisitTracker />
                   <RoutePrefetcher routes={['/', '/contact', '/vehicles']} />
-                  <Navbar />
+                  <ConditionalNavbar />
                   {children}
-                  <Footer />
+                  <ConditionalFooter />
                 </div>
               </ThemeProvider>
             </I18nProvider>

@@ -96,7 +96,7 @@ export const StatsCounter = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{
         background: `linear-gradient(165deg, ${bgColor} 0%, ${gradientEnd} 100%)`,
         color: textColor,

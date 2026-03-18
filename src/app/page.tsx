@@ -10,6 +10,7 @@ import { Editor, Frame } from '@craftjs/core';
 import lz from 'lzutf8';
 import { supabase } from '@/lib/supabase';
 import useClientStore from '@/store/useClientStore';
+import useThemeStore from '@/store/useThemeStore';
 
 export const runtime = 'nodejs';
 
@@ -47,6 +48,7 @@ import { GalleryPremium } from '@/components/builder2/sections/premium/GalleryPr
 import { CTAPremium } from '@/components/builder2/sections/premium/CTAPremium';
 // Additional sections
 import { Footer } from '@/components/builder2/sections/layout/Footer';
+import { BuilderNavbar } from '@/components/builder2/sections/layout/BuilderNavbar';
 import { StatsCounter } from '@/components/builder2/sections/marketing/StatsCounter';
 import { PromoBanner } from '@/components/builder2/sections/marketing/PromoBanner';
 import { PhotoGallery } from '@/components/builder2/sections/media/PhotoGallery';
@@ -109,7 +111,8 @@ const baseResolver: Record<string, any> = {
   TestimonialsPremium,
   GalleryPremium,
   CTAPremium,
-  // Additional sections
+  // Layout sections
+  BuilderNavbar,
   Footer,
   StatsCounter,
   PromoBanner,
@@ -383,11 +386,11 @@ class BuilderErrorBoundary extends React.Component<
 // =====================
 // Contenido del Builder
 // =====================
-function BuilderContent({ data }: { data: any }) {
+function BuilderContent({ data, themeKey }: { data: any; themeKey: string }) {
   return (
     <div className="min-h-screen">
       <BuilderErrorBoundary fallback={<TraditionalContent />}>
-        <Editor resolver={resolver} enabled={false}>
+        <Editor key={themeKey} resolver={resolver} enabled={false}>
           <Frame data={data} />
         </Editor>
       </BuilderErrorBoundary>
@@ -398,69 +401,88 @@ function BuilderContent({ data }: { data: any }) {
 // =====================
 // Componente principal
 // =====================
+// Helper: decompress a base64+lzutf8 string → parsed object
+function decompressState(compressed: string): any | null {
+  try {
+    let parsed: any = lz.decompress(lz.decodeBase64(compressed));
+    while (typeof parsed === 'string') {
+      try { parsed = JSON.parse(parsed); } catch { break; }
+    }
+    return typeof parsed === 'object' && parsed ? sanitizeCraftData(parsed) : null;
+  } catch { return null; }
+}
+
 function WebsiteContent() {
   const { client, isLoading: isClientLoading } = useClientStore();
-  const [content, setContent] = useState<{ type: 'loading' | 'traditional' | 'builder'; data?: any }>({ type: 'loading' });
+  const { theme, setTheme } = useThemeStore();
 
+  // Store both theme states (already parsed & sanitized) + loading status
+  const [lightData, setLightData] = useState<any>(null);
+  const [darkData, setDarkData] = useState<any>(null);
+  const [mode, setMode] = useState<'loading' | 'traditional' | 'builder'>('loading');
+
+  // Fetch config once
   useEffect(() => {
-    // Wait until client is loaded
     if (isClientLoading) return;
-    if (!client?.id) {
-      setContent({ type: 'traditional' });
-      return;
-    }
+    if (!client?.id) { setMode('traditional'); return; }
 
     let cancelled = false;
-
     (async () => {
       try {
         const { data } = await supabase
           .from('client_website_config')
-          .select('is_enabled, elements_structure')
+          .select('is_enabled, elements_structure, color_scheme')
           .eq('client_id', client.id)
           .single();
 
         if (cancelled) return;
+        if (!data?.is_enabled || !data?.elements_structure) { setMode('traditional'); return; }
 
-        if (!data?.is_enabled || !data?.elements_structure) {
-          setContent({ type: 'traditional' });
-          return;
+        const raw = String(data.elements_structure);
+        const serverTheme = data.color_scheme === 'DARK' ? 'dark' : 'light';
+
+        // Sync theme store with server default
+        setTheme(serverTheme as 'light' | 'dark');
+
+        // Parse v2 envelope or legacy
+        let light: any = null;
+        let dark: any = null;
+        try {
+          const envelope = JSON.parse(raw);
+          if (envelope?.v === 2) {
+            light = decompressState(envelope.light);
+            dark = decompressState(envelope.dark);
+          }
+        } catch {}
+
+        // Legacy single-theme format
+        if (!light && !dark) {
+          const single = decompressState(raw);
+          if (serverTheme === 'dark') dark = single;
+          else light = single;
         }
 
-        // Decompress and parse
-        let parsed: any = lz.decompress(lz.decodeBase64(data.elements_structure));
-        while (typeof parsed === 'string') {
-          try { parsed = JSON.parse(parsed); } catch { break; }
-        }
+        if (!light && !dark) { setMode('traditional'); return; }
 
-        if (typeof parsed !== 'object' || !parsed) {
-          setContent({ type: 'traditional' });
-          return;
+        if (!cancelled) {
+          setLightData(light);
+          setDarkData(dark);
+          setMode('builder');
         }
-
-        // Sanitize: ensure all nodes have valid resolvedName, fix ROOT
-        const sanitized = sanitizeCraftData(parsed);
-        if (!cancelled) setContent({ type: 'builder', data: sanitized });
       } catch {
-        if (!cancelled) setContent({ type: 'traditional' });
+        if (!cancelled) setMode('traditional');
       }
     })();
-
     return () => { cancelled = true; };
   }, [client?.id, isClientLoading]);
+  if (mode === 'loading') return <PageSkeleton />;
+  if (mode === 'traditional') return <TraditionalContent />;
 
-  // Loading → skeleton genérico
-  if (content.type === 'loading') {
-    return <PageSkeleton />;
-  }
+  // Pick the data for the active theme, fallback to whichever exists
+  const activeData = theme === 'dark' ? (darkData || lightData) : (lightData || darkData);
+  if (!activeData) return <TraditionalContent />;
 
-  // Builder → contenido del builder
-  if (content.type === 'builder') {
-    return <BuilderContent data={content.data} />;
-  }
-
-  // Tradicional → contenido tradicional
-  return <TraditionalContent />;
+  return <BuilderContent data={activeData} themeKey={theme} />;
 }
 
 // =====================

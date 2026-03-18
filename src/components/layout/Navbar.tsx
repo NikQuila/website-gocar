@@ -59,6 +59,7 @@ const Navbar = () => {
   );
 
   const shouldShowThemeToggle = !!client?.has_dark_mode;
+  const shouldShowLanguageSelector = !!client?.has_language_selector;
 
   // Transiciones globales más baratas si el usuario pide menos motion
   const transition = prefersReduced
@@ -114,9 +115,11 @@ const Navbar = () => {
 
         {/* Right side */}
         <NavbarContent justify="end" className="gap-3">
-          <NavbarItem className="hidden sm:flex">
-            <LanguageSelector variant="minimal" className="rounded-full" />
-          </NavbarItem>
+          {shouldShowLanguageSelector && (
+            <NavbarItem className="hidden sm:flex">
+              <LanguageSelector variant="minimal" className="rounded-full" />
+            </NavbarItem>
+          )}
           {shouldShowThemeToggle && (
             <NavbarItem className="hidden sm:flex">
               <ThemeToggle />
@@ -160,7 +163,7 @@ const Navbar = () => {
                 {/* Header panel */}
                 <div className="flex items-center justify-between px-4 pt-4 pb-3">
                   <div className="flex items-center gap-2">
-                    <LanguageSelector variant="minimal" className="rounded-full" />
+                    {shouldShowLanguageSelector && <LanguageSelector variant="minimal" className="rounded-full" />}
                     {shouldShowThemeToggle && <ThemeToggle />}
                   </div>
                   <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[50%]">

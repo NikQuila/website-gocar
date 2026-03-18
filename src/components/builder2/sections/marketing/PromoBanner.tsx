@@ -66,7 +66,7 @@ export const PromoBanner = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{
         background: `linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)`,
         color: textColor,

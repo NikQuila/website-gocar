@@ -40,7 +40,7 @@ export const TestimonialsPremium = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{ backgroundColor: bgColor, color: textColor, position: 'relative' }}
       className="w-full"
     >

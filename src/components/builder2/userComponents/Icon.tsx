@@ -57,7 +57,7 @@ export const Icon = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{
         display: 'inline-flex',
         alignItems: 'center',

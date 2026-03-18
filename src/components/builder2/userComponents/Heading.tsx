@@ -33,7 +33,7 @@ export const Heading = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{
         border: selected ? '1px dashed #1e88e5' : '1px solid transparent',
         padding: '4px',

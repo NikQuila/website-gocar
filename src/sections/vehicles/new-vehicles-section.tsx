@@ -234,9 +234,16 @@ const CATEGORY_ICONS: Record<string, string> = {
 interface NewVehiclesSectionProps {
   /** Ocultar título y buscador (para landing page) */
   minimal?: boolean;
+  /** Builder color overrides */
+  filterBarBgColor?: string;
+  filterBarBorderColor?: string;
+  filterTextColor?: string;
+  filterActiveTextColor?: string;
+  accentColor?: string;
+  sectionBgColor?: string;
 }
 
-const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
+const NewVehiclesSection = ({ minimal = false, filterBarBgColor, filterBarBorderColor, filterTextColor, filterActiveTextColor, accentColor, sectionBgColor }: NewVehiclesSectionProps) => {
   const { theme } = useThemeStore();
   const { vehicles, isLoading } = useVehiclesStore();
   const { client } = useClientStore();
@@ -611,7 +618,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
       >
         <button
           onClick={() => setIsFilterDrawerOpen(true)}
-          className='flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#0B0B0F] rounded-full border border-slate-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-200'
+          className='flex items-center gap-2 px-4 py-3 bg-white dark:bg-dark-card rounded-full border border-slate-200 dark:border-dark-border shadow-lg hover:shadow-xl transition-all duration-200'
         >
           <Icon icon='solar:filter-linear' className='text-lg text-primary' />
           <span className='text-sm font-medium text-gray-700 dark:text-white'>Filtros</span>
@@ -624,7 +631,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
 
         <button
           onClick={() => setIsSortDrawerOpen(true)}
-          className='flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#0B0B0F] rounded-full border border-slate-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-200'
+          className='flex items-center gap-2 px-4 py-3 bg-white dark:bg-dark-card rounded-full border border-slate-200 dark:border-dark-border shadow-lg hover:shadow-xl transition-all duration-200'
         >
           <Icon icon='mdi:sort' className='text-lg text-primary' />
           <span className='text-sm font-medium text-gray-700 dark:text-white'>{t('pages.vehicles.orderBy') || 'Ordenar'}</span>
@@ -632,7 +639,13 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
       </div>
 
       {/* Fixed Categories Navigation */}
-      <div className='sticky top-[var(--navbar-height)] z-30 bg-white dark:bg-dark-bg border-b border-gray-200 dark:border-dark-border'>
+      <div
+        className={`sticky top-[var(--navbar-height)] z-30 border-b ${!filterBarBgColor ? 'bg-white dark:bg-dark-bg border-gray-200 dark:border-dark-border' : ''}`}
+        style={filterBarBgColor ? {
+          backgroundColor: filterBarBgColor,
+          borderColor: filterBarBorderColor || undefined,
+        } : undefined}
+      >
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2'>
           <div className='flex flex-col gap-2'>
             {/* Title and Actions - Oculto en modo minimal */}
@@ -661,27 +674,31 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
             <ScrollShadow orientation='horizontal' className='w-full'>
               <div className='flex justify-start lg:justify-center items-center w-full'>
                 <div className='flex gap-2 pt-2 pb-2 min-w-max'>
-                  {vehicleCategories.map((category) => (
-                    <Button
-                      key={category.id}
-                      variant={
-                        selectedCategory === category.id ? 'solid' : 'light'
-                      }
-                      color={
-                        selectedCategory === category.id ? 'primary' : 'default'
-                      }
-                      onClick={() => setSelectedCategory(category.id)}
-                      className={`whitespace-nowrap hover:-translate-y-0.5 transition-all px-4 py-2 rounded-full ${
-                        selectedCategory === category.id ? 'shadow-md' : ''
-                      } ${selectedCategory === category.id && theme === 'dark' ? 'text-black' : ''}`}
-                      startContent={
-                        <Icon icon={category.icon} className='text-xl' />
-                      }
-                      size='md'
-                    >
-                      {category.name}
-                    </Button>
-                  ))}
+                  {vehicleCategories.map((category) => {
+                    const isActive = selectedCategory === category.id;
+                    const hasBuilderColors = filterTextColor || filterActiveTextColor || accentColor;
+                    return (
+                      <Button
+                        key={category.id}
+                        variant={isActive ? 'solid' : 'light'}
+                        color={!hasBuilderColors ? (isActive ? 'primary' : 'default') : undefined}
+                        onClick={() => setSelectedCategory(category.id)}
+                        className={`whitespace-nowrap hover:-translate-y-0.5 transition-all px-4 py-2 rounded-full ${
+                          isActive ? 'shadow-md' : ''
+                        } ${isActive && theme === 'dark' && !hasBuilderColors ? 'text-black' : ''}`}
+                        style={hasBuilderColors ? {
+                          color: isActive ? (filterActiveTextColor || '#ffffff') : (filterTextColor || undefined),
+                          backgroundColor: isActive ? (accentColor || undefined) : undefined,
+                        } : undefined}
+                        startContent={
+                          <Icon icon={category.icon} className='text-xl' />
+                        }
+                        size='md'
+                      >
+                        {category.name}
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
             </ScrollShadow>
@@ -705,7 +722,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
                 pl-12 pr-10 py-2 min-h-[36px]
                 rounded-xl
                 border border-slate-300
-                bg-slate-100 dark:bg-neutral-800 dark:border-neutral-700
+                bg-slate-100 dark:bg-dark-card dark:border-dark-border
                 text-sm text-gray-700 dark:text-gray-200
                 shadow-md
                 focus:border-primary focus:ring-2 focus:ring-primary
@@ -730,7 +747,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
 
             {/* Dropdown de Autocompletado */}
             {showAutocomplete && autocompleteResults.length > 0 && (
-              <div className='absolute top-full left-0 right-0 mt-1 bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-xl shadow-lg z-50 overflow-hidden'>
+              <div className='absolute top-full left-0 right-0 mt-1 bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border rounded-xl shadow-lg z-50 overflow-hidden'>
                 <div className='py-1'>
                   {autocompleteResults.map((suggestion, index) => (
                     <button
@@ -748,7 +765,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
                   ))}
                 </div>
                 {/* Tip de búsqueda */}
-                <div className='px-4 py-2 bg-slate-50 dark:bg-neutral-900 border-t border-slate-200 dark:border-neutral-700'>
+                <div className='px-4 py-2 bg-slate-50 dark:bg-dark-bg border-t border-slate-200 dark:border-dark-border'>
                   <p className='text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5'>
                     <Icon icon='mdi:lightbulb-outline' className='text-yellow-500' />
                     Prueba: "bajo 15 millones", "no diesel", "con sunroof"
@@ -824,7 +841,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
             <div className='sticky top-24 h-fit shrink-0 flex flex-col items-center gap-2'>
               <button
                 onClick={() => setIsFiltersCollapsed(false)}
-                className='p-3 bg-white dark:bg-[#0B0B0F] rounded-xl border border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-200 flex flex-col items-center gap-2'
+                className='p-3 bg-white dark:bg-dark-card rounded-xl border border-slate-200 dark:border-dark-border shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-200 flex flex-col items-center gap-2'
                 aria-label='Mostrar filtros'
               >
                 <Icon icon='solar:filter-linear' className='text-xl text-primary' />
@@ -838,7 +855,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
               <Dropdown placement='right'>
                 <DropdownTrigger>
                   <button
-                    className='p-3 bg-white dark:bg-[#0B0B0F] rounded-xl border border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-200 flex flex-col items-center gap-2'
+                    className='p-3 bg-white dark:bg-dark-card rounded-xl border border-slate-200 dark:border-dark-border shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-200 flex flex-col items-center gap-2'
                     aria-label='Ordenar'
                   >
                     <Icon icon='mdi:sort' className='text-xl text-primary' />
@@ -897,7 +914,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
 
             {!isLoading && filteredVehicles.length === 0 && (
               <div className='text-center py-12 max-w-md mx-auto'>
-                <div className='w-20 h-20 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-6'>
+                <div className='w-20 h-20 bg-slate-100 dark:bg-dark-card rounded-full flex items-center justify-center mx-auto mb-6'>
                   <Icon
                     icon='mdi:car-search'
                     className='text-4xl text-gray-400 dark:text-gray-500'
@@ -936,7 +953,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
                 )}
 
                 {/* Tips de búsqueda */}
-                <div className='bg-slate-50 dark:bg-neutral-800/50 rounded-xl p-4 mb-6 text-left'>
+                <div className='bg-slate-50 dark:bg-dark-card/50 rounded-xl p-4 mb-6 text-left'>
                   <p className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2'>
                     <Icon icon='mdi:lightbulb-on' className='text-yellow-500' />
                     Tips de búsqueda inteligente
@@ -999,7 +1016,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
               maxPrice={maxPrice}
             />
           </div>
-          <div className='border-t border-gray-200 dark:border-neutral-800 px-4 py-4'>
+          <div className='border-t border-gray-200 dark:border-dark-border px-4 py-4'>
             <Button color='primary' onPress={() => setIsFilterDrawerOpen(false)} className='w-full'>
               {t('vehicles.filters.applyFilters')}
             </Button>
@@ -1024,7 +1041,7 @@ const NewVehiclesSection = ({ minimal = false }: NewVehiclesSectionProps) => {
                 className={`flex items-center gap-3 px-5 py-3.5 transition-colors ${
                   sortOrder === option.key
                     ? 'bg-primary/10 text-primary font-medium'
-                    : 'text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-neutral-800'
+                    : 'text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-card'
                 }`}
               >
                 <Icon icon={option.icon} className='text-lg' />

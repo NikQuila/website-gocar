@@ -92,7 +92,7 @@ export const Button = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{
         display: fullWidth ? 'block' : 'inline-block',
         border: selected ? '1px dashed #1e88e5' : '1px solid transparent',

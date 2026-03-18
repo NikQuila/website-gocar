@@ -1,6 +1,13 @@
 import React from 'react';
 import { useNode } from '@craftjs/core';
-import { Star, User, Quote } from 'lucide-react';
+import { Star, User } from 'lucide-react';
+
+function hexToRgba(hex: string, alpha: number): string {
+  const clean = hex.replace('#', '');
+  if (clean.length !== 6) return `rgba(128,128,128,${alpha})`;
+  const num = parseInt(clean, 16);
+  return `rgba(${(num >> 16) & 0xff},${(num >> 8) & 0xff},${num & 0xff},${alpha})`;
+}
 
 interface TestimonialCardProps {
   name: string;
@@ -13,58 +20,64 @@ interface TestimonialCardProps {
   roleColor: string;
   testimonialColor: string;
   starColor: string;
+  bgColor: string;
 }
 
 const TestimonialCard = ({
-  name,
-  role,
-  testimonial,
-  rating,
-  photo,
-  cardBgColor,
-  nameColor,
-  roleColor,
-  testimonialColor,
-  starColor,
+  name, role, testimonial, rating, photo,
+  cardBgColor, nameColor, roleColor, testimonialColor, starColor, bgColor,
 }: TestimonialCardProps) => {
   const numRating = typeof rating === 'string' ? parseInt(rating, 10) : rating;
 
   return (
     <div
-      className='group relative p-8 rounded-2xl border border-gray-100/80 hover:border-gray-200 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col h-full overflow-hidden'
-      style={{ backgroundColor: cardBgColor }}
+      className='group relative p-8 rounded-2xl transition-all duration-500 flex flex-col h-full overflow-hidden hover:-translate-y-1'
+      style={{
+        backgroundColor: cardBgColor,
+        border: `1px solid ${hexToRgba(nameColor, 0.08)}`,
+        boxShadow: `0 1px 3px ${hexToRgba(nameColor, 0.04)}`,
+      }}
     >
-      {/* Decorative gradient blob */}
+      {/* Hover glow */}
       <div
-        className='absolute -top-12 -right-12 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700'
-        style={{ backgroundColor: `${starColor}15` }}
+        className='absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl'
+        style={{ boxShadow: `0 8px 40px ${hexToRgba(starColor, 0.1)}, 0 0 0 1px ${hexToRgba(nameColor, 0.12)}` }}
+      />
+
+      {/* Accent line top */}
+      <div
+        className='absolute top-0 left-0 right-0 h-[2px] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left rounded-t-2xl'
+        style={{ background: `linear-gradient(90deg, ${starColor}, transparent)` }}
       />
 
       {/* Stars */}
-      <div className='flex mb-5 items-center gap-1'>
+      <div className='flex mb-6 items-center gap-1'>
         {Array.from({ length: 5 }, (_, i) => (
           <Star
             key={i}
             size={16}
             fill={i < numRating ? starColor : 'none'}
-            stroke={starColor}
+            stroke={i < numRating ? starColor : hexToRgba(nameColor, 0.2)}
             strokeWidth={i < numRating ? 0 : 1.5}
           />
         ))}
       </div>
 
       {/* Testimonial text */}
-      <p className='mb-8 text-[15px] leading-[1.75] flex-1 relative' style={{ color: testimonialColor }}>
-        <span className='text-3xl font-serif leading-none mr-1 align-top' style={{ color: `${starColor}40` }}>&ldquo;</span>
+      <p className='mb-8 text-[15px] leading-[1.8] flex-1 relative' style={{ color: testimonialColor }}>
+        <span className='text-4xl font-serif leading-none mr-1.5 -ml-1 align-top' style={{ color: hexToRgba(starColor, 0.3) }}>&ldquo;</span>
         <span dangerouslySetInnerHTML={{ __html: testimonial || '' }} />
-        <span className='text-3xl font-serif leading-none ml-0.5' style={{ color: `${starColor}40` }}>&rdquo;</span>
+        <span className='text-4xl font-serif leading-none ml-1' style={{ color: hexToRgba(starColor, 0.3) }}>&rdquo;</span>
       </p>
 
       {/* Author */}
-      <div className='flex items-center gap-3.5'>
+      <div className='flex items-center gap-3.5 pt-6' style={{ borderTop: `1px solid ${hexToRgba(nameColor, 0.06)}` }}>
         <div
-          className='w-11 h-11 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center ring-2 ring-offset-2'
-          style={{ backgroundColor: `${starColor}10`, ringColor: `${starColor}25` }}
+          className='w-11 h-11 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center'
+          style={{
+            backgroundColor: hexToRgba(starColor, 0.1),
+            border: `2px solid ${hexToRgba(starColor, 0.2)}`,
+          }}
         >
           {photo ? (
             <img src={photo} alt={name} className='w-full h-full object-cover' />
@@ -85,6 +98,7 @@ const TestimonialCard = ({
 
 interface TestimonialsProps {
   sectionTitle?: string;
+  subtitle?: string;
   titleAlignment?: 'left' | 'center' | 'right';
   testimonials?: {
     name: string;
@@ -105,29 +119,12 @@ interface TestimonialsProps {
 
 export const Testimonials = ({
   sectionTitle = 'Lo que dicen nuestros clientes',
+  subtitle = '',
   titleAlignment = 'center',
   testimonials = [
-    {
-      name: 'Carlos Rodríguez',
-      role: 'Comprador de Toyota Corolla',
-      testimonial:
-        'Excelente servicio de principio a fin. El proceso de compra fue rápido y transparente. Estoy muy contento con mi nuevo auto.',
-      rating: 5,
-    },
-    {
-      name: 'María González',
-      role: 'Compradora de Honda CR-V',
-      testimonial:
-        'El asesor fue muy paciente y resolvió todas mis dudas. Me ayudaron a conseguir el financiamiento perfecto para mis necesidades.',
-      rating: 4,
-    },
-    {
-      name: 'Juan Pérez',
-      role: 'Comprador de Nissan Sentra',
-      testimonial:
-        'La garantía y el servicio post-venta son excelentes. Me han atendido siempre que lo he necesitado sin problemas.',
-      rating: 5,
-    },
+    { name: 'Carlos Rodríguez', role: 'Comprador de Toyota Corolla', testimonial: 'Excelente servicio de principio a fin. El proceso de compra fue rápido y transparente. Estoy muy contento con mi nuevo auto.', rating: 5 },
+    { name: 'María González', role: 'Compradora de Honda CR-V', testimonial: 'El asesor fue muy paciente y resolvió todas mis dudas. Me ayudaron a conseguir el financiamiento perfecto para mis necesidades.', rating: 4 },
+    { name: 'Juan Pérez', role: 'Comprador de Nissan Sentra', testimonial: 'La garantía y el servicio post-venta son excelentes. Me han atendido siempre que lo he necesitado sin problemas.', rating: 5 },
   ],
   columns = 3,
   bgColor = '#ffffff',
@@ -138,44 +135,39 @@ export const Testimonials = ({
   testimonialColor = '#374151',
   starColor,
 }: TestimonialsProps) => {
-  const { connectors, selected, id } = useNode((state) => ({
+  const { connectors, selected } = useNode((state) => ({
     selected: state.events.selected,
   }));
 
   const finalStarColor = starColor || '#f59e0b';
-
   const numColumns = typeof columns === 'string' ? parseInt(columns, 10) : columns;
-
-  const columnClass =
-    {
-      1: 'grid-cols-1',
-      2: 'grid-cols-1 md:grid-cols-2',
-      3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-    }[numColumns] || 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+  const columnClass = { 1: 'grid-cols-1', 2: 'grid-cols-1 md:grid-cols-2', 3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' }[numColumns] || 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
 
   return (
     <div
-      ref={connectors.connect}
-      style={{
-        background: bgColor,
-        padding: '80px 20px',
-        position: 'relative',
-        border: selected ? '2px dashed #666666' : '1px solid transparent',
-        outline: selected ? '1px dashed #999999' : 'none',
-        outlineOffset: selected ? '2px' : '0px',
-      }}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
+      style={{ background: bgColor, padding: '80px 20px', position: 'relative' }}
       className='w-full'
     >
       <div className='max-w-6xl mx-auto'>
-        <div className='text-center mb-14'>
-          <p className='text-sm font-semibold uppercase tracking-widest mb-3' style={{ color: finalStarColor }}>
-            Testimonios
-          </p>
+        {/* Header */}
+        <div className='text-center mb-16'>
+          <div className='flex items-center justify-center gap-3 mb-5'>
+            <div className='h-px w-8' style={{ backgroundColor: finalStarColor }} />
+            <p className='text-xs font-semibold uppercase tracking-[0.25em]' style={{ color: finalStarColor }}>
+              Testimonios
+            </p>
+            <div className='h-px w-8' style={{ backgroundColor: finalStarColor }} />
+          </div>
           <h2
-            className='text-3xl md:text-4xl lg:text-5xl font-bold'
-            style={{ color: titleColor, textAlign: titleAlignment }}
+            className='text-3xl md:text-4xl lg:text-5xl font-bold leading-tight'
+            style={{ color: titleColor, textAlign: titleAlignment, letterSpacing: '-0.02em' }}
             dangerouslySetInnerHTML={{ __html: sectionTitle || '' }}
           />
+          {subtitle && (
+            <p className='mt-4 text-lg max-w-2xl mx-auto' style={{ color: hexToRgba(titleColor, 0.5) }}
+              dangerouslySetInnerHTML={{ __html: subtitle }} />
+          )}
         </div>
 
         <div className={`grid gap-6 ${columnClass}`}>
@@ -192,6 +184,7 @@ export const Testimonials = ({
               roleColor={roleColor}
               testimonialColor={testimonialColor}
               starColor={finalStarColor}
+              bgColor={bgColor}
             />
           ))}
         </div>
@@ -204,29 +197,12 @@ Testimonials.craft = {
   displayName: 'Testimonials',
   props: {
     sectionTitle: 'Lo que dicen nuestros clientes',
+    subtitle: '',
     titleAlignment: 'center',
     testimonials: [
-      {
-        name: 'Carlos Rodríguez',
-        role: 'Comprador de Toyota Corolla',
-        testimonial:
-          'Excelente servicio de principio a fin. El proceso de compra fue rápido y transparente. Estoy muy contento con mi nuevo auto.',
-        rating: 5,
-      },
-      {
-        name: 'María González',
-        role: 'Compradora de Honda CR-V',
-        testimonial:
-          'El asesor fue muy paciente y resolvió todas mis dudas. Me ayudaron a conseguir el financiamiento perfecto para mis necesidades.',
-        rating: 4,
-      },
-      {
-        name: 'Juan Pérez',
-        role: 'Comprador de Nissan Sentra',
-        testimonial:
-          'La garantía y el servicio post-venta son excelentes. Me han atendido siempre que lo he necesitado sin problemas.',
-        rating: 5,
-      },
+      { name: 'Carlos Rodríguez', role: 'Comprador de Toyota Corolla', testimonial: 'Excelente servicio de principio a fin. El proceso de compra fue rápido y transparente. Estoy muy contento con mi nuevo auto.', rating: 5 },
+      { name: 'María González', role: 'Compradora de Honda CR-V', testimonial: 'El asesor fue muy paciente y resolvió todas mis dudas. Me ayudaron a conseguir el financiamiento perfecto para mis necesidades.', rating: 4 },
+      { name: 'Juan Pérez', role: 'Comprador de Nissan Sentra', testimonial: 'La garantía y el servicio post-venta son excelentes. Me han atendido siempre que lo he necesitado sin problemas.', rating: 5 },
     ],
     columns: 3,
     bgColor: '#ffffff',
@@ -237,9 +213,5 @@ Testimonials.craft = {
     testimonialColor: '#374151',
     starColor: '#f59e0b',
   },
-  rules: {
-    canDrag: () => true,
-    canDrop: () => true,
-    canMoveIn: () => true,
-  },
+  rules: { canDrag: () => true, canDrop: () => true, canMoveIn: () => true },
 };

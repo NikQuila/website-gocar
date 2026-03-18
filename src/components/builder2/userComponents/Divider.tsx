@@ -22,7 +22,7 @@ export const Divider = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{
         padding: '4px 0',
         border: selected ? '1px dashed #1e88e5' : '1px solid transparent',

@@ -16,6 +16,13 @@ interface HowToArriveProps {
   titleAlignment?: 'left' | 'center' | 'right';
   height?: string;
   buttonLabel?: string;
+  bgColor?: string;
+  textColor?: string;
+  subtitleColor?: string;
+  cardBgColor?: string;
+  cardBorderColor?: string;
+  labelColor?: string;
+  valueColor?: string;
 }
 
 const grayMapStyle = [
@@ -93,6 +100,13 @@ export default function HowToArrive({
   titleAlignment = 'center',
   height = '400px',
   buttonLabel,
+  bgColor,
+  textColor,
+  subtitleColor,
+  cardBgColor,
+  cardBorderColor,
+  labelColor,
+  valueColor,
 }: HowToArriveProps) {
   let connectors: any = null;
   let selected = false;
@@ -193,15 +207,22 @@ export default function HowToArrive({
   return (
     <div
       ref={connectors?.connect || null}
-      className={`py-12 bg-slate-50/50 dark:bg-[#0B0B0F] ${selected ? 'ring-2 ring-dashed ring-slate-400' : ''}`}
+      className={!bgColor ? `py-12 bg-slate-50/50 dark:bg-dark-bg ${selected ? 'ring-2 ring-dashed ring-slate-400' : ''}` : `py-12 ${selected ? 'ring-2 ring-dashed ring-slate-400' : ''}`}
+      style={bgColor ? { backgroundColor: bgColor } : undefined}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className={`mb-8 ${titleAlignment === 'center' ? 'text-center' : titleAlignment === 'right' ? 'text-right' : 'text-left'}`}>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2
+            className={!textColor ? 'text-3xl font-bold text-gray-900 dark:text-white mb-2' : 'text-3xl font-bold mb-2'}
+            style={textColor ? { color: textColor } : undefined}
+          >
             {title || t('home.howToArrive.title')}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p
+            className={!subtitleColor ? 'text-gray-600 dark:text-gray-400' : ''}
+            style={subtitleColor ? { color: subtitleColor } : undefined}
+          >
             {subtitle || t('home.howToArrive.subtitle')}
           </p>
         </div>
@@ -210,13 +231,16 @@ export default function HowToArrive({
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Info Card - Fixed height */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-[#151519] rounded-xl shadow-sm border border-slate-200/60 dark:border-white/5 h-full min-h-[300px] flex flex-col">
+            <div
+              className={!cardBgColor ? 'bg-white dark:bg-dark-card rounded-xl shadow-sm border border-slate-200/60 dark:border-dark-border h-full min-h-[300px] flex flex-col' : 'rounded-xl shadow-sm h-full min-h-[300px] flex flex-col'}
+              style={cardBgColor ? { backgroundColor: cardBgColor, border: `1px solid ${cardBorderColor || 'rgba(0,0,0,0.1)'}` } : undefined}
+            >
               {/* Navigation (only if multiple) */}
               {dealerships.length > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-neutral-800">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-dark-border">
                   <button
                     onClick={handlePrev}
-                    className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+                    className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-dark-card transition-colors"
                   >
                     <Icon icon="mdi:chevron-left" className="text-xl text-gray-500" />
                   </button>
@@ -225,7 +249,7 @@ export default function HowToArrive({
                   </span>
                   <button
                     onClick={handleNext}
-                    className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+                    className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-dark-card transition-colors"
                   >
                     <Icon icon="mdi:chevron-right" className="text-xl text-gray-500" />
                   </button>
@@ -240,10 +264,10 @@ export default function HowToArrive({
                     <div className="flex gap-3">
                       <Icon icon="mdi:map-marker" className="text-xl text-primary flex-shrink-0 mt-0.5" />
                       <div className="min-w-0">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                        <p className={!labelColor ? 'text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1' : 'text-xs uppercase tracking-wide mb-1'} style={labelColor ? { color: labelColor } : undefined}>
                           {t('home.howToArrive.address')}
                         </p>
-                        <p className="text-gray-900 dark:text-white text-sm leading-relaxed">
+                        <p className={!valueColor ? 'text-gray-900 dark:text-white text-sm leading-relaxed' : 'text-sm leading-relaxed'} style={valueColor ? { color: valueColor } : undefined}>
                           {selectedDealership.address}
                         </p>
                       </div>
@@ -254,10 +278,10 @@ export default function HowToArrive({
                       <div className="flex gap-3">
                         <Icon icon="mdi:phone" className="text-xl text-primary flex-shrink-0" />
                         <div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                          <p className={!labelColor ? 'text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1' : 'text-xs uppercase tracking-wide mb-1'} style={labelColor ? { color: labelColor } : undefined}>
                             {t('home.howToArrive.phone')}
                           </p>
-                          <a href={`tel:${selectedDealership.phone}`} className="text-gray-900 dark:text-white text-sm hover:text-primary transition-colors">
+                          <a href={`tel:${selectedDealership.phone}`} className={!valueColor ? 'text-gray-900 dark:text-white text-sm hover:text-primary transition-colors' : 'text-sm transition-colors'} style={valueColor ? { color: valueColor } : undefined}>
                             {selectedDealership.phone}
                           </a>
                         </div>
@@ -269,10 +293,10 @@ export default function HowToArrive({
                       <div className="flex gap-3">
                         <Icon icon="mdi:email" className="text-xl text-primary flex-shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                          <p className={!labelColor ? 'text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1' : 'text-xs uppercase tracking-wide mb-1'} style={labelColor ? { color: labelColor } : undefined}>
                             {t('home.howToArrive.email')}
                           </p>
-                          <a href={`mailto:${selectedDealership.email}`} className="text-gray-900 dark:text-white text-sm hover:text-primary transition-colors truncate block">
+                          <a href={`mailto:${selectedDealership.email}`} className={!valueColor ? 'text-gray-900 dark:text-white text-sm hover:text-primary transition-colors truncate block' : 'text-sm transition-colors truncate block'} style={valueColor ? { color: valueColor } : undefined}>
                             {selectedDealership.email}
                           </a>
                         </div>
@@ -297,7 +321,7 @@ export default function HowToArrive({
           <div className="lg:col-span-2">
             <div
               style={{ height }}
-              className="w-full rounded-xl overflow-hidden shadow-sm border border-slate-200/60 dark:border-neutral-800"
+              className="w-full rounded-xl overflow-hidden shadow-sm border border-slate-200/60 dark:border-dark-border"
             >
               <GoogleMap
                 zoom={15}

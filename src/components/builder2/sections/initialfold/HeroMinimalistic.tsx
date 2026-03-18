@@ -100,7 +100,7 @@ export const HeroMinimalistic = ({
 
   return (
     <div
-      ref={(ref) => connect(ref as HTMLDivElement)}
+      ref={(el: HTMLDivElement | null) => { if (el) connect(el); }}
       style={{
         backgroundColor: bgColor,
         color: textColor,

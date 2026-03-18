@@ -79,7 +79,7 @@ export const HeroBasic = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{
         background: bgColor,
         color: textColor,

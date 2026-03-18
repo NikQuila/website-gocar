@@ -42,7 +42,7 @@ export const StatsModerno = ({
 }: StatsModernoProps) => {
   const { connectors } = useNode();
   return (
-    <div ref={connectors.connect}
+    <div ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{ backgroundColor: bgColor, color: textColor, position: 'relative',
         borderTop: `1px solid ${hexToRgba(textColor, 0.06)}`, borderBottom: `1px solid ${hexToRgba(textColor, 0.06)}` }}
       className="w-full">

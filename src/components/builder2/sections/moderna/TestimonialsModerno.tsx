@@ -26,7 +26,7 @@ export const TestimonialsModerno = ({
   const { connectors } = useNode();
 
   return (
-    <div ref={connectors.connect} style={{ backgroundColor: bgColor, color: textColor, position: 'relative' }} className="w-full">
+    <div ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }} style={{ backgroundColor: bgColor, color: textColor, position: 'relative' }} className="w-full">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: appleEase }} viewport={{ once: true }} className="text-center mb-16 lg:mb-20">

@@ -56,7 +56,7 @@ export const VideoEmbed = ({
 
   return (
     <div
-      ref={(ref: HTMLDivElement) => connect(drag(ref))}
+      ref={(el: HTMLDivElement | null) => { if (el) connect(drag(el)); }}
       style={{
         backgroundColor: bgColor,
         color: textColor,

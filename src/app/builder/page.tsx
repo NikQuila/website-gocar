@@ -4,6 +4,7 @@ import { Editor, Frame } from '@craftjs/core';
 import lz from 'lzutf8';
 import { supabase } from '@/lib/supabase';
 import useClientStore from '@/store/useClientStore';
+import useThemeStore from '@/store/useThemeStore';
 
 export const runtime = 'nodejs';
 
@@ -32,7 +33,8 @@ import { Spacer } from '@/components/builder2/userComponents/Spacer';
 import { SocialLinks } from '@/components/builder2/userComponents/SocialLinks';
 import { Icon } from '@/components/builder2/userComponents/Icon';
 
-// New sections
+// Layout sections
+import { BuilderNavbar } from '@/components/builder2/sections/layout/BuilderNavbar';
 import { Footer } from '@/components/builder2/sections/layout/Footer';
 import { StatsCounter } from '@/components/builder2/sections/marketing/StatsCounter';
 import { PromoBanner } from '@/components/builder2/sections/marketing/PromoBanner';
@@ -87,7 +89,8 @@ const resolver = {
   SocialLinks,
   Icon,
 
-  // New sections
+  // Layout sections
+  BuilderNavbar,
   Footer,
   StatsCounter,
   PromoBanner,
@@ -166,9 +169,11 @@ function sanitizeCraftState(state: any) {
 
 export default function WebsitePage() {
   const { client, isLoading: isClientLoading } = useClientStore();
+  const { theme } = useThemeStore();
   const [json, setJson] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const dualStateRef = React.useRef<{ light: string; dark: string } | null>(null);
 
   useEffect(() => {
     const fetchState = async () => {
@@ -177,7 +182,7 @@ export default function WebsitePage() {
         setIsLoading(true);
         const { data, error } = await supabase
           .from('client_website_config')
-          .select('elements_structure')
+          .select('elements_structure, color_scheme')
           .eq('client_id', client.id)
           .single();
 
@@ -186,8 +191,23 @@ export default function WebsitePage() {
         if (!data?.elements_structure) {
           setError('No hay estado guardado para este cliente.');
         } else {
+          const raw = String(data.elements_structure);
+
+          // Detect dual-theme envelope (v2 format)
+          let compressedData = raw;
+          try {
+            const envelope = JSON.parse(raw);
+            if (envelope?.v === 2) {
+              dualStateRef.current = { light: envelope.light, dark: envelope.dark };
+              const activeTheme = theme || (data.color_scheme === 'DARK' ? 'dark' : 'light');
+              compressedData = activeTheme === 'dark' ? envelope.dark : envelope.light;
+            }
+          } catch {
+            // Legacy single-theme format
+          }
+
           const decompressed = JSON.parse(
-            lz.decompress(lz.decodeBase64(data.elements_structure))
+            lz.decompress(lz.decodeBase64(compressedData))
           );
           const sanitized = sanitizeCraftState(decompressed);
           setJson(sanitized);
@@ -206,13 +226,25 @@ export default function WebsitePage() {
     }
   }, [client?.id, isClientLoading]);
 
+  // Swap builder state when user toggles theme
+  useEffect(() => {
+    if (!dualStateRef.current) return;
+    const compressed = theme === 'dark' ? dualStateRef.current.dark : dualStateRef.current.light;
+    if (!compressed) return;
+    try {
+      const decompressed = JSON.parse(lz.decompress(lz.decodeBase64(compressed)));
+      const sanitized = sanitizeCraftState(decompressed);
+      setJson(sanitized);
+    } catch {}
+  }, [theme]);
+
   if (isLoading) return <div className="p-8 text-center">Cargando vista previa…</div>;
   if (error) return <div className="p-8 text-center text-red-600">Error: {error}</div>;
   if (!json) return <div className="p-8 text-center">No hay contenido para mostrar.</div>;
 
   return (
     <div className="min-h-screen mt-[6vh]">
-      <Editor resolver={resolver} enabled={false}>
+      <Editor key={theme} resolver={resolver} enabled={false}>
         <div>
           <Frame data={json} />
         </div>

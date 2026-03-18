@@ -200,16 +200,16 @@ const NewVehicleFilters = ({
 
   return (
     <div
-      className="w-full bg-white dark:bg-[#0B0B0F] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/0 shadow-sm"
+      className="w-full bg-white dark:bg-dark-card rounded-2xl overflow-hidden border border-slate-200 dark:border-dark-border shadow-sm"
     >
       {/* HEADER */}
-      <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800">
+      <div className="px-4 py-3 border-b border-slate-100 dark:border-dark-border">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             {onToggleCollapse && (
               <button
                 onClick={onToggleCollapse}
-                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-bg transition-colors"
                 aria-label={isCollapsed ? 'Expandir filtros' : 'Colapsar filtros'}
               >
                 <Icon

@@ -1,5 +1,7 @@
 import React from 'react';
 import { useNode, useEditor } from '@craftjs/core';
+import useClientStore from '@/store/useClientStore';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 import {
   IconCheck,
   IconCurrencyDollar,
@@ -155,6 +157,12 @@ export const WhyChooseUs = ({
     selected: state.events.selected,
   }));
 
+  const { client } = useClientStore();
+  const { t, currentLanguage } = useTranslation();
+  const isTranslated = client?.has_language_selector && currentLanguage !== (client?.default_language || 'es');
+
+  const effectiveSectionTitle = isTranslated ? t('home.whyUs.title') : sectionTitle;
+
   const finalIconColor = iconColor || '#3b82f6';
 
   const getIcon = (iconType: string, size = 32) => {
@@ -185,7 +193,7 @@ export const WhyChooseUs = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{
         background: bgColor,
         color: textColor,
@@ -205,7 +213,7 @@ export const WhyChooseUs = ({
           <h2
             className='text-3xl md:text-4xl lg:text-5xl font-bold'
             style={{ color: textColor, textAlign: titleAlignment }}
-            dangerouslySetInnerHTML={{ __html: sectionTitle || '' }}
+            dangerouslySetInnerHTML={{ __html: effectiveSectionTitle || '' }}
           />
         </div>
 

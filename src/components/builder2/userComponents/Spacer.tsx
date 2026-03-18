@@ -16,7 +16,7 @@ export const Spacer = ({ height = 40 }: SpacerProps) => {
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       style={{
         height: `${height}px`,
         width: '100%',

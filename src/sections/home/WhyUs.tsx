@@ -18,7 +18,15 @@ const defaultItems: WhyUsItem[] = [
   { id: '3', title: 'Calidad', description: 'Vehículos seleccionados y certificados', icon: 'mdi:certificate' },
 ];
 
-const WhyUs = () => {
+interface WhyUsProps {
+  bgColor?: string;
+  textColor?: string;
+  subtitleColor?: string;
+  cardBgColor?: string;
+  accentColor?: string;
+}
+
+const WhyUs = ({ bgColor, textColor, subtitleColor, cardBgColor, accentColor }: WhyUsProps = {}) => {
   const { websiteConfig, isLoading } = useWebsiteConfig();
   const { t } = useTranslation();
 
@@ -41,27 +49,43 @@ const WhyUs = () => {
   const subtitle = config?.subtitle || t('home.whyUs.subtitle');
 
   return (
-    <section className='bg-slate-50/50 dark:bg-dark-bg py-16'>
+    <section
+      className={!bgColor ? 'bg-slate-50/50 dark:bg-dark-bg py-16' : 'py-16'}
+      style={bgColor ? { backgroundColor: bgColor } : undefined}
+    >
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <h2 className='text-3xl font-bold text-gray-900 dark:text-dark-text text-center mb-4'>
+        <h2
+          className={!textColor ? 'text-3xl font-bold text-gray-900 dark:text-dark-text text-center mb-4' : 'text-3xl font-bold text-center mb-4'}
+          style={textColor ? { color: textColor } : undefined}
+        >
           {title}
         </h2>
-        <p className='text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto'>
+        <p
+          className={!subtitleColor ? 'text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto' : 'text-center mb-12 max-w-3xl mx-auto'}
+          style={subtitleColor ? { color: subtitleColor } : undefined}
+        >
           {subtitle}
         </p>
         <div className='grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3'>
           {items.map((item, i) => (
             <div
               key={item.id || i}
-              className='text-center p-6 bg-white dark:bg-[#0B0B0F] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200'
+              className={!cardBgColor ? 'text-center p-6 bg-white dark:bg-dark-card rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 dark:border dark:border-dark-border' : 'text-center p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200'}
+              style={cardBgColor ? { backgroundColor: cardBgColor } : undefined}
             >
               <div className='flex justify-center mb-4'>
-                <Icon icon={item.icon} className='w-12 h-12 text-primary' />
+                <Icon icon={item.icon} className='w-12 h-12' style={accentColor ? { color: accentColor } : undefined} />
               </div>
-              <h3 className='text-lg font-medium text-gray-900 dark:text-dark-text'>
+              <h3
+                className={!textColor ? 'text-lg font-medium text-gray-900 dark:text-dark-text' : 'text-lg font-medium'}
+                style={textColor ? { color: textColor } : undefined}
+              >
                 {item.title}
               </h3>
-              <p className='mt-2 text-base text-gray-500 dark:text-gray-400'>
+              <p
+                className={!subtitleColor ? 'mt-2 text-base text-gray-500 dark:text-gray-400' : 'mt-2 text-base'}
+                style={subtitleColor ? { color: subtitleColor } : undefined}
+              >
                 {item.description}
               </p>
             </div>

@@ -2,6 +2,8 @@ import React from 'react';
 import { useNode, useEditor } from '@craftjs/core';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import useClientStore from '@/store/useClientStore';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
 interface ContactCTAProps {
   title?: string;
@@ -40,6 +42,14 @@ export const ContactCTA = ({
     selected: state.events.selected,
   }));
 
+  const { client } = useClientStore();
+  const { t, currentLanguage } = useTranslation();
+  const isTranslated = client?.has_language_selector && currentLanguage !== (client?.default_language || 'es');
+
+  const effectiveTitle = isTranslated ? t('home.contactCTA.title') : title;
+  const effectiveSubtitle = isTranslated ? t('home.contactCTA.subtitle') : subtitle;
+  const effectiveButtonText = isTranslated ? t('home.contactCTA.button') : buttonText;
+
   const finalButtonBgColor = buttonBgColor || '#3b82f6';
 
   const { isEnabled } = useEditor((state) => ({
@@ -58,7 +68,7 @@ export const ContactCTA = ({
 
   return (
     <div
-      ref={connectors.connect}
+      ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }}
       className={`relative overflow-hidden ${selected ? 'ring-2 ring-dashed ring-slate-400' : ''}`}
       style={{
         background: `linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%)`,
@@ -83,13 +93,13 @@ export const ContactCTA = ({
         <h2
           className='text-4xl md:text-5xl font-bold leading-tight tracking-tight'
           style={{ color: textColor }}
-          dangerouslySetInnerHTML={{ __html: title || '' }}
+          dangerouslySetInnerHTML={{ __html: effectiveTitle || '' }}
         />
 
         <p
           className='mt-4 text-lg md:text-xl max-w-2xl mx-auto'
           style={{ color: textColor, opacity: 0.8 }}
-          dangerouslySetInnerHTML={{ __html: subtitle || '' }}
+          dangerouslySetInnerHTML={{ __html: effectiveSubtitle || '' }}
         />
 
         <div className='mt-10'>
@@ -102,7 +112,7 @@ export const ContactCTA = ({
             }}
             onClick={handleClick}
           >
-            <span dangerouslySetInnerHTML={{ __html: buttonText || '' }} />
+            <span dangerouslySetInnerHTML={{ __html: effectiveButtonText || '' }} />
             <ArrowRight className='ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300' />
           </Button>
         </div>

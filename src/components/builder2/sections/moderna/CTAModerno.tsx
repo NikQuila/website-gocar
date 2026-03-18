@@ -16,7 +16,7 @@ export const CTAModerno = ({
   const lighterAccent = lighten(accentColor, 25);
 
   return (
-    <div ref={connectors.connect} style={{ position: 'relative', overflow: 'hidden' }} className="w-full">
+    <div ref={(el: HTMLDivElement | null) => { if (el) connectors.connect(el); }} style={{ position: 'relative', overflow: 'hidden' }} className="w-full">
       <div className="absolute inset-0" style={{ backgroundImage: `linear-gradient(135deg, ${accentColor} 0%, ${lighterAccent} 100%)` }} />
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full blur-[100px] bg-white/15" />

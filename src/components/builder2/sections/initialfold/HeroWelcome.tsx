@@ -6,11 +6,18 @@ import { Input } from '@heroui/react';
 import { Search, X } from 'lucide-react';
 import useClientStore from '@/store/useClientStore';
 import useVehicleFiltersStore from '@/store/useVehicleFiltersStore';
+import { useTranslation } from '@/i18n/hooks/useTranslation';
 
-const searchExamples = [
+const searchExamplesEs = [
   'Toyota Corolla blanco',
   'SUV automático bajo 15 millones',
   'Sedán nuevo con garantía',
+];
+
+const searchExamplesEn = [
+  'White Toyota Corolla',
+  'Automatic SUV under 15 million',
+  'New sedan with warranty',
 ];
 
 interface HeroWelcomeProps {
@@ -45,6 +52,16 @@ export const HeroWelcome = ({
   }
 
   const { client } = useClientStore();
+  const { t, currentLanguage } = useTranslation();
+  const defaultLang = client?.default_language || 'es';
+
+  // Use i18n translations when viewing in a non-default language
+  const isTranslated = client?.has_language_selector && currentLanguage !== defaultLang;
+  const effectiveTitle = isTranslated ? t('home.welcome.title') : title;
+  const effectiveSubtitle = isTranslated ? t('home.welcome.description') : subtitle;
+
+  const activeExamples = currentLanguage === 'en' ? searchExamplesEn : searchExamplesEs;
+
   const finalHighlightedText = highlightedText || client?.name || 'Automotora';
   const primaryColor = client?.theme?.light?.primary || '#e05d31';
   const finalHighlightColor = highlightColor || primaryColor;
@@ -59,7 +76,7 @@ export const HeroWelcome = ({
 
   // Typewriter effect
   useEffect(() => {
-    const currentExample = searchExamples[exampleIndex];
+    const currentExample = activeExamples[exampleIndex];
     const timeout = setTimeout(() => {
       if (!isDeleting) {
         if (charIndex < currentExample.length) {
@@ -74,7 +91,7 @@ export const HeroWelcome = ({
           setCharIndex(charIndex - 1);
         } else {
           setIsDeleting(false);
-          setExampleIndex((exampleIndex + 1) % searchExamples.length);
+          setExampleIndex((exampleIndex + 1) % activeExamples.length);
         }
       }
     }, isDeleting ? 30 : 80);
@@ -111,7 +128,7 @@ export const HeroWelcome = ({
               className='text-5xl font-bold tracking-tight sm:text-6xl max-w-3xl mx-auto'
               style={{ color: textColor, lineHeight: '1.1' }}
             >
-              <span dangerouslySetInnerHTML={{ __html: title || '' }} />{' '}
+              <span dangerouslySetInnerHTML={{ __html: effectiveTitle || '' }} />{' '}
               <span style={{ color: finalHighlightColor }}
                 dangerouslySetInnerHTML={{ __html: finalHighlightedText || '' }} />
             </h1>
@@ -119,7 +136,7 @@ export const HeroWelcome = ({
             <p
               className='mt-6 text-xl leading-8 max-w-2xl mx-auto'
               style={{ color: textColor, opacity: 0.7 }}
-              dangerouslySetInnerHTML={{ __html: subtitle || '' }}
+              dangerouslySetInnerHTML={{ __html: effectiveSubtitle || '' }}
             />
 
             {/* Functional search bar */}
@@ -130,7 +147,7 @@ export const HeroWelcome = ({
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch(inputValue)}
-                  placeholder={placeholder || searchExamples[0].charAt(0)}
+                  placeholder={placeholder || activeExamples[0].charAt(0)}
                   size='lg'
                   radius='lg'
                   startContent={

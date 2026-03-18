@@ -143,7 +143,7 @@ export default function WelcomeSection() {
                   }
                   classNames={{
                     base: 'w-full',
-                    inputWrapper: 'bg-slate-100 dark:bg-[#0B0B0F] border-none shadow-lg h-14',
+                    inputWrapper: 'bg-slate-100 dark:bg-dark-card border-none shadow-lg h-14',
                     input: 'text-base',
                   }}
                   endContent={

@@ -31,10 +31,10 @@ export default {
           DEFAULT: '#10B981',
         },
         dark: {
-          bg: '#000000',
-          card: '#1a1a1a',
+          bg: '#141414',
+          card: '#1c1c1c',
           text: '#e5e5e5',
-          border: '#404040',
+          border: '#2a2a2a',
         },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
