@@ -44,7 +44,6 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      console.log('Client data:', clientData);
       setIsLoading(false);
     }
 

@@ -45,8 +45,6 @@ export function ClientWebsiteConfigProvider({
       }
 
       try {
-        console.log('Fetching website configuration for client ID:', client.id);
-
         const { data, error } = await supabase
           .from('client_website_config')
           .select('*')
@@ -54,13 +52,11 @@ export function ClientWebsiteConfigProvider({
           .eq('is_enabled', true)
           .single();
 
-        console.log('Data:', data);
         if (error) {
           setIsLoading(false);
           return;
         }
 
-        console.log('Website config loaded:', data);
         setWebsiteConfig(data as ClientWebsiteConfig);
       } catch (err) {
         console.error('Failed to fetch website configuration:', err);

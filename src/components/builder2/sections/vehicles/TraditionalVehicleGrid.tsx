@@ -8,11 +8,20 @@ interface TraditionalVehicleGridProps {
   title?: string;
   accentColor?: string;
   sectionBgColor?: string;
+  filterStyle?: 'buttons' | 'images';
   filterBarBgColor?: string;
   filterBarBorderColor?: string;
   filterTextColor?: string;
   filterActiveTextColor?: string;
   filterHoverBgColor?: string;
+  categoryImage_all?: string;
+  categoryImage_SUV?: string;
+  categoryImage_Sedan?: string;
+  categoryImage_Hatchback?: string;
+  categoryImage_Pickup?: string;
+  categoryImage_Van?: string;
+  categoryImage_Coupe?: string;
+  categoryImage_Wagon?: string;
   cardBgColor?: string;
   cardBorderColor?: string;
   cardTitleColor?: string;
@@ -37,10 +46,19 @@ export const TraditionalVehicleGrid = ({
   sectionBgColor,
   cardBgColor,
   accentColor,
+  filterStyle = 'images',
   filterBarBgColor,
   filterBarBorderColor,
   filterTextColor,
   filterActiveTextColor,
+  categoryImage_all,
+  categoryImage_SUV,
+  categoryImage_Sedan,
+  categoryImage_Hatchback,
+  categoryImage_Pickup,
+  categoryImage_Van,
+  categoryImage_Coupe,
+  categoryImage_Wagon,
 }: TraditionalVehicleGridProps) => {
   let connectors: any = null;
   let selected = false;
@@ -64,12 +82,21 @@ export const TraditionalVehicleGrid = ({
     >
       <NewVehiclesSection
         minimal
+        filterStyle={filterStyle}
         filterBarBgColor={filterBarBgColor}
         filterBarBorderColor={filterBarBorderColor}
         filterTextColor={filterTextColor}
         filterActiveTextColor={filterActiveTextColor}
         accentColor={accentColor}
         sectionBgColor={sectionBgColor}
+        categoryImage_all={categoryImage_all}
+        categoryImage_SUV={categoryImage_SUV}
+        categoryImage_Sedan={categoryImage_Sedan}
+        categoryImage_Hatchback={categoryImage_Hatchback}
+        categoryImage_Pickup={categoryImage_Pickup}
+        categoryImage_Van={categoryImage_Van}
+        categoryImage_Coupe={categoryImage_Coupe}
+        categoryImage_Wagon={categoryImage_Wagon}
       />
     </div>
   );
@@ -81,11 +108,20 @@ export const TraditionalVehicleGrid = ({
     title: '',
     accentColor: '',
     sectionBgColor: '',
+    filterStyle: 'images',
     filterBarBgColor: '#ffffff',
     filterBarBorderColor: '#e5e7eb',
     filterTextColor: '#374151',
     filterActiveTextColor: '#ffffff',
     filterHoverBgColor: '#f3f4f6',
+    categoryImage_all: '',
+    categoryImage_SUV: '',
+    categoryImage_Sedan: '',
+    categoryImage_Hatchback: '',
+    categoryImage_Pickup: '',
+    categoryImage_Van: '',
+    categoryImage_Coupe: '',
+    categoryImage_Wagon: '',
     cardBgColor: '#ffffff',
     cardBorderColor: 'rgba(0,0,0,0.1)',
     cardTitleColor: '#171717',

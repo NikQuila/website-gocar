@@ -234,6 +234,8 @@ const CATEGORY_ICONS: Record<string, string> = {
 interface NewVehiclesSectionProps {
   /** Ocultar título y buscador (para landing page) */
   minimal?: boolean;
+  /** Filter style: 'buttons' (default, icon+text) or 'images' (photo cards) */
+  filterStyle?: 'buttons' | 'images';
   /** Builder color overrides */
   filterBarBgColor?: string;
   filterBarBorderColor?: string;
@@ -241,9 +243,18 @@ interface NewVehiclesSectionProps {
   filterActiveTextColor?: string;
   accentColor?: string;
   sectionBgColor?: string;
+  /** Category image overrides (only for filterStyle='images') */
+  categoryImage_all?: string;
+  categoryImage_SUV?: string;
+  categoryImage_Sedan?: string;
+  categoryImage_Hatchback?: string;
+  categoryImage_Pickup?: string;
+  categoryImage_Van?: string;
+  categoryImage_Coupe?: string;
+  categoryImage_Wagon?: string;
 }
 
-const NewVehiclesSection = ({ minimal = false, filterBarBgColor, filterBarBorderColor, filterTextColor, filterActiveTextColor, accentColor, sectionBgColor }: NewVehiclesSectionProps) => {
+const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBarBgColor, filterBarBorderColor, filterTextColor, filterActiveTextColor, accentColor, sectionBgColor, categoryImage_all, categoryImage_SUV, categoryImage_Sedan, categoryImage_Hatchback, categoryImage_Pickup, categoryImage_Van, categoryImage_Coupe, categoryImage_Wagon }: NewVehiclesSectionProps) => {
   const { theme } = useThemeStore();
   const { vehicles, isLoading } = useVehiclesStore();
   const { client } = useClientStore();
@@ -412,6 +423,28 @@ const NewVehiclesSection = ({ minimal = false, filterBarBgColor, filterBarBorder
     cat.id === 'all' || categoriesWithVehicles.has(cat.id)
   );
 
+  // Build category → image map for image-style filters
+  const categoryImages = useMemo(() => {
+    if (filterStyle !== 'images') return {};
+    const map: Record<string, string | null> = { all: vehicles.find(v => v.main_image)?.main_image ?? null };
+    for (const v of vehicles) {
+      const catName = v.category?.name;
+      if (catName && !map[catName] && v.main_image) {
+        map[catName] = v.main_image;
+      }
+    }
+    // Apply custom overrides
+    if (categoryImage_all) map.all = categoryImage_all;
+    if (categoryImage_SUV) map.SUV = categoryImage_SUV;
+    if (categoryImage_Sedan) map.Sedan = categoryImage_Sedan;
+    if (categoryImage_Hatchback) map.Hatchback = categoryImage_Hatchback;
+    if (categoryImage_Pickup) map.Pickup = categoryImage_Pickup;
+    if (categoryImage_Van) map.Van = categoryImage_Van;
+    if (categoryImage_Coupe) map.Coupe = categoryImage_Coupe;
+    if (categoryImage_Wagon) map.Wagon = categoryImage_Wagon;
+    return map;
+  }, [filterStyle, vehicles, categoryImage_all, categoryImage_SUV, categoryImage_Sedan, categoryImage_Hatchback, categoryImage_Pickup, categoryImage_Van, categoryImage_Coupe, categoryImage_Wagon]);
+
   const sortOptions = [
     { key: 'date_desc',    label: t('vehicles.sorting.dateDesc') || 'Destacados',     icon: 'mdi:star-outline' },
     { key: 'price_asc',    label: t('vehicles.sorting.priceAsc') || 'Precio ↑',       icon: 'mdi:sort-ascending' },
@@ -516,10 +549,16 @@ const NewVehiclesSection = ({ minimal = false, filterBarBgColor, filterBarBorder
               new Date(a.created_at || 0).getTime() -
               new Date(b.created_at || 0).getTime()
             );
-          case 'price_asc':
-            return (a.price || 0) - (b.price || 0);
-          case 'price_desc':
-            return (b.price || 0) - (a.price || 0);
+          case 'price_asc': {
+            const priceA = (a.price || 0) * (1 - (a.discount_percentage || 0) / 100);
+            const priceB = (b.price || 0) * (1 - (b.discount_percentage || 0) / 100);
+            return priceA - priceB;
+          }
+          case 'price_desc': {
+            const priceA = (a.price || 0) * (1 - (a.discount_percentage || 0) / 100);
+            const priceB = (b.price || 0) * (1 - (b.discount_percentage || 0) / 100);
+            return priceB - priceA;
+          }
           case 'year_desc':
             return (b.year || 0) - (a.year || 0);
           case 'year_asc':
@@ -673,10 +712,66 @@ const NewVehiclesSection = ({ minimal = false, filterBarBgColor, filterBarBorder
 
             <ScrollShadow orientation='horizontal' className='w-full'>
               <div className='flex justify-start lg:justify-center items-center w-full'>
-                <div className='flex gap-2 pt-2 pb-2 min-w-max'>
+                <div className={`flex ${filterStyle === 'images' ? 'gap-2.5' : 'gap-2'} pt-2 pb-2 min-w-max`}>
                   {vehicleCategories.map((category) => {
                     const isActive = selectedCategory === category.id;
                     const hasBuilderColors = filterTextColor || filterActiveTextColor || accentColor;
+
+                    {/* Image style filter */}
+                    if (filterStyle === 'images') {
+                      const img = categoryImages[category.id];
+                      return (
+                        <button
+                          key={category.id}
+                          onClick={() => setSelectedCategory(category.id)}
+                          className={`relative flex flex-col items-center gap-1 transition-all duration-200 hover:-translate-y-0.5 group ${
+                            isActive ? 'scale-[1.02]' : ''
+                          }`}
+                        >
+                          <div
+                            className={`relative w-20 h-14 sm:w-24 sm:h-16 rounded-xl overflow-hidden transition-all duration-200 ${
+                              isActive
+                                ? 'ring-2 shadow-md'
+                                : 'ring-1 group-hover:ring-2 group-hover:shadow-sm'
+                            }`}
+                            style={{
+                              '--tw-ring-color': isActive ? (accentColor || 'var(--color-primary)') : (filterBarBorderColor || 'var(--color-default-300)'),
+                            } as React.CSSProperties}
+                          >
+                            {img ? (
+                              <div
+                                className='absolute inset-0 bg-center bg-cover transition-transform duration-300 group-hover:scale-105'
+                                style={{ backgroundImage: `url(${img})` }}
+                              />
+                            ) : (
+                              <div className='absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700'>
+                                <Icon icon={category.icon} className='text-2xl text-gray-500 dark:text-gray-400' />
+                              </div>
+                            )}
+                            <div className={`absolute inset-0 transition-opacity duration-200 ${
+                              isActive ? 'bg-black/30' : 'bg-black/10 group-hover:bg-black/20'
+                            }`} />
+                            {isActive && (
+                              <div className='absolute bottom-0 left-0 right-0 h-[3px]' style={{ backgroundColor: accentColor || 'var(--color-primary)' }} />
+                            )}
+                          </div>
+                          <span
+                            className={`text-[11px] sm:text-xs font-medium transition-colors duration-200 ${
+                              isActive ? 'font-semibold' : ''
+                            }`}
+                            style={{
+                              color: isActive
+                                ? (accentColor || undefined)
+                                : (filterTextColor || undefined),
+                            }}
+                          >
+                            {category.name}
+                          </span>
+                        </button>
+                      );
+                    }
+
+                    {/* Button style filter (default) */}
                     return (
                       <Button
                         key={category.id}
