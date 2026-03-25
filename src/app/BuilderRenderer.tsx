@@ -36,8 +36,11 @@ import { TestimonialsPremium } from '@/components/builder2/sections/premium/Test
 import { GalleryPremium } from '@/components/builder2/sections/premium/GalleryPremium';
 import { CTAPremium } from '@/components/builder2/sections/premium/CTAPremium';
 // Additional sections
-import { Footer } from '@/components/builder2/sections/layout/Footer';
-import { BuilderNavbar } from '@/components/builder2/sections/layout/BuilderNavbar';
+// Nav and Footer are always rendered by layout — builder versions render nothing to avoid duplicates
+const BuilderNavbar: React.FC = () => null;
+(BuilderNavbar as any).craft = { displayName: 'BuilderNavbar', props: {}, rules: {} };
+const FooterNoop: React.FC = () => null;
+(FooterNoop as any).craft = { displayName: 'Footer', props: {}, rules: {} };
 import { StatsCounter } from '@/components/builder2/sections/marketing/StatsCounter';
 import { PromoBanner } from '@/components/builder2/sections/marketing/PromoBanner';
 import { PhotoGallery } from '@/components/builder2/sections/media/PhotoGallery';
@@ -70,7 +73,7 @@ export const baseResolver: Record<string, any> = {
   VideoEmbed,
   HeroModerno, StatsModerno, TestimonialsModerno, CTAModerno, FooterModerno,
   HeroPremium, FeatureShowcase, TestimonialsPremium, GalleryPremium, CTAPremium,
-  BuilderNavbar, Footer, StatsCounter, PromoBanner, PhotoGallery, TeamMembers,
+  BuilderNavbar, Footer: FooterNoop, StatsCounter, PromoBanner, PhotoGallery, TeamMembers,
   div: Unknown, p: Unknown, span: Unknown, img: Unknown, Unknown,
 };
 
