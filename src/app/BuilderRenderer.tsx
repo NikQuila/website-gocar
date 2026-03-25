@@ -116,7 +116,8 @@ export default function BuilderRenderer({
   fallback: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen builder-frame" style={{ marginTop: '-4rem' }}>
+      <style>{`.builder-frame > div > div > div:first-child { padding-top: 4rem; }`}</style>
       <BuilderErrorBoundary fallback={fallback}>
         <Editor key={themeKey} resolver={resolver} enabled={false}>
           <Frame data={data} />
