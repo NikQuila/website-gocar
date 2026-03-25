@@ -396,6 +396,17 @@ const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBa
   }, [searchQuery, vehicles]);
 
     // Localized categories and sort options
+  // Mapeo de IDs de filtro a posibles nombres en la DB (con variantes de acentos/idioma)
+  const categoryVariants: Record<string, string[]> = {
+    SUV: ['SUV', 'Suv', 'suv', 'Crossover', 'Todoterreno', '4x4'],
+    Sedan: ['Sedan', 'Sedán', 'sedan', 'sedán', 'Berlina'],
+    Hatchback: ['Hatchback', 'hatchback', 'Compacto'],
+    Pickup: ['Pickup', 'pickup', 'Pick-up', 'Camioneta'],
+    Van: ['Van', 'van', 'Minivan', 'Furgoneta'],
+    Coupe: ['Coupe', 'Coupé', 'coupe', 'coupé', 'Deportivo'],
+    Wagon: ['Wagon', 'wagon', 'Station Wagon', 'Familiar'],
+  };
+
   // Obtener categorías que tienen vehículos
   const categoriesWithVehicles = useMemo(() => {
     const categorySet = new Set<string>();
@@ -406,6 +417,13 @@ const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBa
     });
     return categorySet;
   }, [vehicles]);
+
+  // Verificar si un filtro tiene vehículos (comparando con variantes)
+  const categoryHasVehicles = (catId: string): boolean => {
+    if (catId === 'all') return true;
+    const variants = categoryVariants[catId] || [catId];
+    return variants.some(variant => categoriesWithVehicles.has(variant));
+  };
 
   const allCategories = [
     { id: 'all', name: t('vehicles.categories.all'), icon: CATEGORY_ICONS.all, description: t('vehicles.categoryDescriptions.all') },
@@ -419,9 +437,15 @@ const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBa
   ];
 
   // Filtrar solo categorías que tienen vehículos (siempre mostrar "all")
-  const vehicleCategories = allCategories.filter(cat =>
-    cat.id === 'all' || categoriesWithVehicles.has(cat.id)
-  );
+  const vehicleCategories = allCategories.filter(cat => categoryHasVehicles(cat.id));
+
+  // Resolver nombre de categoría DB → ID de filtro
+  const resolveCategoryId = (dbName: string): string | null => {
+    for (const [catId, variants] of Object.entries(categoryVariants)) {
+      if (variants.some(v => v.toLowerCase() === dbName.toLowerCase())) return catId;
+    }
+    return null;
+  };
 
   // Build category → image map for image-style filters
   const categoryImages = useMemo(() => {
@@ -429,8 +453,11 @@ const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBa
     const map: Record<string, string | null> = { all: vehicles.find(v => v.main_image)?.main_image ?? null };
     for (const v of vehicles) {
       const catName = v.category?.name;
-      if (catName && !map[catName] && v.main_image) {
-        map[catName] = v.main_image;
+      if (catName && v.main_image) {
+        // Mapear tanto el nombre exacto de la DB como el ID del filtro
+        if (!map[catName]) map[catName] = v.main_image;
+        const catId = resolveCategoryId(catName);
+        if (catId && !map[catId]) map[catId] = v.main_image;
       }
     }
     // Apply custom overrides
@@ -491,12 +518,13 @@ const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBa
     result = result.filter((vehicle) => {
       let matches = true;
 
-      // Category from tabs
-      if (
-        selectedCategory !== 'all' &&
-        vehicle?.category?.name.toLowerCase() !== selectedCategory.toLowerCase()
-      ) {
-        matches = false;
+      // Category from tabs (usar variantes para matchear nombres con acentos/sinónimos)
+      if (selectedCategory !== 'all') {
+        const variants = categoryVariants[selectedCategory] || [selectedCategory];
+        const vehicleCatName = vehicle?.category?.name || '';
+        if (!variants.some(v => v.toLowerCase() === vehicleCatName.toLowerCase())) {
+          matches = false;
+        }
       }
 
       // Filters from sidebar (ahora soportan multi-select)
