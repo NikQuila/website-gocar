@@ -52,6 +52,13 @@ const transEs: Record<TransEN, string> = {
 interface VehicleGridCardProps {
   vehicle: Vehicle;
   newBadgeText?: string;
+  showBadgeCondition?: boolean;
+  showBadgePromo?: boolean;
+  showBadgeNew?: boolean;
+  showBadgeCustom?: boolean;
+  showRibbonSold?: boolean;
+  showRibbonReserved?: boolean;
+  showBadgeDiscount?: boolean;
 }
 
 /* =============================
@@ -70,7 +77,17 @@ const Tag = ({ text, primary = false }: { text: string; primary?: boolean }) => 
   </span>
 );
 
-const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardProps) => {
+const VehicleGridCard = ({
+  vehicle,
+  newBadgeText = 'Nuevo',
+  showBadgeCondition = true,
+  showBadgePromo = true,
+  showBadgeNew = true,
+  showBadgeCustom = true,
+  showRibbonSold = true,
+  showRibbonReserved = true,
+  showBadgeDiscount = true,
+}: VehicleGridCardProps) => {
   const router = useRouter();
   const { formatPrice } = useCurrency();
 
@@ -90,6 +107,7 @@ const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardPro
 
   // Badge promocional
   const promoBadgeText = (() => {
+    if (!showBadgePromo) return undefined;
     if (vehicle.label) return vehicle.label;
     if (!isUnavailable && isNew()) {
       const opts = ['Nuevo', 'Recién llegado', 'Oportunidad', 'Destacado'];
@@ -150,9 +168,9 @@ const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardPro
   };
 
   let leftChips: string[] = [];
-  leftChips = addUnique(leftChips, conditionText);
-  if (isNew()) leftChips = addUnique(leftChips, 'Recién llegado');
-  backendArrays.forEach((a) => a.forEach((v) => addUnique(leftChips, v)));
+  if (showBadgeCondition) leftChips = addUnique(leftChips, conditionText);
+  if (showBadgeNew && isNew()) leftChips = addUnique(leftChips, 'Recién llegado');
+  if (showBadgeCustom) backendArrays.forEach((a) => a.forEach((v) => addUnique(leftChips, v)));
   if (promoBadgeText) leftChips = leftChips.filter((c) => c.toLowerCase() !== promoBadgeText.toLowerCase());
   
   return (
@@ -182,14 +200,14 @@ const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardPro
           )}
 
           {/* Ribbons */}
-          {isSold && (
+          {showRibbonSold && isSold && (
             <div className="absolute top-0 right-0 h-[200px] w-[200px] overflow-hidden z-20">
               <div className="absolute top-[30px] right-[-50px] bg-rose-600 text-white font-bold py-2 w-[250px] text-center rotate-45">
                 VENDIDO
               </div>
             </div>
           )}
-          {isReserved && (
+          {showRibbonReserved && isReserved && (
             <div className="absolute top-0 right-0 h-[200px] w-[200px] overflow-hidden z-20">
               <div className="absolute top-[30px] right-[-50px] bg-amber-400 text-black font-bold py-2 w-[250px] text-center rotate-45">
                 RESERVADO
@@ -244,7 +262,7 @@ const VehicleGridCard = ({ vehicle, newBadgeText = 'Nuevo' }: VehicleGridCardPro
         <CardFooter className="px-5 pb-5 pt-3">
           <div className="w-full flex items-end justify-between">
             <div className="flex flex-col">
-              {discountedPrice ? (
+              {showBadgeDiscount && discountedPrice ? (
                 <>
                   <span className="text-sm line-through text-neutral-500 dark:text-neutral-400">
                     {formattedPrice}

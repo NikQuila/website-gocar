@@ -28,6 +28,15 @@ interface TraditionalVehicleGridProps {
   cardSubtitleColor?: string;
   cardSpecsColor?: string;
   cardPriceColor?: string;
+  // Badge visibility
+  showBadgeCondition?: boolean;
+  showBadgePromo?: boolean;
+  showBadgeNew?: boolean;
+  showBadgeCustom?: boolean;
+  showRibbonSold?: boolean;
+  showRibbonReserved?: boolean;
+  showBadgeDiscount?: boolean;
+  // Grid columns
   gridColsSm?: string;
   gridColsMd?: string;
   gridColsLg?: string;
@@ -50,7 +59,7 @@ export const TraditionalVehicleGrid = ({
   sectionBgColor,
   cardBgColor,
   accentColor,
-  filterStyle = 'images',
+  filterStyle = 'buttons',
   filterBarBgColor,
   filterBarBorderColor,
   filterTextColor,
@@ -63,6 +72,13 @@ export const TraditionalVehicleGrid = ({
   categoryImage_Van,
   categoryImage_Coupe,
   categoryImage_Wagon,
+  showBadgeCondition = true,
+  showBadgePromo = true,
+  showBadgeNew = true,
+  showBadgeCustom = true,
+  showRibbonSold = true,
+  showRibbonReserved = true,
+  showBadgeDiscount = true,
   gridColsSm = '2',
   gridColsMd = '3',
   gridColsLg = '3',
@@ -105,6 +121,13 @@ export const TraditionalVehicleGrid = ({
         categoryImage_Van={categoryImage_Van}
         categoryImage_Coupe={categoryImage_Coupe}
         categoryImage_Wagon={categoryImage_Wagon}
+        showBadgeCondition={showBadgeCondition}
+        showBadgePromo={showBadgePromo}
+        showBadgeNew={showBadgeNew}
+        showBadgeCustom={showBadgeCustom}
+        showRibbonSold={showRibbonSold}
+        showRibbonReserved={showRibbonReserved}
+        showBadgeDiscount={showBadgeDiscount}
         gridColsSm={gridColsSm}
         gridColsMd={gridColsMd}
         gridColsLg={gridColsLg}
@@ -120,7 +143,7 @@ export const TraditionalVehicleGrid = ({
     title: '',
     accentColor: '',
     sectionBgColor: '',
-    filterStyle: 'images',
+    filterStyle: 'buttons',
     filterBarBgColor: '#ffffff',
     filterBarBorderColor: '#e5e7eb',
     filterTextColor: '#374151',
@@ -140,6 +163,13 @@ export const TraditionalVehicleGrid = ({
     cardSubtitleColor: '#525252',
     cardSpecsColor: '#262626',
     cardPriceColor: '#171717',
+    showBadgeCondition: true,
+    showBadgePromo: true,
+    showBadgeNew: true,
+    showBadgeCustom: true,
+    showRibbonSold: true,
+    showRibbonReserved: true,
+    showBadgeDiscount: true,
     gridColsSm: '2',
     gridColsMd: '3',
     gridColsLg: '3',

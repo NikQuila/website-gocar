@@ -252,6 +252,14 @@ interface NewVehiclesSectionProps {
   categoryImage_Van?: string;
   categoryImage_Coupe?: string;
   categoryImage_Wagon?: string;
+  /** Badge visibility */
+  showBadgeCondition?: boolean;
+  showBadgePromo?: boolean;
+  showBadgeNew?: boolean;
+  showBadgeCustom?: boolean;
+  showRibbonSold?: boolean;
+  showRibbonReserved?: boolean;
+  showBadgeDiscount?: boolean;
   /** Grid columns per breakpoint */
   gridColsSm?: string;
   gridColsMd?: string;
@@ -259,7 +267,7 @@ interface NewVehiclesSectionProps {
   gridColsXl?: string;
 }
 
-const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBarBgColor, filterBarBorderColor, filterTextColor, filterActiveTextColor, accentColor, sectionBgColor, categoryImage_all, categoryImage_SUV, categoryImage_Sedan, categoryImage_Hatchback, categoryImage_Pickup, categoryImage_Van, categoryImage_Coupe, categoryImage_Wagon, gridColsSm = '2', gridColsMd = '3', gridColsLg = '3', gridColsXl = '4' }: NewVehiclesSectionProps) => {
+const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBarBgColor, filterBarBorderColor, filterTextColor, filterActiveTextColor, accentColor, sectionBgColor, categoryImage_all, categoryImage_SUV, categoryImage_Sedan, categoryImage_Hatchback, categoryImage_Pickup, categoryImage_Van, categoryImage_Coupe, categoryImage_Wagon, showBadgeCondition = true, showBadgePromo = true, showBadgeNew = true, showBadgeCustom = true, showRibbonSold = true, showRibbonReserved = true, showBadgeDiscount = true, gridColsSm = '2', gridColsMd = '3', gridColsLg = '3', gridColsXl = '4' }: NewVehiclesSectionProps) => {
   const { theme } = useThemeStore();
   const { vehicles, isLoading } = useVehiclesStore();
   const { client } = useClientStore();
@@ -1041,7 +1049,17 @@ const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBa
                     .map((_, index) => <VehicleCardSkeleton key={index} />)
                 : filteredVehicles.map((vehicle) =>
                     activeView === 'grid' ? (
-                      <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
+                      <VehicleVerticalCard
+                        key={vehicle.id}
+                        vehicle={vehicle}
+                        showBadgeCondition={showBadgeCondition}
+                        showBadgePromo={showBadgePromo}
+                        showBadgeNew={showBadgeNew}
+                        showBadgeCustom={showBadgeCustom}
+                        showRibbonSold={showRibbonSold}
+                        showRibbonReserved={showRibbonReserved}
+                        showBadgeDiscount={showBadgeDiscount}
+                      />
                     ) : (
                       <VehicleHorizontalCard
                         key={vehicle.id}
