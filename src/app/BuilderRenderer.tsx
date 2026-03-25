@@ -116,7 +116,7 @@ export default function BuilderRenderer({
   fallback: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-16">
       <BuilderErrorBoundary fallback={fallback}>
         <Editor key={themeKey} resolver={resolver} enabled={false}>
           <Frame data={data} />
