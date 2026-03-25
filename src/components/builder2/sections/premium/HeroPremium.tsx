@@ -8,6 +8,7 @@ import { ArrowRight } from 'lucide-react';
 interface HeroPremiumProps {
   title?: string;
   highlightText?: string;
+  eyebrowText?: string;
   subtitle?: string;
   buttonText?: string;
   buttonLink?: string;
@@ -19,6 +20,7 @@ interface HeroPremiumProps {
 export const HeroPremium = ({
   title = 'Experiencia automotriz',
   highlightText = '',
+  eyebrowText = 'Premium Collection',
   subtitle = 'Veh\u00edculos seleccionados para quienes exigen lo extraordinario.',
   buttonText = 'Explorar veh\u00edculos',
   buttonLink = '#vehicles',
@@ -69,7 +71,7 @@ export const HeroPremium = ({
             className="flex items-center justify-center gap-4"
           >
             <div className="h-px w-12" style={{ backgroundColor: hexToRgba(textColor, 0.2) }} />
-            <span className="text-xs font-medium uppercase tracking-[0.3em]" style={{ color: hexToRgba(textColor, 0.4) }}>Premium Collection</span>
+            <span className="text-xs font-medium uppercase tracking-[0.3em]" style={{ color: hexToRgba(textColor, 0.4) }} dangerouslySetInnerHTML={{ __html: eyebrowText }} />
             <div className="h-px w-12" style={{ backgroundColor: hexToRgba(textColor, 0.2) }} />
           </motion.div>
 
@@ -149,7 +151,7 @@ function hexToRgba(hex: string, alpha: number): string {
 HeroPremium.craft = {
   displayName: 'HeroPremium',
   props: {
-    title: 'Experiencia automotriz', highlightText: '', subtitle: 'Veh\u00edculos seleccionados para quienes exigen lo extraordinario.',
+    title: 'Experiencia automotriz', highlightText: '', eyebrowText: 'Premium Collection', subtitle: 'Veh\u00edculos seleccionados para quienes exigen lo extraordinario.',
     buttonText: 'Explorar veh\u00edculos', buttonLink: '#vehicles',
     bgColor: '#0a0a0a', textColor: '#ffffff', accentColor: '',
   },
