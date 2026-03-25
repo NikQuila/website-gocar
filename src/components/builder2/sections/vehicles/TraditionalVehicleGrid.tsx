@@ -28,6 +28,10 @@ interface TraditionalVehicleGridProps {
   cardSubtitleColor?: string;
   cardSpecsColor?: string;
   cardPriceColor?: string;
+  gridColsSm?: string;
+  gridColsMd?: string;
+  gridColsLg?: string;
+  gridColsXl?: string;
   noResultsTitle?: string;
   noResultsText?: string;
   noResultsButtonText?: string;
@@ -59,6 +63,10 @@ export const TraditionalVehicleGrid = ({
   categoryImage_Van,
   categoryImage_Coupe,
   categoryImage_Wagon,
+  gridColsSm = '2',
+  gridColsMd = '3',
+  gridColsLg = '3',
+  gridColsXl = '4',
 }: TraditionalVehicleGridProps) => {
   let connectors: any = null;
   let selected = false;
@@ -97,6 +105,10 @@ export const TraditionalVehicleGrid = ({
         categoryImage_Van={categoryImage_Van}
         categoryImage_Coupe={categoryImage_Coupe}
         categoryImage_Wagon={categoryImage_Wagon}
+        gridColsSm={gridColsSm}
+        gridColsMd={gridColsMd}
+        gridColsLg={gridColsLg}
+        gridColsXl={gridColsXl}
       />
     </div>
   );
@@ -128,6 +140,10 @@ export const TraditionalVehicleGrid = ({
     cardSubtitleColor: '#525252',
     cardSpecsColor: '#262626',
     cardPriceColor: '#171717',
+    gridColsSm: '2',
+    gridColsMd: '3',
+    gridColsLg: '3',
+    gridColsXl: '4',
     noResultsTitle: 'Sin resultados',
     noResultsText: 'No encontramos vehículos con esos filtros',
     noResultsButtonText: 'Ver todos los vehículos',

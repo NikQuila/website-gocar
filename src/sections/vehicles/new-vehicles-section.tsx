@@ -252,9 +252,14 @@ interface NewVehiclesSectionProps {
   categoryImage_Van?: string;
   categoryImage_Coupe?: string;
   categoryImage_Wagon?: string;
+  /** Grid columns per breakpoint */
+  gridColsSm?: string;
+  gridColsMd?: string;
+  gridColsLg?: string;
+  gridColsXl?: string;
 }
 
-const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBarBgColor, filterBarBorderColor, filterTextColor, filterActiveTextColor, accentColor, sectionBgColor, categoryImage_all, categoryImage_SUV, categoryImage_Sedan, categoryImage_Hatchback, categoryImage_Pickup, categoryImage_Van, categoryImage_Coupe, categoryImage_Wagon }: NewVehiclesSectionProps) => {
+const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBarBgColor, filterBarBorderColor, filterTextColor, filterActiveTextColor, accentColor, sectionBgColor, categoryImage_all, categoryImage_SUV, categoryImage_Sedan, categoryImage_Hatchback, categoryImage_Pickup, categoryImage_Van, categoryImage_Coupe, categoryImage_Wagon, gridColsSm = '2', gridColsMd = '3', gridColsLg = '3', gridColsXl = '4' }: NewVehiclesSectionProps) => {
   const { theme } = useThemeStore();
   const { vehicles, isLoading } = useVehiclesStore();
   const { client } = useClientStore();
@@ -664,7 +669,16 @@ const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBa
   }, [maxPrice]);
 
   return (
-    <div id='vehicles-section' className='bg-slate-50/50 dark:bg-dark-bg'>
+    <div id='vehicles-section' className='bg-slate-50/50 dark:bg-dark-bg vehicle-grid-wrapper'>
+      <style>{`
+        .vehicle-grid-wrapper .vehicle-grid {
+          grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        @media (min-width: 640px) { .vehicle-grid-wrapper .vehicle-grid { grid-template-columns: repeat(var(--grid-sm), minmax(0, 1fr)); } }
+        @media (min-width: 768px) { .vehicle-grid-wrapper .vehicle-grid { grid-template-columns: repeat(var(--grid-md), minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { .vehicle-grid-wrapper .vehicle-grid { grid-template-columns: repeat(var(--grid-lg), minmax(0, 1fr)); } }
+        @media (min-width: 1280px) { .vehicle-grid-wrapper .vehicle-grid { grid-template-columns: repeat(var(--grid-xl), minmax(0, 1fr)); } }
+      `}</style>
       {/* Botón de WhatsApp - Siempre visible, derecha */}
       <a
         href={whatsappUrl}
@@ -1008,13 +1022,17 @@ const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBa
             {/* Vehicle Cards */}
 
             <div
-              className={`grid gap-4 sm:gap-5 transition-all duration-500 ${
+              className={`vehicle-grid grid gap-4 sm:gap-5 transition-all duration-500 ${
                 activeView === 'grid'
-                  ? isFiltersCollapsed
-                    ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4'
-                    : 'grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3'
+                  ? 'grid-cols-1'
                   : 'grid-cols-1'
               } mx-auto`}
+              style={activeView === 'grid' ? {
+                '--grid-sm': isFiltersCollapsed ? gridColsSm : String(Math.max(1, Number(gridColsSm) - 1)),
+                '--grid-md': isFiltersCollapsed ? gridColsMd : String(Math.max(1, Number(gridColsMd) - 1)),
+                '--grid-lg': isFiltersCollapsed ? gridColsLg : String(Math.max(1, Number(gridColsLg) - 1)),
+                '--grid-xl': isFiltersCollapsed ? gridColsXl : String(Math.max(1, Number(gridColsXl) - 1)),
+              } as React.CSSProperties : undefined}
             >
               {isLoading
                 ? Array(6)
