@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNode, useEditor } from '@craftjs/core';
 import { Button } from '@/components/ui/button';
+import { normalizeBuilderLink } from '@/utils/functions';
 
 interface HeroWithBackgroundProps {
   title?: string;
@@ -172,7 +173,7 @@ export const HeroWithBackground = ({
                 borderColor: buttonSecondaryTextColor,
               }}
             >
-              <a href={buttonLinkSecondary} dangerouslySetInnerHTML={{ __html: buttonTextSecondary || '' }} />
+              <a href={normalizeBuilderLink(buttonLinkSecondary)} dangerouslySetInnerHTML={{ __html: buttonTextSecondary || '' }} />
             </Button>
           </div>
 

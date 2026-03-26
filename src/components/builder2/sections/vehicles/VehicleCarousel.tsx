@@ -6,6 +6,7 @@ import Marquee from 'react-fast-marquee';
 import { Vehicle } from '@/utils/types';
 import useClientStore from '@/store/useClientStore';
 import { supabase } from '@/lib/supabase';
+import { normalizeBuilderLink } from '@/utils/functions';
 
 // Versión simplificada del vehículo - EXPORT this interface
 export interface SimpleVehicle extends Vehicle {
@@ -372,7 +373,7 @@ export const VehicleCarousel = ({
               className='hover:opacity-90 transition-opacity'
               asChild
             >
-              <a href={buttonLink} dangerouslySetInnerHTML={{ __html: buttonText || '' }} />
+              <a href={normalizeBuilderLink(buttonLink)} dangerouslySetInnerHTML={{ __html: buttonText || '' }} />
             </Button>
           </div>
         </div>

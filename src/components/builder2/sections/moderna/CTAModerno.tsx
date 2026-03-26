@@ -2,6 +2,7 @@ import React from 'react';
 import { useNode } from '@craftjs/core';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { normalizeBuilderLink } from '@/utils/functions';
 
 const appleEase: [number, number, number, number] = [0.25, 0.1, 0.25, 1];
 
@@ -33,7 +34,7 @@ export const CTAModerno = ({
           dangerouslySetInnerHTML={{ __html: subtitle || '' }} />
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2, ease: appleEase }}>
-          <a href={buttonLink}
+          <a href={normalizeBuilderLink(buttonLink)}
             className="group inline-flex items-center justify-center h-14 px-8 text-[17px] font-medium rounded-full bg-white transition-all hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
             style={{ color: accentColor }}>
             <span dangerouslySetInnerHTML={{ __html: buttonText || '' }} />

@@ -91,7 +91,13 @@ export const Footer = ({
     if (isEnabled) { e.preventDefault(); return; }
     if (url.startsWith('#')) {
       e.preventDefault();
-      document.querySelector(url)?.scrollIntoView({ behavior: 'smooth' });
+      const el = document.querySelector(url);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        // No matching element on page — navigate to the route instead
+        window.location.href = `/${url.slice(1)}`;
+      }
     }
   };
 

@@ -63,3 +63,17 @@ export const contactByWhatsApp = (phone: string, message?: string): string => {
 
   return whatsappUrl;
 };
+
+/**
+ * Normalizes builder links: converts hash-based anchors like "#contact"
+ * to proper routes like "/contact". Leaves absolute URLs and already
+ * correct paths unchanged.
+ */
+export const normalizeBuilderLink = (link: string): string => {
+  if (!link) return link;
+  // Already a proper path or external URL
+  if (link.startsWith('/') || link.startsWith('http')) return link;
+  // Convert #section to /section
+  if (link.startsWith('#')) return `/${link.slice(1)}`;
+  return link;
+};

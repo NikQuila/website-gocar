@@ -4,6 +4,7 @@ import React from 'react';
 import { useNode } from '@craftjs/core';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { normalizeBuilderLink } from '@/utils/functions';
 
 interface CTAPremiumProps {
   title?: string;
@@ -85,7 +86,7 @@ export const CTAPremium = ({
             transition={{ duration: 0.8, delay: 0.45 }}
           >
             <a
-              href={buttonLink}
+              href={normalizeBuilderLink(buttonLink)}
               className="group inline-flex items-center gap-3 h-14 px-10 rounded-full text-[15px] font-semibold transition-all duration-300 hover:scale-[1.03]"
               style={{
                 border: `2px solid ${accent}`,

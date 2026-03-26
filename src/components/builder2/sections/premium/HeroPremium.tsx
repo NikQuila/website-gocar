@@ -3,6 +3,7 @@
 import React from 'react';
 import { useNode } from '@craftjs/core';
 import { motion } from 'framer-motion';
+import { normalizeBuilderLink } from '@/utils/functions';
 import { ArrowRight } from 'lucide-react';
 
 interface HeroPremiumProps {
@@ -121,7 +122,7 @@ export const HeroPremium = ({
             className="pt-4"
           >
             <a
-              href={buttonLink}
+              href={normalizeBuilderLink(buttonLink)}
               className="group inline-flex items-center gap-3 h-14 px-8 rounded-full text-[15px] font-medium transition-all duration-300 hover:scale-[1.03]"
               style={{
                 backgroundColor: hexToRgba(accent, 0.1),

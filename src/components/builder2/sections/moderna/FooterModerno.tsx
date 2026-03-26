@@ -2,6 +2,7 @@ import React from 'react';
 import { useNode } from '@craftjs/core';
 import { Facebook, Instagram, Twitter, Youtube, Linkedin, MessageCircle } from 'lucide-react';
 import useClientStore from '@/store/useClientStore';
+import { normalizeBuilderLink } from '@/utils/functions';
 
 interface FooterLink { text: string; url: string; }
 interface FooterColumn { title: string; links: FooterLink[]; }
@@ -83,7 +84,7 @@ export const FooterModerno = ({
               <h4 className="text-[13px] font-semibold uppercase tracking-wider mb-5" style={{ color: headingColor }} dangerouslySetInnerHTML={{ __html: col.title || '' }} />
               <ul className="space-y-3">
                 {col.links.map((link, j) => (
-                  <li key={j}><a href={link.url} className="text-[14px] transition-colors duration-200" style={{ color: textColor }} dangerouslySetInnerHTML={{ __html: link.text || '' }} /></li>
+                  <li key={j}><a href={normalizeBuilderLink(link.url)} className="text-[14px] transition-colors duration-200" style={{ color: textColor }} dangerouslySetInnerHTML={{ __html: link.text || '' }} /></li>
                 ))}
               </ul>
             </div>

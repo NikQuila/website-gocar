@@ -2,6 +2,7 @@ import React from 'react';
 import { useNode } from '@craftjs/core';
 import { motion } from 'framer-motion';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { normalizeBuilderLink } from '@/utils/functions';
 
 const appleEase: [number, number, number, number] = [0.25, 0.1, 0.25, 1];
 
@@ -114,13 +115,13 @@ export const HeroModerno = ({
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6, ease: appleEase }}
             className="flex flex-col sm:flex-row items-center gap-4 pt-2">
-            <a href={buttonLink}
+            <a href={normalizeBuilderLink(buttonLink)}
               className="group relative inline-flex items-center justify-center h-14 px-8 text-[17px] font-medium text-white rounded-full transition-all hover:shadow-xl"
               style={{ backgroundImage: `linear-gradient(to right, ${accentColor}, ${lighten(accentColor, 20)})`, boxShadow: `0 8px 24px ${hexToRgba(accentColor, 0.25)}` }}>
               <span dangerouslySetInnerHTML={{ __html: buttonText || '' }} />
               <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform duration-300" />
             </a>
-            <a href={buttonLink2}
+            <a href={normalizeBuilderLink(buttonLink2)}
               className="inline-flex items-center justify-center h-14 px-8 text-[17px] font-medium rounded-full transition-all hover:bg-slate-100"
               style={{ color: hexToRgba(textColor, 0.7) }}
               dangerouslySetInnerHTML={{ __html: buttonText2 || '' }} />

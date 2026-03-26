@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNode, useEditor } from '@craftjs/core';
 import { Button } from '@/components/ui/button';
+import { normalizeBuilderLink } from '@/utils/functions';
 
 interface HeroBasicProps {
   title?: string;
@@ -175,7 +176,7 @@ export const HeroBasic = ({
               borderColor: `${finalButtonSecondaryTextColor}40`,
             }}
           >
-            <a href={isEnabled ? '#' : buttonLinkSecondary}
+            <a href={isEnabled ? '#' : normalizeBuilderLink(buttonLinkSecondary)}
               dangerouslySetInnerHTML={{ __html: buttonTextSecondary || '' }} />
           </Button>
         </div>
