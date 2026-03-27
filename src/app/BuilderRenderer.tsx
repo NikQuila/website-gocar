@@ -46,6 +46,82 @@ import { PromoBanner } from '@/components/builder2/sections/marketing/PromoBanne
 import { PhotoGallery } from '@/components/builder2/sections/media/PhotoGallery';
 import { TeamMembers } from '@/components/builder2/sections/team/TeamMembers';
 
+// Form imports for embed components
+import FinancingForm from '@/components/forms/FinancingForm';
+import ConsignmentsForm from '@/components/forms/ConsignmentsForm';
+import BuyDirectForm from '@/components/forms/BuyDirectForm';
+import WeSearchForm from '@/components/forms/WeSearchForm';
+import ContactForm from '@/components/forms/ContactForm';
+
+// Form embed wrappers — render actual forms on the website, passing builder props
+interface FormEmbedProps {
+  title?: string;
+  subtitle?: string;
+  bgColor?: string;
+  textColor?: string;
+  accentColor?: string;
+}
+
+const FormEmbedWrapper = ({ bgColor, textColor, children }: FormEmbedProps & { children: React.ReactNode }) => (
+  <div
+    className="w-full py-12 sm:py-16 px-4 sm:px-6 lg:px-8"
+    style={{ backgroundColor: bgColor, color: textColor }}
+  >
+    <div className="max-w-7xl mx-auto">
+      {children}
+    </div>
+  </div>
+);
+
+const FinancingFormEmbed = (props: FormEmbedProps) => (
+  <FormEmbedWrapper {...props}><FinancingForm title={props.title} subtitle={props.subtitle} bgColor={props.bgColor} textColor={props.textColor} accentColor={props.accentColor} /></FormEmbedWrapper>
+);
+const ConsignmentsFormEmbed = (props: FormEmbedProps) => (
+  <FormEmbedWrapper {...props}><ConsignmentsForm title={props.title} subtitle={props.subtitle} bgColor={props.bgColor} textColor={props.textColor} accentColor={props.accentColor} /></FormEmbedWrapper>
+);
+const BuyDirectFormEmbed = (props: FormEmbedProps) => (
+  <FormEmbedWrapper {...props}><BuyDirectForm title={props.title} subtitle={props.subtitle} bgColor={props.bgColor} textColor={props.textColor} accentColor={props.accentColor} /></FormEmbedWrapper>
+);
+const WeSearchFormEmbed = (props: FormEmbedProps) => (
+  <FormEmbedWrapper {...props}><WeSearchForm title={props.title} subtitle={props.subtitle} bgColor={props.bgColor} textColor={props.textColor} accentColor={props.accentColor} /></FormEmbedWrapper>
+);
+const ContactFormEmbed = (props: FormEmbedProps) => (
+  <FormEmbedWrapper {...props}><ContactForm title={props.title} subtitle={props.subtitle} bgColor={props.bgColor} textColor={props.textColor} accentColor={props.accentColor} /></FormEmbedWrapper>
+);
+const AboutContentEmbed = ({ title, subtitle, bgColor, textColor }: { title?: string; subtitle?: string; bgColor?: string; textColor?: string }) => (
+  <div className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" style={{ backgroundColor: bgColor, color: textColor }}>
+    {title && (
+      <div className="text-center mb-10 max-w-3xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl font-extrabold">{title}</h1>
+        {subtitle && <p className="mt-4 text-lg opacity-60">{subtitle}</p>}
+      </div>
+    )}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+      <div className="text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+        <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+          <span className="text-xl">🎯</span>
+        </div>
+        <h3 className="font-semibold mb-2">Nuestra Misi&oacute;n</h3>
+        <p className="text-sm opacity-70">Ofrecer la mejor experiencia en la compra y venta de veh&iacute;culos.</p>
+      </div>
+      <div className="text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+        <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+          <span className="text-xl">🤝</span>
+        </div>
+        <h3 className="font-semibold mb-2">Confianza</h3>
+        <p className="text-sm opacity-70">Transparencia y honestidad en cada transacci&oacute;n.</p>
+      </div>
+      <div className="text-center p-6 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+        <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+          <span className="text-xl">⭐</span>
+        </div>
+        <h3 className="font-semibold mb-2">Excelencia</h3>
+        <p className="text-sm opacity-70">Calidad y servicio premium en todo lo que hacemos.</p>
+      </div>
+    </div>
+  </div>
+);
+
 // =====================
 // Fallback seguro
 // =====================
@@ -74,6 +150,7 @@ export const baseResolver: Record<string, any> = {
   HeroModerno, StatsModerno, TestimonialsModerno, CTAModerno, FooterModerno,
   HeroPremium, FeatureShowcase, TestimonialsPremium, GalleryPremium, CTAPremium,
   BuilderNavbar, Footer: FooterNoop, StatsCounter, PromoBanner, PhotoGallery, TeamMembers,
+  FinancingFormEmbed, ConsignmentsFormEmbed, BuyDirectFormEmbed, WeSearchFormEmbed, ContactFormEmbed, AboutContentEmbed,
   div: Unknown, p: Unknown, span: Unknown, img: Unknown, Unknown,
 };
 
@@ -108,16 +185,16 @@ class BuilderErrorBoundary extends React.Component<
 // =====================
 export default function BuilderRenderer({
   data,
-  themeKey,
-  fallback,
+  themeKey = 'default',
+  fallback = null,
 }: {
   data: any;
-  themeKey: string;
-  fallback: React.ReactNode;
+  themeKey?: string;
+  fallback?: React.ReactNode;
 }) {
   return (
     <div className="min-h-screen pt-16">
-      <BuilderErrorBoundary fallback={fallback}>
+      <BuilderErrorBoundary fallback={fallback || <div />}>
         <Editor key={themeKey} resolver={resolver} enabled={false}>
           <Frame data={data} />
         </Editor>

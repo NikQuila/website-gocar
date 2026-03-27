@@ -72,6 +72,7 @@ const RESOLVER_NAMES = new Set([
   'HeroModerno', 'StatsModerno', 'TestimonialsModerno', 'CTAModerno', 'FooterModerno',
   'HeroPremium', 'FeatureShowcase', 'TestimonialsPremium', 'GalleryPremium', 'CTAPremium',
   'BuilderNavbar', 'Footer', 'StatsCounter', 'PromoBanner', 'PhotoGallery', 'TeamMembers',
+  'FinancingFormEmbed', 'ConsignmentsFormEmbed', 'BuyDirectFormEmbed', 'WeSearchFormEmbed', 'ContactFormEmbed', 'AboutContentEmbed',
   'div', 'p', 'span', 'img', 'Unknown',
 ]);
 
@@ -164,12 +165,19 @@ function WebsiteContent() {
     const serverTheme = cfg.color_scheme === 'DARK' ? 'dark' : 'light';
     setTheme(serverTheme as 'light' | 'dark');
 
-    // Parse v2 envelope or legacy
+    // Parse v3/v2 envelope or legacy
     let light: any = null;
     let dark: any = null;
     try {
       const envelope = JSON.parse(raw);
-      if (envelope?.v === 2) {
+      if (envelope?.v === 3) {
+        // v3 multi-page: extract home page
+        const homeData = envelope.pages?.home;
+        if (homeData) {
+          light = decompressState(homeData.light);
+          dark = decompressState(homeData.dark);
+        }
+      } else if (envelope?.v === 2) {
         light = decompressState(envelope.light);
         dark = decompressState(envelope.dark);
       }
