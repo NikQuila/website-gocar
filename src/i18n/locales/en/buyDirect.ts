@@ -43,5 +43,16 @@ export const buyDirectEn = {
     emailLabel: 'Email',
     phoneLabel: 'Phone',
   },
+  embed: {
+    infoTitle: 'How does it work?',
+    steps: [
+      { title: 'Send your info', desc: 'Fill out the form with your vehicle details.' },
+      { title: 'We evaluate', desc: 'Our team reviews and evaluates your vehicle.' },
+      { title: 'We make you an offer', desc: 'You will receive a fair and transparent offer.' },
+      { title: 'Immediate payment', desc: 'If you accept, we process payment immediately.' },
+    ],
+    benefitsTitle: 'Benefits',
+    benefits: ['Instant offer', 'Immediate payment', 'No hidden fees', 'Paperwork included'],
+  },
 };
 

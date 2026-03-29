@@ -59,5 +59,16 @@ export const weSearchForYouEs = {
   },
   successMessage:
     '¡Solicitud de búsqueda enviada exitosamente! Te contactaremos pronto cuando tengamos opciones que se ajusten a tus criterios.',
+  embed: {
+    infoTitle: '¿Cómo funciona?',
+    steps: [
+      { title: 'Cuéntanos qué buscas', desc: 'Completa el formulario con tus preferencias y presupuesto.' },
+      { title: 'Buscamos por ti', desc: 'Nuestro equipo busca en toda nuestra red de proveedores.' },
+      { title: 'Te mostramos opciones', desc: 'Te presentamos las mejores alternativas encontradas.' },
+      { title: 'Compra segura', desc: 'Gestionamos la compra con verificación mecánica incluida.' },
+    ],
+    benefitsTitle: 'Beneficios',
+    benefits: ['Búsqueda personalizada', 'Acceso a red de proveedores', 'Verificación mecánica incluida', 'Garantía de satisfacción'],
+  },
 };
 

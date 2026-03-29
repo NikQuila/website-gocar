@@ -43,5 +43,16 @@ export const buyDirectEs = {
     emailLabel: 'Email',
     phoneLabel: 'Teléfono',
   },
+  embed: {
+    infoTitle: '¿Cómo funciona?',
+    steps: [
+      { title: 'Envía tus datos', desc: 'Completa el formulario con la información de tu vehículo.' },
+      { title: 'Evaluamos', desc: 'Nuestro equipo revisa los datos y evalúa tu vehículo.' },
+      { title: 'Te hacemos una oferta', desc: 'Recibirás una oferta justa y transparente.' },
+      { title: 'Pago inmediato', desc: 'Si aceptas, realizamos el pago de forma inmediata.' },
+    ],
+    benefitsTitle: 'Beneficios',
+    benefits: ['Oferta al instante', 'Pago inmediato', 'Sin comisiones ocultas', 'Trámites incluidos'],
+  },
 };
 

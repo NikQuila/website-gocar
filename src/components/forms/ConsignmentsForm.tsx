@@ -24,11 +24,13 @@ interface FormStyleProps {
   bgColor?: string;
   textColor?: string;
   accentColor?: string;
+  embedded?: boolean;
 }
 
-const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: FormStyleProps = {}) => {
+const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor, embedded = false }: FormStyleProps = {}) => {
   // When builder passes bgColor, use inline styles. Otherwise use default Tailwind classes.
   const hasBuilderStyles = !!bgColor;
+  const isDarkBg = bgColor && (bgColor.startsWith('#0') || bgColor.startsWith('#1') || bgColor.startsWith('#2'));
   const cardStyle = hasBuilderStyles
     ? { backgroundColor: bgColor, borderColor: textColor ? `${textColor}15` : undefined }
     : undefined;
@@ -50,6 +52,16 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
   const subHeadingClass = hasBuilderStyles ? 'text-lg font-medium' : 'text-lg font-medium text-gray-900 dark:text-white';
   const bodyStyle = hasBuilderStyles ? { color: textColor, opacity: 0.7 } : undefined;
   const bodyClass = hasBuilderStyles ? '' : 'text-gray-600 dark:text-gray-400';
+
+  // HeroUI input classNames to match builder theme
+  const inputClassNames = (hasBuilderStyles || embedded) ? {
+    label: isDarkBg ? '!text-white/60' : '!text-black/50',
+    input: isDarkBg ? '!text-white !placeholder-white/40' : '!text-gray-900',
+    inputWrapper: isDarkBg
+      ? '!bg-[#262626] !border-[#3a3a3a] hover:!border-[#4a4a4a] !rounded-lg'
+      : '!bg-white !border-[#d1d5db] hover:!border-gray-400 !rounded-lg',
+  } : undefined;
+  const buttonStyle = (hasBuilderStyles || embedded) && accentColor ? { backgroundColor: accentColor } : undefined;
 
   const { client } = useClientStore();
   const { initializeCustomer } = useCustomerStore();
@@ -254,15 +266,15 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
 
   return (
     <div data-form-section="consignments">
-      {title && (
+      {!embedded && title && (
         <div className="text-center mb-10 max-w-3xl mx-auto">
           <h1 className={titleClass} style={titleStyle}>{title}</h1>
           {subtitle && <p className={subtitleClass} style={subtitleStyle}>{subtitle}</p>}
         </div>
       )}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-16'>
+      <div className={embedded ? '' : (hasBuilderStyles ? 'max-w-2xl mx-auto' : 'grid grid-cols-1 md:grid-cols-2 gap-16')}>
         {/* Consignment Form */}
-        <div className={cardClass} style={cardStyle}>
+        <div className={embedded ? '' : cardClass} style={embedded ? undefined : cardStyle}>
           <form onSubmit={handleSubmit} className='space-y-6'>
             {/* Personal Info */}
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
@@ -273,6 +285,7 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
                 onValueChange={(value) => handleChange(value, 'first_name')}
                 isRequired
                 variant='bordered'
+                classNames={inputClassNames}
               />
               <Input
                 type='text'
@@ -281,6 +294,7 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
                 onValueChange={(value) => handleChange(value, 'last_name')}
                 isRequired
                 variant='bordered'
+                classNames={inputClassNames}
               />
             </div>
 
@@ -291,6 +305,7 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
               onValueChange={(value) => handleChange(value, 'email')}
               isRequired
               variant='bordered'
+              classNames={inputClassNames}
             />
 
             <Input
@@ -300,6 +315,7 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
               onValueChange={(value) => handleChange(value, 'phone')}
               isRequired
               variant='bordered'
+              classNames={inputClassNames}
             />
 
             {/* Vehicle Info */}
@@ -312,6 +328,7 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
               }
               isRequired
               variant='bordered'
+              inputProps={{ classNames: inputClassNames }}
             >
               {brands.map((brand) => (
                 <AutocompleteItem key={brand.id} value={brand.id}>
@@ -330,6 +347,7 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
               isRequired
               isDisabled={!selectedBrandId}
               variant='bordered'
+              inputProps={{ classNames: inputClassNames }}
             >
               {models.map((model) => (
                 <AutocompleteItem
@@ -349,6 +367,7 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
                 onValueChange={(value) => handleChange(value, 'year')}
                 isRequired
                 variant='bordered'
+                classNames={inputClassNames}
               />
               <Input
                 type='number'
@@ -357,6 +376,7 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
                 onValueChange={(value) => handleChange(value, 'mileage')}
                 isRequired
                 variant='bordered'
+                classNames={inputClassNames}
               />
             </div>
 
@@ -366,6 +386,7 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
               onChange={(e) => handleChange(e.target.value, 'condition_id')}
               isRequired
               variant='bordered'
+              classNames={inputClassNames}
             >
               {conditions.map((condition) => (
                 <SelectItem
@@ -383,14 +404,15 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
               onValueChange={(value) => handleChange(value, 'message')}
               minRows={4}
               variant='bordered'
+              classNames={inputClassNames}
             />
 
             <Button
               type='submit'
               color='primary'
               fullWidth
-              className='font-semibold bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90'
-              style={accentColor ? { backgroundColor: accentColor } : undefined}
+              className={embedded ? 'font-semibold !text-white hover:opacity-90' : 'font-semibold bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/90'}
+              style={buttonStyle}
               isLoading={loading}
             >
               {t('consignments.form.submit')}
@@ -399,6 +421,7 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
         </div>
 
         {/* Information Section */}
+        {!embedded && !hasBuilderStyles && (
         <div className={infoCardClass} style={infoCardStyle}>
           <div className='space-y-8'>
             <h2 className={headingClass} style={headingStyle}>
@@ -442,6 +465,7 @@ const ConsignmentsForm = ({ title, subtitle, bgColor, textColor, accentColor }: 
             </div>
           </div>
         </div>
+        )}
       </div>
 
       {/* Usar el componente SuccessModal */}

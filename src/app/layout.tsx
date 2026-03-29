@@ -91,6 +91,11 @@ export default function RootLayout({
                   var theme = stored ? JSON.parse(stored).state?.theme : null;
                   if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                     document.documentElement.classList.add('dark');
+                    document.documentElement.style.backgroundColor = '#141414';
+                    document.body.style.backgroundColor = '#141414';
+                  } else {
+                    document.documentElement.style.backgroundColor = '#ffffff';
+                    document.body.style.backgroundColor = '#ffffff';
                   }
                 } catch (e) {}
               })();
@@ -98,7 +103,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${poppins.variable} antialiased`}>
+      <body className={`${poppins.variable} antialiased bg-white dark:bg-dark-bg`}>
         {process.env.NODE_ENV !== 'production' && <DebugPropGuard />}
         <HeroUIProvider>
           <ClientProvider>
@@ -113,7 +118,7 @@ export default function RootLayout({
                     pauseOnHover
                   />
                   <VisitTracker />
-                  <RoutePrefetcher routes={['/', '/contact', '/vehicles']} />
+                  <RoutePrefetcher routes={['/', '/financing', '/consignments', '/buy-direct', '/we-search-for-you', '/contact', '/about', '/vehicles']} />
                   <ConditionalNavbar />
                   {children}
                   <ConditionalFooter />

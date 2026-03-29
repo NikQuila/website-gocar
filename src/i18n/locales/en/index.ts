@@ -10,6 +10,8 @@ import { financingEn } from './financing';
 import { consignmentsEn } from './consignments';
 import { buyDirectEn } from './buyDirect';
 import { weSearchForYouEn } from './weSearchForYou';
+import { contactEn } from './contact';
+import { aboutEn } from './about';
 
 export const en = {
   common: commonEn,
@@ -23,4 +25,6 @@ export const en = {
   consignments: consignmentsEn,
   buyDirect: buyDirectEn,
   weSearchForYou: weSearchForYouEn,
+  contact: contactEn,
+  about: aboutEn,
 };

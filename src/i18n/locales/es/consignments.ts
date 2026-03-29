@@ -41,5 +41,16 @@ export const consignmentsEs = {
     emailLabel: 'Email',
     phoneLabel: 'Teléfono',
   },
+  embed: {
+    infoTitle: '¿Cómo funciona?',
+    steps: [
+      { title: 'Envía tus datos', desc: 'Completa el formulario con la información de tu vehículo.' },
+      { title: 'Evaluación', desc: 'Nuestro equipo evalúa tu vehículo y te contactamos.' },
+      { title: 'Publicación', desc: 'Publicamos tu vehículo en múltiples plataformas.' },
+      { title: 'Venta', desc: 'Gestionamos todo el proceso hasta cerrar la venta.' },
+    ],
+    benefitsTitle: 'Beneficios',
+    benefits: ['Publicación en múltiples plataformas', 'Gestión completa de la venta', 'Mejor precio garantizado'],
+  },
 };
 

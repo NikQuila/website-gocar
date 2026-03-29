@@ -49,4 +49,11 @@ export const financingEn = {
     emailLabel: 'Email',
     phoneLabel: 'Phone',
   },
+  embed: {
+    infoTitle: 'Financing options',
+    benefits: ['Quick approval', 'Competitive rates', 'Flexible terms', 'No fine print'],
+    requirementsTitle: 'Requirements',
+    requirements: ['ID card', 'Pay stub', 'Proof of address', 'Minimum work seniority'],
+    contactTitle: 'Direct contact',
+  },
 };

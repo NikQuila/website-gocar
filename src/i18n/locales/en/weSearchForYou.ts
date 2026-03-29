@@ -58,5 +58,16 @@ export const weSearchForYouEn = {
   },
   successMessage:
     'Search request sent successfully! We will contact you soon when we have options that match your criteria.',
+  embed: {
+    infoTitle: 'How does it work?',
+    steps: [
+      { title: 'Tell us what you need', desc: 'Fill out the form with your preferences and budget.' },
+      { title: 'We search for you', desc: 'Our team searches across our entire supplier network.' },
+      { title: 'We show you options', desc: 'We present the best alternatives we found.' },
+      { title: 'Safe purchase', desc: 'We manage the purchase with mechanical inspection included.' },
+    ],
+    benefitsTitle: 'Benefits',
+    benefits: ['Personalized search', 'Access to supplier network', 'Mechanical inspection included', 'Satisfaction guaranteed'],
+  },
 };
 

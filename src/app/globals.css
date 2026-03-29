@@ -2,8 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+html, body {
   font-family: 'Poppins', sans-serif;
+}
+
+html.dark, html.dark body {
+  background-color: #141414;
 }
 
 @layer base {
