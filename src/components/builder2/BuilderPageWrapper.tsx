@@ -36,9 +36,10 @@ export default function BuilderPageWrapper({ slug, fallback }: Props) {
   }, [client?.client_website_config]);
 
   // Determine if we should use AI translations
-  const defaultLang = (client as any)?.default_language || 'es';
+  // Builder content is always written in Spanish; translations are always es→en.
+  // Apply translations when the user is viewing in English, regardless of default_language.
   const hasLanguageSelector = !!(client as any)?.has_language_selector;
-  const needsTranslation = hasLanguageSelector && currentLanguage !== defaultLang;
+  const needsTranslation = hasLanguageSelector && currentLanguage === 'en';
 
   // Parse translations from config
   const translations = useMemo(() => {
