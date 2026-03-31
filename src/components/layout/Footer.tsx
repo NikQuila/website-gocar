@@ -1,18 +1,25 @@
 'use client';
 
+import { useMemo } from 'react';
 import useClientStore from '@/store/useClientStore';
 import Link from 'next/link';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
 import useThemeStore from '@/store/useThemeStore';
+import { extractBuilderLogo } from './Navbar';
 
 export function Footer() {
   const { client } = useClientStore();
   const { t } = useTranslation();
   const { theme } = useThemeStore();
 
+  const builderLogo = useMemo(
+    () => (!client?.logo && !client?.logo_dark) ? extractBuilderLogo(client) : null,
+    [client]
+  );
+
   // Usa el logo oscuro si el tema es "dark" y el cliente lo tiene configurado.
   const logoSrc =
-    theme === 'dark' && client?.logo_dark ? client.logo_dark : client?.logo;
+    (theme === 'dark' && client?.logo_dark ? client.logo_dark : client?.logo) || builderLogo;
 
   const logoClassName =
     theme === 'dark' && client?.logo_dark

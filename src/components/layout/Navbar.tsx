@@ -21,6 +21,26 @@ import ThemeToggle from '../ThemeToggle';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { useTranslation } from '@/i18n/hooks/useTranslation';
 
+// Extract logo from builder config as fallback when client.logo is null
+export function extractBuilderLogo(client: any): string | null {
+  try {
+    const config = client?.client_website_config;
+    const cfg = Array.isArray(config) ? config[0] : config;
+    const raw = cfg?.elements_structure;
+    if (!raw) return null;
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    // Try to find the home page light data (base64 encoded Craft.js JSON)
+    const pageData = parsed?.pages?.home?.light;
+    if (!pageData) return null;
+    const decoded = atob(pageData);
+    // Search for logoUrl in the decoded string without full JSON parse (can be huge)
+    const match = decoded.match(/"logoUrl"\s*:\s*"([^"]+)"/);
+    return match?.[1] || null;
+  } catch {
+    return null;
+  }
+}
+
 const Navbar = () => {
   const { client } = useClientStore();
   const { theme, setTheme } = useThemeStore();
@@ -60,6 +80,16 @@ const Navbar = () => {
     [pathname]
   );
 
+  // Fallback: if client has no logo, try to extract from builder config
+  const builderLogo = useMemo(
+    () => (!client?.logo && !client?.logo_dark) ? extractBuilderLogo(client) : null,
+    [client]
+  );
+
+  const logoSrc = theme === 'dark'
+    ? (client?.logo_dark || client?.logo || builderLogo)
+    : (client?.logo || client?.logo_dark || builderLogo);
+
   const shouldShowThemeToggle = !!client?.has_dark_mode;
   const shouldShowLanguageSelector = !!client?.has_language_selector;
 
@@ -84,9 +114,9 @@ const Navbar = () => {
         <NavbarContent justify="start">
           <NavbarBrand>
             <Link href="/" className="flex items-center gap-2" prefetch={false}>
-              {(client?.logo || client?.logo_dark) ? (
+              {logoSrc ? (
                 <img
-                  src={theme === 'dark' && client?.logo_dark ? client.logo_dark : client?.logo}
+                  src={logoSrc}
                   alt={client?.name || 'Logo'}
                   className="h-10 w-auto object-contain"
                   loading="eager"
