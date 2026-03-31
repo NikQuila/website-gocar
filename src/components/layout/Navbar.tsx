@@ -74,7 +74,7 @@ const Navbar = () => {
         isMenuOpen={isMenuOpen}
         onMenuOpenChange={setIsMenuOpen}
         className={`transition-all duration-300 fixed top-0 z-50 ${
-          isScrolled || pathname?.startsWith('/vehicles')
+          isScrolled
             ? 'bg-white/90 dark:bg-black/90 shadow-sm supports-[backdrop-filter]:backdrop-blur-md'
             : 'bg-transparent'
         }`}
@@ -86,9 +86,7 @@ const Navbar = () => {
             <Link href="/" className="flex items-center gap-2" prefetch={false}>
               {(client?.logo || client?.logo_dark) ? (
                 <img
-                  src={theme === 'dark'
-                    ? (client?.logo_dark || client?.logo)
-                    : (client?.logo || client?.logo_dark)}
+                  src={theme === 'dark' && client?.logo_dark ? client.logo_dark : client?.logo}
                   alt={client?.name || 'Logo'}
                   className="h-10 w-auto object-contain"
                   loading="eager"
