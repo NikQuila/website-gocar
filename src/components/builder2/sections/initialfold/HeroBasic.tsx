@@ -42,7 +42,7 @@ export const HeroBasic = ({
   }));
 
   const finalButtonSecondaryTextColor =
-    buttonSecondaryTextColor || '#3b82f6';
+    buttonSecondaryTextColor || buttonBgColor || '#3b82f6';
 
   // Detectar si estamos en modo editor
   const { isEnabled } = useEditor((state) => ({

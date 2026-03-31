@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useNode } from '@craftjs/core';
-import OriginalContactCTA from '@/sections/home/ContactCTA';
+import { Icon } from '@iconify/react';
 
 interface TraditionalContactCTAProps {
   title?: string;
@@ -15,16 +15,11 @@ interface TraditionalContactCTAProps {
   buttonTextColor?: string;
 }
 
-function isDark(hex: string): boolean {
-  const c = hex.replace('#', '');
-  if (c.length !== 6) return false;
-  const r = parseInt(c.substring(0, 2), 16) / 255;
-  const g = parseInt(c.substring(2, 4), 16) / 255;
-  const b = parseInt(c.substring(4, 6), 16) / 255;
-  return 0.299 * r + 0.587 * g + 0.114 * b < 0.4;
-}
-
 export const TraditionalContactCTA = ({
+  title = '¿Listo para encontrar tu próximo vehículo?',
+  subtitle = 'Contáctanos hoy mismo.',
+  buttonText = 'Contáctanos',
+  buttonLink = '/contact',
   bgColor = '',
   textColor = '',
   buttonColor = '',
@@ -42,20 +37,43 @@ export const TraditionalContactCTA = ({
     selected = false;
   }
 
-  const hasBg = bgColor && bgColor !== '';
-  const darkMode = hasBg && isDark(bgColor);
+  const finalBg = bgColor || '#ffffff';
+  const finalText = textColor || '#000000';
+  const finalButtonColor = buttonColor || '#3b82f6';
 
   return (
     <div
       ref={connectors?.connect || null}
-      className={`${selected ? 'ring-2 ring-dashed ring-slate-400' : ''} ${darkMode ? 'dark' : ''}`}
+      className={selected ? 'ring-2 ring-dashed ring-slate-400' : ''}
     >
-      <OriginalContactCTA
-        bgColor={bgColor || undefined}
-        textColor={textColor || undefined}
-        buttonColor={buttonColor || undefined}
-        buttonTextColor={buttonTextColor || undefined}
-      />
+      <section style={{ backgroundColor: finalBg }}>
+        <div className='max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between'>
+          <h2 className='text-3xl font-extrabold tracking-tight sm:text-4xl'>
+            <span
+              className='block'
+              style={{ color: finalText }}
+              dangerouslySetInnerHTML={{ __html: title || '' }}
+            />
+            <span
+              className='block'
+              style={{ color: finalText, opacity: 0.7 }}
+              dangerouslySetInnerHTML={{ __html: subtitle || '' }}
+            />
+          </h2>
+          <div className='mt-8 flex lg:mt-0 lg:flex-shrink-0'>
+            <a href={buttonLink}>
+              <button
+                className='group hover:opacity-90 transition-colors rounded-xl px-6 inline-flex items-center justify-center text-base font-medium h-12'
+                style={{ backgroundColor: finalButtonColor, color: buttonTextColor }}
+              >
+                <Icon icon='mdi:message-text' className='text-xl mr-2' />
+                <span dangerouslySetInnerHTML={{ __html: buttonText || '' }} />
+                <Icon icon='mdi:arrow-right' className='text-xl ml-2 group-hover:translate-x-1 transition-transform duration-200' />
+              </button>
+            </a>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
@@ -72,9 +90,5 @@ export const TraditionalContactCTA = ({
     buttonColor: '',
     buttonTextColor: '#ffffff',
   },
-  rules: {
-    canDrag: () => true,
-    canDrop: () => true,
-    canMoveIn: () => false,
-  },
+  rules: { canDrag: () => true, canDrop: () => true, canMoveIn: () => false },
 };

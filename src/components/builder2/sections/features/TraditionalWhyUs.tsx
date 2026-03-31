@@ -2,34 +2,40 @@
 
 import React from 'react';
 import { useNode } from '@craftjs/core';
-import WhyUs from '@/sections/home/WhyUs';
+import { Icon } from '@iconify/react';
+
+const defaultItems = [
+  { title: 'Garantía', description: 'Todos nuestros vehículos cuentan con garantía', icon: 'mdi:shield-check' },
+  { title: 'Financiamiento', description: 'Opciones de financiamiento flexibles', icon: 'mdi:cash-multiple' },
+  { title: 'Calidad', description: 'Vehículos seleccionados y certificados', icon: 'mdi:certificate' },
+];
+
+interface WhyUsItem {
+  title: string;
+  description: string;
+  icon: string;
+}
 
 interface TraditionalWhyUsProps {
   title?: string;
   subtitle?: string;
-  features?: any[];
   bgColor?: string;
   textColor?: string;
   subtitleColor?: string;
   accentColor?: string;
   cardBgColor?: string;
-}
-
-function isDark(hex: string): boolean {
-  const c = hex.replace('#', '');
-  if (c.length !== 6) return false;
-  const r = parseInt(c.substring(0, 2), 16) / 255;
-  const g = parseInt(c.substring(2, 4), 16) / 255;
-  const b = parseInt(c.substring(4, 6), 16) / 255;
-  return 0.299 * r + 0.587 * g + 0.114 * b < 0.4;
+  items?: WhyUsItem[];
 }
 
 export const TraditionalWhyUs = ({
+  title = '¿Por qué elegirnos?',
+  subtitle = 'Descubre por qué nuestros clientes confían en nosotros',
   bgColor = '',
   textColor = '',
   subtitleColor = '',
   accentColor = '',
   cardBgColor = '',
+  items,
 }: TraditionalWhyUsProps) => {
   let connectors: any = null;
   let selected = false;
@@ -43,22 +49,55 @@ export const TraditionalWhyUs = ({
     selected = false;
   }
 
-  const hasBg = bgColor && bgColor !== '';
-  const darkMode = hasBg && isDark(bgColor);
+  const finalBg = bgColor || '#f8fafc';
+  const finalText = textColor || '#111827';
+  const finalSubtitle = subtitleColor || '#4b5563';
+  const finalAccent = accentColor || '#3b82f6';
+  const finalCardBg = cardBgColor || '#ffffff';
+  const displayItems = items || defaultItems;
 
   return (
     <div
       ref={connectors?.connect || null}
-      className={`${selected ? 'ring-2 ring-dashed ring-slate-400' : ''} ${darkMode ? 'dark' : ''}`}
-      style={hasBg ? { backgroundColor: bgColor, color: textColor || undefined } : undefined}
+      className={selected ? 'ring-2 ring-dashed ring-slate-400' : ''}
     >
-      <WhyUs
-        bgColor={bgColor || undefined}
-        textColor={textColor || undefined}
-        subtitleColor={subtitleColor || undefined}
-        cardBgColor={cardBgColor || undefined}
-        accentColor={accentColor || undefined}
-      />
+      <section style={{ backgroundColor: finalBg }} className='py-16'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          <h2
+            className='text-3xl font-bold text-center mb-4'
+            style={{ color: finalText }}
+            dangerouslySetInnerHTML={{ __html: title || '' }}
+          />
+          <p
+            className='text-center mb-12 max-w-3xl mx-auto'
+            style={{ color: finalSubtitle }}
+            dangerouslySetInnerHTML={{ __html: subtitle || '' }}
+          />
+          <div className='grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3'>
+            {displayItems.map((feature, i) => (
+              <div
+                key={i}
+                className='text-center p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200'
+                style={{ backgroundColor: finalCardBg }}
+              >
+                <div className='flex justify-center mb-4'>
+                  <Icon
+                    icon={feature.icon}
+                    className='w-12 h-12'
+                    style={{ color: finalAccent }}
+                  />
+                </div>
+                <h3 className='text-lg font-medium' style={{ color: finalText }}>
+                  {feature.title}
+                </h3>
+                <p className='mt-2 text-base' style={{ color: finalSubtitle }}>
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
@@ -68,16 +107,16 @@ export const TraditionalWhyUs = ({
   props: {
     title: '¿Por qué elegirnos?',
     subtitle: 'Descubre por qué nuestros clientes confían en nosotros',
-    features: [],
     bgColor: '',
     textColor: '',
     subtitleColor: '',
     accentColor: '',
     cardBgColor: '',
+    items: [
+      { title: 'Garantía', description: 'Todos nuestros vehículos cuentan con garantía', icon: 'mdi:shield-check' },
+      { title: 'Financiamiento', description: 'Opciones de financiamiento flexibles', icon: 'mdi:cash-multiple' },
+      { title: 'Calidad', description: 'Vehículos seleccionados y certificados', icon: 'mdi:certificate' },
+    ],
   },
-  rules: {
-    canDrag: () => true,
-    canDrop: () => true,
-    canMoveIn: () => false,
-  },
+  rules: { canDrag: () => true, canDrop: () => true, canMoveIn: () => false },
 };
