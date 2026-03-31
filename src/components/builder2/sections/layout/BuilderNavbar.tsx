@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useNode, useEditor } from '@craftjs/core';
 import useClientStore from '@/store/useClientStore';
@@ -40,6 +40,24 @@ const MoonIcon = () => (
   </svg>
 );
 
+/** Hamburger / X icon */
+const MenuIcon = ({ open, color }: { open: boolean; color: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {open ? (
+      <>
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </>
+    ) : (
+      <>
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </>
+    )}
+  </svg>
+);
+
 export const BuilderNavbar = ({
   links = [
     { text: 'Inicio', url: '/' },
@@ -62,16 +80,16 @@ export const BuilderNavbar = ({
   const { client } = useClientStore();
   const { theme, toggleTheme } = useThemeStore();
 
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   // Get current path safely (usePathname crashes inside CraftJS Frame)
   const [pathname, setPathname] = useState('/');
   useEffect(() => {
     setPathname(window.location.pathname);
-    // Update on popstate (back/forward navigation)
     const onPop = () => setPathname(window.location.pathname);
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
-  // Also update when Link navigation changes the URL (Next.js client-side)
   useEffect(() => {
     setPathname(window.location.pathname);
   });
@@ -79,6 +97,11 @@ export const BuilderNavbar = ({
   const { isEnabled } = useEditor((state) => ({
     isEnabled: state.options.enabled,
   }));
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   // Scroll state — transparent at top, solid on scroll
   const [scrolled, setScrolled] = useState(false);
@@ -116,10 +139,10 @@ export const BuilderNavbar = ({
   const showSolidBg = isEnabled || scrolled;
 
   // Active route detection
-  const isActiveLink = (url: string) => {
+  const isActiveLink = useCallback((url: string) => {
     if (url === '/') return pathname === '/';
     return pathname?.startsWith(url);
-  };
+  }, [pathname]);
 
   return (
     <div
@@ -153,7 +176,7 @@ export const BuilderNavbar = ({
             )}
           </div>
 
-          {/* Nav links */}
+          {/* Desktop nav links */}
           <div className="hidden sm:flex items-center gap-1">
             {links.map((link, i) => (
               <Link
@@ -173,12 +196,14 @@ export const BuilderNavbar = ({
           {/* Right side */}
           <div className="flex items-center gap-3">
             {hasLanguageSelector && (
-              <LanguageSelector variant="minimal" className="rounded-full" />
+              <div className="hidden sm:block">
+                <LanguageSelector variant="minimal" className="rounded-full" />
+              </div>
             )}
             {hasDarkMode && (
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-full transition-colors hover:opacity-80"
+                className="hidden sm:block p-2 rounded-full transition-colors hover:opacity-80"
                 style={{ color: effectiveText }}
                 aria-label="Cambiar tema"
               >
@@ -187,7 +212,7 @@ export const BuilderNavbar = ({
             )}
             <Link
               href={ctaUrl}
-              className="px-4 py-2 text-sm font-medium rounded-md transition-colors hover:opacity-90"
+              className="hidden sm:block px-4 py-2 text-sm font-medium rounded-md transition-colors hover:opacity-90"
               style={{
                 backgroundColor: finalCtaBgColor,
                 color: ctaTextColor,
@@ -195,9 +220,95 @@ export const BuilderNavbar = ({
             >
               {ctaText}
             </Link>
+
+            {/* Mobile hamburger button */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="sm:hidden p-1.5 rounded-md transition-colors hover:opacity-80"
+              aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+            >
+              <MenuIcon open={mobileOpen} color={effectiveText} />
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile menu panel */}
+      {mobileOpen && (
+        <div
+          className="sm:hidden overflow-hidden"
+          style={{ backgroundColor: effectiveBg }}
+        >
+          <div className="mx-3 mt-1 mb-3 rounded-2xl border overflow-hidden"
+            style={{ borderColor: isDarkBg || theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+          >
+            {/* Header with toggles */}
+            {(hasLanguageSelector || hasDarkMode) && (
+              <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                <div className="flex items-center gap-2">
+                  {hasLanguageSelector && <LanguageSelector variant="minimal" className="rounded-full" />}
+                  {hasDarkMode && (
+                    <button
+                      onClick={toggleTheme}
+                      className="p-2 rounded-full transition-colors hover:opacity-80"
+                      style={{ color: effectiveText }}
+                      aria-label="Cambiar tema"
+                    >
+                      {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                    </button>
+                  )}
+                </div>
+                <span className="text-xs truncate max-w-[50%]" style={{ color: effectiveText, opacity: 0.6 }}>
+                  {companyName}
+                </span>
+              </div>
+            )}
+
+            {/* Nav links */}
+            <ul className="px-1 py-1">
+              {links.map((link, i) => {
+                const active = isActiveLink(link.url);
+                return (
+                  <li key={i} className="list-none">
+                    <Link
+                      href={link.url}
+                      onClick={() => setMobileOpen(false)}
+                      className="block w-full rounded-xl px-4 py-3 transition-colors"
+                      style={{
+                        backgroundColor: active ? `${primaryColor}15` : 'transparent',
+                        color: active ? primaryColor : effectiveText,
+                        fontWeight: active ? 600 : 400,
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-base">{link.text}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: active ? 1 : 0.4 }}>
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* CTA button */}
+            <div className="p-3" style={{ borderTop: `1px solid ${isDarkBg || theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}` }}>
+              <Link
+                href={ctaUrl}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium rounded-xl transition-colors hover:opacity-90"
+                style={{
+                  backgroundColor: finalCtaBgColor,
+                  color: ctaTextColor,
+                }}
+              >
+                {ctaText}
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

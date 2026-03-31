@@ -51,6 +51,7 @@ const transEs: Record<TransEN, string> = {
 
 interface VehicleGridCardProps {
   vehicle: Vehicle;
+  cardTitleField?: 'model' | 'brand';
   newBadgeText?: string;
   showBadgeCondition?: boolean;
   showBadgePromo?: boolean;
@@ -79,6 +80,7 @@ const Tag = ({ text, primary = false }: { text: string; primary?: boolean }) => 
 
 const VehicleGridCard = ({
   vehicle,
+  cardTitleField = 'model',
   newBadgeText = 'Nuevo',
   showBadgeCondition = true,
   showBadgePromo = true,
@@ -229,10 +231,10 @@ const VehicleGridCard = ({
         {/* CONTENIDO */}
         <CardBody className="flex-1 px-5 pt-4 pb-2">
           <h3 className="text-[20px] sm:text-[22px] font-semibold tracking-tight text-neutral-900 dark:text-white">
-            {vehicle.model?.name ?? 'Modelo'}
+            {cardTitleField === 'brand' ? (vehicle.brand?.name ?? 'Marca') : (vehicle.model?.name ?? 'Modelo')}
           </h3>
           <p className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">
-            {vehicle.brand?.name} {vehicle.year ?? ''}
+            {cardTitleField === 'brand' ? vehicle.model?.name : vehicle.brand?.name} {vehicle.year ?? ''}
           </p>
 
           <div className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2 text-[13px] text-neutral-800 dark:text-neutral-300">

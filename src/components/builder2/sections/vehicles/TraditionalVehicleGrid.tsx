@@ -22,6 +22,7 @@ interface TraditionalVehicleGridProps {
   categoryImage_Van?: string;
   categoryImage_Coupe?: string;
   categoryImage_Wagon?: string;
+  cardTitleField?: 'model' | 'brand';
   cardBgColor?: string;
   cardBorderColor?: string;
   cardTitleColor?: string;
@@ -56,6 +57,7 @@ function isDark(hex: string): boolean {
 }
 
 export const TraditionalVehicleGrid = ({
+  cardTitleField = 'model',
   sectionBgColor,
   cardBgColor,
   accentColor,
@@ -106,6 +108,7 @@ export const TraditionalVehicleGrid = ({
     >
       <NewVehiclesSection
         minimal
+        cardTitleField={cardTitleField}
         filterStyle={filterStyle}
         filterBarBgColor={filterBarBgColor}
         filterBarBorderColor={filterBarBorderColor}
@@ -157,6 +160,7 @@ export const TraditionalVehicleGrid = ({
     categoryImage_Van: '',
     categoryImage_Coupe: '',
     categoryImage_Wagon: '',
+    cardTitleField: 'model',
     cardBgColor: '#ffffff',
     cardBorderColor: 'rgba(0,0,0,0.1)',
     cardTitleColor: '#171717',

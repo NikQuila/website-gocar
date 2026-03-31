@@ -234,6 +234,8 @@ const CATEGORY_ICONS: Record<string, string> = {
 interface NewVehiclesSectionProps {
   /** Ocultar título y buscador (para landing page) */
   minimal?: boolean;
+  /** Which field to use as card title: 'model' (default) or 'brand' */
+  cardTitleField?: 'model' | 'brand';
   /** Filter style: 'buttons' (default, icon+text) or 'images' (photo cards) */
   filterStyle?: 'buttons' | 'images';
   /** Builder color overrides */
@@ -267,7 +269,7 @@ interface NewVehiclesSectionProps {
   gridColsXl?: string;
 }
 
-const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBarBgColor, filterBarBorderColor, filterTextColor, filterActiveTextColor, accentColor, sectionBgColor, categoryImage_all, categoryImage_SUV, categoryImage_Sedan, categoryImage_Hatchback, categoryImage_Pickup, categoryImage_Van, categoryImage_Coupe, categoryImage_Wagon, showBadgeCondition = true, showBadgePromo = true, showBadgeNew = true, showBadgeCustom = true, showRibbonSold = true, showRibbonReserved = true, showBadgeDiscount = true, gridColsSm = '2', gridColsMd = '3', gridColsLg = '3', gridColsXl = '4' }: NewVehiclesSectionProps) => {
+const NewVehiclesSection = ({ minimal = false, cardTitleField = 'model', filterStyle = 'buttons', filterBarBgColor, filterBarBorderColor, filterTextColor, filterActiveTextColor, accentColor, sectionBgColor, categoryImage_all, categoryImage_SUV, categoryImage_Sedan, categoryImage_Hatchback, categoryImage_Pickup, categoryImage_Van, categoryImage_Coupe, categoryImage_Wagon, showBadgeCondition = true, showBadgePromo = true, showBadgeNew = true, showBadgeCustom = true, showRibbonSold = true, showRibbonReserved = true, showBadgeDiscount = true, gridColsSm = '2', gridColsMd = '3', gridColsLg = '3', gridColsXl = '4' }: NewVehiclesSectionProps) => {
   const { theme } = useThemeStore();
   const { vehicles, isLoading } = useVehiclesStore();
   const { client } = useClientStore();
@@ -1052,6 +1054,7 @@ const NewVehiclesSection = ({ minimal = false, filterStyle = 'buttons', filterBa
                       <VehicleVerticalCard
                         key={vehicle.id}
                         vehicle={vehicle}
+                        cardTitleField={cardTitleField}
                         showBadgeCondition={showBadgeCondition}
                         showBadgePromo={showBadgePromo}
                         showBadgeNew={showBadgeNew}
