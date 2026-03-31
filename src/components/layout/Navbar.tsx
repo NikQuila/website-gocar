@@ -48,8 +48,10 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    if (client?.client_website_config?.is_enabled) {
-      setTheme(client?.client_website_config?.color_scheme === 'LIGHT' ? 'light' : 'dark');
+    const config = (client as any)?.client_website_config;
+    const cfg = Array.isArray(config) ? config[0] : config;
+    if (cfg?.is_enabled) {
+      setTheme(cfg?.color_scheme === 'LIGHT' ? 'light' : 'dark');
     }
   }, [client, setTheme]);
 
@@ -82,14 +84,18 @@ const Navbar = () => {
         <NavbarContent justify="start">
           <NavbarBrand>
             <Link href="/" className="flex items-center gap-2" prefetch={false}>
-              <img
-                src={theme === 'dark' && client?.logo_dark ? client.logo_dark : client?.logo}
-                alt={client?.name}
-                className="h-10 w-auto object-contain dark:brightness-200"
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-              />
+              {(client?.logo || client?.logo_dark) ? (
+                <img
+                  src={theme === 'dark' && client?.logo_dark ? client.logo_dark : client?.logo}
+                  alt={client?.name || 'Logo'}
+                  className="h-10 w-auto object-contain"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                />
+              ) : (
+                <div className="h-10 w-24" />
+              )}
             </Link>
           </NavbarBrand>
         </NavbarContent>

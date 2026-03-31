@@ -7,17 +7,15 @@ import { Footer } from './Footer';
 /**
  * Shows the static Footer ONLY when the builder is not active.
  * When builder is enabled, the Footer component inside the builder data handles the footer.
- * Exception: /vehicles/* pages always use static footer.
+ * Exception: /embed pages always use static footer.
+ * /vehicles pages use static footer only when builder is NOT enabled.
  */
 export default function ConditionalFooter() {
   const { client, isLoading } = useClientStore();
   const pathname = usePathname();
 
-  // Always show static footer on vehicle detail pages and other non-builder routes
-  const alwaysStaticRoutes = ['/vehicles', '/embed'];
-  const isStaticRoute = alwaysStaticRoutes.some(r => pathname?.startsWith(r));
-
-  if (isStaticRoute) {
+  // Embed pages always use static footer
+  if (pathname?.startsWith('/embed')) {
     return <Footer />;
   }
 
@@ -30,6 +28,10 @@ export default function ConditionalFooter() {
   const builderEnabled = cfg?.is_enabled && cfg?.elements_structure;
 
   if (builderEnabled) {
+    // On /vehicles, we still need a footer since builder doesn't render on this route
+    if (pathname?.startsWith('/vehicles')) {
+      return <Footer />;
+    }
     return null;
   }
 

@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState, useDeferredValue, useCallback } fr
 import { Icon } from '@iconify/react';
 import useMediaQuery from '@/hooks/useMediaQuery';
 import useVehiclesStore from '@/store/useVehiclesStore';
+import useClientStore from '@/store/useClientStore';
 import { Vehicle } from '@/utils/types';
 import {
   Button,
@@ -65,6 +66,7 @@ const VehiclesPage: React.FC = () => {
   const isMd = useMediaQuery('(min-width: 768px)');
 
   const { vehicles, isLoading } = useVehiclesStore();
+  const { isLoading: isClientLoading } = useClientStore();
   const {
     initializeStore,
     colors,
@@ -204,7 +206,7 @@ const VehiclesPage: React.FC = () => {
     });
   }, [vehicles, filters, priceRange, terms]);
 
-  const isPageLoading = isLoading || isGeneralStoreLoading;
+  const isPageLoading = isClientLoading || isLoading || isGeneralStoreLoading;
 
   // ordenamiento
   const sortVehicles = useCallback((list: Vehicle[]) => {
@@ -532,13 +534,32 @@ const VehiclesPage: React.FC = () => {
                         {clearFiltersText}
                       </Button>
                     </div>
-                  ) : (
-                    <div className="grid gap-4 sm:gap-6 pb-12 mt-2 sm:mt-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-                      {sortVehicles(filteredVehicles).map((vehicle) => (
-                        <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
-                      ))}
-                    </div>
-                  )}
+                  ) : (() => {
+                    const sorted = sortVehicles(filteredVehicles);
+                    const totalPages = Math.ceil(sorted.length / ITEMS_PER_PAGE);
+                    const paginatedVehicles = sorted.slice(0, currentPage * ITEMS_PER_PAGE);
+                    return (
+                      <>
+                        <div className="grid gap-4 sm:gap-6 pb-4 mt-2 sm:mt-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+                          {paginatedVehicles.map((vehicle) => (
+                            <VehicleVerticalCard key={vehicle.id} vehicle={vehicle} />
+                          ))}
+                        </div>
+                        {currentPage < totalPages && (
+                          <div className="flex justify-center pb-12 pt-2">
+                            <Button
+                              variant="bordered"
+                              className="px-8 rounded-2xl border-slate-200 dark:border-neutral-700"
+                              onPress={() => setCurrentPage((p) => p + 1)}
+                              startContent={<Icon icon="mdi:chevron-down" className="text-lg" />}
+                            >
+                              {tx('pages.vehicles.loadMore', 'Ver más vehículos')} ({paginatedVehicles.length}/{sorted.length})
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </>
               )}
             </div>

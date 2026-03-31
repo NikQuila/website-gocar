@@ -14,7 +14,7 @@ interface VehiclesStore {
 const useVehiclesStore = create<VehiclesStore>((set) => ({
   vehicles: [],
   setVehicles: (vehicles: Vehicle[]) => set({ vehicles }),
-  isLoading: false,
+  isLoading: true,
   setIsLoading: (isLoading: boolean) => set({ isLoading }),
   error: null,
 

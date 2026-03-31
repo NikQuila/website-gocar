@@ -29,7 +29,7 @@ export const useGeneralStore = create<GeneralStore>()((set, get) => ({
   conditions: [],
   fuelTypes: [],
   categories: [],
-  isLoading: false,
+  isLoading: true,
   error: null,
 
   // Actions
