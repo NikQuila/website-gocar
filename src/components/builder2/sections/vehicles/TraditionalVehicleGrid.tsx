@@ -60,6 +60,11 @@ export const TraditionalVehicleGrid = ({
   cardTitleField = 'model',
   sectionBgColor,
   cardBgColor,
+  cardBorderColor,
+  cardTitleColor,
+  cardSubtitleColor,
+  cardSpecsColor,
+  cardPriceColor,
   accentColor,
   filterStyle = 'buttons',
   filterBarBgColor,
@@ -135,6 +140,12 @@ export const TraditionalVehicleGrid = ({
         gridColsMd={gridColsMd}
         gridColsLg={gridColsLg}
         gridColsXl={gridColsXl}
+        cardBgColor={cardBgColor}
+        cardBorderColor={cardBorderColor}
+        cardTitleColor={cardTitleColor}
+        cardSubtitleColor={cardSubtitleColor}
+        cardSpecsColor={cardSpecsColor}
+        cardPriceColor={cardPriceColor}
       />
     </div>
   );

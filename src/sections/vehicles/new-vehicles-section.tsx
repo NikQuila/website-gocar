@@ -267,9 +267,16 @@ interface NewVehiclesSectionProps {
   gridColsMd?: string;
   gridColsLg?: string;
   gridColsXl?: string;
+  /** Card color overrides from builder */
+  cardBgColor?: string;
+  cardBorderColor?: string;
+  cardTitleColor?: string;
+  cardSubtitleColor?: string;
+  cardSpecsColor?: string;
+  cardPriceColor?: string;
 }
 
-const NewVehiclesSection = ({ minimal = false, cardTitleField = 'model', filterStyle = 'buttons', filterBarBgColor, filterBarBorderColor, filterTextColor, filterActiveTextColor, accentColor, sectionBgColor, categoryImage_all, categoryImage_SUV, categoryImage_Sedan, categoryImage_Hatchback, categoryImage_Pickup, categoryImage_Van, categoryImage_Coupe, categoryImage_Wagon, showBadgeCondition = true, showBadgePromo = true, showBadgeNew = true, showBadgeCustom = true, showRibbonSold = true, showRibbonReserved = true, showBadgeDiscount = true, gridColsSm = '2', gridColsMd = '3', gridColsLg = '3', gridColsXl = '4' }: NewVehiclesSectionProps) => {
+const NewVehiclesSection = ({ minimal = false, cardTitleField = 'model', filterStyle = 'buttons', filterBarBgColor, filterBarBorderColor, filterTextColor, filterActiveTextColor, accentColor, sectionBgColor, categoryImage_all, categoryImage_SUV, categoryImage_Sedan, categoryImage_Hatchback, categoryImage_Pickup, categoryImage_Van, categoryImage_Coupe, categoryImage_Wagon, showBadgeCondition = true, showBadgePromo = true, showBadgeNew = true, showBadgeCustom = true, showRibbonSold = true, showRibbonReserved = true, showBadgeDiscount = true, gridColsSm = '2', gridColsMd = '3', gridColsLg = '3', gridColsXl = '4', cardBgColor, cardBorderColor, cardTitleColor, cardSubtitleColor, cardSpecsColor, cardPriceColor }: NewVehiclesSectionProps) => {
   const { theme } = useThemeStore();
   const { vehicles, isLoading } = useVehiclesStore();
   const { client } = useClientStore();
@@ -1062,6 +1069,12 @@ const NewVehiclesSection = ({ minimal = false, cardTitleField = 'model', filterS
                         showRibbonSold={showRibbonSold}
                         showRibbonReserved={showRibbonReserved}
                         showBadgeDiscount={showBadgeDiscount}
+                        cardBgColor={cardBgColor}
+                        cardBorderColor={cardBorderColor}
+                        cardTitleColor={cardTitleColor}
+                        cardSubtitleColor={cardSubtitleColor}
+                        cardSpecsColor={cardSpecsColor}
+                        cardPriceColor={cardPriceColor}
                       />
                     ) : (
                       <VehicleHorizontalCard

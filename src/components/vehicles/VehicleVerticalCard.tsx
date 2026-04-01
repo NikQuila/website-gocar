@@ -60,6 +60,13 @@ interface VehicleGridCardProps {
   showRibbonSold?: boolean;
   showRibbonReserved?: boolean;
   showBadgeDiscount?: boolean;
+  // Builder color overrides
+  cardBgColor?: string;
+  cardBorderColor?: string;
+  cardTitleColor?: string;
+  cardSubtitleColor?: string;
+  cardSpecsColor?: string;
+  cardPriceColor?: string;
 }
 
 /* =============================
@@ -89,6 +96,12 @@ const VehicleGridCard = ({
   showRibbonSold = true,
   showRibbonReserved = true,
   showBadgeDiscount = true,
+  cardBgColor,
+  cardBorderColor,
+  cardTitleColor,
+  cardSubtitleColor,
+  cardSpecsColor,
+  cardPriceColor,
 }: VehicleGridCardProps) => {
   const router = useRouter();
   const { formatPrice } = useCurrency();
@@ -184,10 +197,14 @@ const VehicleGridCard = ({
     >
       <Card
         className={`h-full flex flex-col overflow-hidden rounded-2xl
-        bg-white dark:bg-[#0B0B0F]
-        border border-black/10 dark:border-transparent
+        ${cardBgColor ? '' : 'bg-white dark:bg-[#0B0B0F]'}
+        ${cardBorderColor ? '' : 'border border-black/10 dark:border-transparent'}
         shadow-sm transition-all duration-300
         ${isUnavailable ? 'opacity-90' : 'group-hover:shadow-xl group-hover:-translate-y-2'}`}
+        style={{
+          ...(cardBgColor ? { backgroundColor: cardBgColor } : {}),
+          ...(cardBorderColor ? { borderWidth: 1, borderStyle: 'solid', borderColor: cardBorderColor } : {}),
+        }}
       >
         <div className="relative w-full aspect-[16/9] overflow-hidden bg-black">
           {vehicle.main_image ? (
@@ -230,14 +247,23 @@ const VehicleGridCard = ({
 
         {/* CONTENIDO */}
         <CardBody className="flex-1 px-5 pt-4 pb-2">
-          <h3 className="text-[20px] sm:text-[22px] font-semibold tracking-tight text-neutral-900 dark:text-white">
+          <h3
+            className={`text-[20px] sm:text-[22px] font-semibold tracking-tight ${cardTitleColor ? '' : 'text-neutral-900 dark:text-white'}`}
+            style={cardTitleColor ? { color: cardTitleColor } : undefined}
+          >
             {cardTitleField === 'brand' ? (vehicle.brand?.name ?? 'Marca') : (vehicle.model?.name ?? 'Modelo')}
           </h3>
-          <p className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">
+          <p
+            className={`mt-0.5 text-sm ${cardSubtitleColor ? '' : 'text-neutral-600 dark:text-neutral-400'}`}
+            style={cardSubtitleColor ? { color: cardSubtitleColor } : undefined}
+          >
             {cardTitleField === 'brand' ? vehicle.model?.name : vehicle.brand?.name} {vehicle.year ?? ''}
           </p>
 
-          <div className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2 text-[13px] text-neutral-800 dark:text-neutral-300">
+          <div
+            className={`mt-3 grid grid-cols-2 gap-x-5 gap-y-2 text-[13px] ${cardSpecsColor ? '' : 'text-neutral-800 dark:text-neutral-300'}`}
+            style={cardSpecsColor ? { color: cardSpecsColor } : undefined}
+          >
             {specs.map((s, i) => (
               <div key={i} className="flex items-center gap-1.5 min-w-0">
                 {s.icon}
@@ -269,12 +295,18 @@ const VehicleGridCard = ({
                   <span className="text-sm line-through text-neutral-500 dark:text-neutral-400">
                     {formattedPrice}
                   </span>
-                  <span className="text-2xl font-extrabold tracking-tight text-primary">
+                  <span
+                    className={`text-2xl font-extrabold tracking-tight ${cardPriceColor ? '' : 'text-primary'}`}
+                    style={cardPriceColor ? { color: cardPriceColor } : undefined}
+                  >
                     {formatPrice(discountedPrice)}
                   </span>
                 </>
               ) : (
-                <span className="text-2xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
+                <span
+                  className={`text-2xl font-extrabold tracking-tight ${cardPriceColor ? '' : 'text-neutral-900 dark:text-white'}`}
+                  style={cardPriceColor ? { color: cardPriceColor } : undefined}
+                >
                   {formattedPrice}
                 </span>
               )}
