@@ -21,11 +21,7 @@ export const VehicleCard2: React.FC<VehicleCardOverlayProps> = ({
   showNewBadge = true,
   newBadgeText = 'Recién publicado',
 }) => {
-  let isEnabled = false;
-  try {
-    const ed = useEditor((s) => ({ isEnabled: s.options.enabled }));
-    isEnabled = ed.isEnabled;
-  } catch {}
+  const { isEnabled } = useEditor((s) => ({ isEnabled: s.options.enabled }));
 
   const {
     id,
