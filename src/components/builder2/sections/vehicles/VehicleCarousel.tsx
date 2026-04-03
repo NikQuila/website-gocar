@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNode } from '@craftjs/core';
 import { Button } from '@/components/ui/button';
 import { VehicleCard } from './VehicleCard';
@@ -7,6 +7,27 @@ import { Vehicle } from '@/utils/types';
 import useClientStore from '@/store/useClientStore';
 import { supabase } from '@/lib/supabase';
 import { normalizeBuilderLink } from '@/utils/functions';
+
+// Safe wrapper for useNode — avoids rules-of-hooks violation from try/catch
+function useSafeNode() {
+  const [isEditor, setIsEditor] = useState(false);
+
+  // Always call useNode unconditionally
+  let connectors: any = null;
+  let selected = false;
+
+  try {
+    const nodeData = useNode((state) => ({
+      selected: state.events.selected,
+    }));
+    connectors = nodeData.connectors;
+    selected = nodeData.selected;
+  } catch {
+    // Not inside CraftJS Editor context
+  }
+
+  return { connectors, selected };
+}
 
 // Versión simplificada del vehículo - EXPORT this interface
 export interface SimpleVehicle extends Vehicle {
@@ -91,21 +112,7 @@ export const VehicleCarousel = ({
   newBadgeText = 'Nuevo',
   children,
 }: VehicleCarouselProps) => {
-  // useNode solo está disponible en el contexto de CraftJS Editor
-  let connectors: any = null;
-  let selected = false;
-
-  try {
-    const nodeData = useNode((state) => ({
-      selected: state.events.selected,
-    }));
-    connectors = nodeData.connectors;
-    selected = nodeData.selected;
-  } catch (error) {
-    // useNode no está disponible (contexto tradicional), usar valores por defecto
-    connectors = null;
-    selected = false;
-  }
+  const { connectors, selected } = useSafeNode();
 
   // Convert string-based props to their actual types
   const autoplayValue =
@@ -113,13 +120,17 @@ export const VehicleCarousel = ({
   const itemsToShowValue =
     typeof itemsToShow === 'string' ? parseInt(itemsToShow) : itemsToShow;
 
-  // Handle complex showStatuses
-  const statusValues =
-    Array.isArray(showStatuses) &&
-    showStatuses.length > 0 &&
-    typeof showStatuses[0] === 'object'
-      ? showStatuses.map((item: any) => item.status)
-      : showStatuses;
+  // Handle complex showStatuses — memoize to avoid infinite re-renders
+  const statusValues = useMemo(() => {
+    if (
+      Array.isArray(showStatuses) &&
+      showStatuses.length > 0 &&
+      typeof showStatuses[0] === 'object'
+    ) {
+      return showStatuses.map((item: any) => item.status);
+    }
+    return showStatuses;
+  }, [showStatuses]);
 
   const { client } = useClientStore();
   const [vehicles, setVehicles] = useState<SimpleVehicle[]>([]);
