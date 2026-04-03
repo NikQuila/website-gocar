@@ -8,27 +8,6 @@ import useClientStore from '@/store/useClientStore';
 import { supabase } from '@/lib/supabase';
 import { normalizeBuilderLink } from '@/utils/functions';
 
-// Safe wrapper for useNode — avoids rules-of-hooks violation from try/catch
-function useSafeNode() {
-  const [isEditor, setIsEditor] = useState(false);
-
-  // Always call useNode unconditionally
-  let connectors: any = null;
-  let selected = false;
-
-  try {
-    const nodeData = useNode((state) => ({
-      selected: state.events.selected,
-    }));
-    connectors = nodeData.connectors;
-    selected = nodeData.selected;
-  } catch {
-    // Not inside CraftJS Editor context
-  }
-
-  return { connectors, selected };
-}
-
 // Versión simplificada del vehículo - EXPORT this interface
 export interface SimpleVehicle extends Vehicle {
   label?: string; // Campo para etiqueta personalizada
@@ -112,7 +91,12 @@ export const VehicleCarousel = ({
   newBadgeText = 'Nuevo',
   children,
 }: VehicleCarouselProps) => {
-  const { connectors, selected } = useSafeNode();
+  const {
+    connectors: { connect },
+    selected,
+  } = useNode((state) => ({
+    selected: state.events.selected,
+  }));
 
   // Convert string-based props to their actual types
   const autoplayValue =
@@ -348,7 +332,7 @@ export const VehicleCarousel = ({
 
   return (
     <div
-      ref={(ref) => ref && connectors?.connect?.(ref)}
+      ref={(ref: HTMLDivElement | null) => { if (ref) connect(ref); }}
       style={{
         background: bgColor,
         color: textColor,

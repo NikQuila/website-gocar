@@ -39,17 +39,10 @@ export const HeroWelcome = ({
   textColor = '#111827',
   highlightColor,
 }: HeroWelcomeProps) => {
-  let connectors: any = null;
-  let selected = false;
-
-  try {
-    const nodeData = useNode((state) => ({ selected: state.events.selected }));
-    connectors = nodeData.connectors;
-    selected = nodeData.selected;
-  } catch {
-    connectors = null;
-    selected = false;
-  }
+  const {
+    connectors: { connect },
+    selected,
+  } = useNode((state) => ({ selected: state.events.selected }));
 
   const { client } = useClientStore();
   const { t, currentLanguage } = useTranslation();
@@ -117,7 +110,7 @@ export const HeroWelcome = ({
 
   return (
     <div
-      ref={connectors?.connect || null}
+      ref={(ref: HTMLDivElement | null) => { if (ref) connect(ref); }}
       style={{ background: bgColor }}
       className={selected ? 'ring-2 ring-dashed ring-slate-400' : ''}
     >

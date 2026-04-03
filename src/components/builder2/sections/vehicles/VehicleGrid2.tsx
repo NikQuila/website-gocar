@@ -97,16 +97,9 @@ export const VehicleGrid2: CraftComponent<Props> = ({
   newBadgeText = 'Recién publicado',
   children,
 }) => {
-  // ===== Craft: adaptador de ref seguro =====
-  let connectRef: (el: HTMLElement | null) => void = () => {};
-  try {
-    const { connectors } = useNode();
-    connectRef = (el) => {
-      if (el) connectors.connect(el);
-    };
-  } catch {
-    connectRef = () => {};
-  }
+  const {
+    connectors: { connect: connectRef },
+  } = useNode();
 
   const { client } = useClientStore();
 
@@ -441,7 +434,7 @@ export const VehicleGrid2: CraftComponent<Props> = ({
 
   return (
     <section
-      ref={connectRef}
+      ref={(ref: HTMLElement | null) => { if (ref) connectRef(ref); }}
       className="w-full"
       style={{ background: bgColor, color: textColor }}
       data-section="vehicles"

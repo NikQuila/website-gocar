@@ -25,17 +25,10 @@ export const TraditionalContactCTA = ({
   buttonColor = '',
   buttonTextColor = '#ffffff',
 }: TraditionalContactCTAProps) => {
-  let connectors: any = null;
-  let selected = false;
-
-  try {
-    const nodeData = useNode((state) => ({ selected: state.events.selected }));
-    connectors = nodeData.connectors;
-    selected = nodeData.selected;
-  } catch {
-    connectors = null;
-    selected = false;
-  }
+  const {
+    connectors: { connect },
+    selected,
+  } = useNode((state) => ({ selected: state.events.selected }));
 
   const finalBg = bgColor || '#ffffff';
   const finalText = textColor || '#000000';
@@ -43,7 +36,7 @@ export const TraditionalContactCTA = ({
 
   return (
     <div
-      ref={connectors?.connect || null}
+      ref={(ref: HTMLDivElement | null) => { if (ref) connect(ref); }}
       className={selected ? 'ring-2 ring-dashed ring-slate-400' : ''}
     >
       <section style={{ backgroundColor: finalBg }}>
