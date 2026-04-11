@@ -9,10 +9,12 @@ import ConditionalNavbar from '@/components/layout/ConditionalNavbar';
 import ConditionalFooter from '@/components/layout/ConditionalFooter';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
+import TrackingAndConsent from '@/components/analytics/TrackingAndConsent';
 import RoutePrefetcher from '@/components/routing/RoutePrefetcher';
 import { ToastContainer } from 'react-toastify';
 import DebugPropGuard from './DebugPropGuard';
 import { headers } from 'next/headers';
+import { getWebsiteConfig } from '@/lib/website-config';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
@@ -74,11 +76,19 @@ export async function generateMetadata() {
 
 export const dynamic = 'force-dynamic';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const client = await getClient();
+  const websiteConfig = client?.id ? await getWebsiteConfig(client.id) : null;
+  const integrations = websiteConfig?.integrations ?? {
+    google_reviews_enabled: false,
+    pixel_id: '',
+    gtm_id: '',
+  };
+
   return (
     <html lang='es' suppressHydrationWarning>
       <head>
@@ -118,6 +128,12 @@ export default function RootLayout({
                     pauseOnHover
                   />
                   <VisitTracker />
+                  <TrackingAndConsent
+                    pixelId={integrations.pixel_id || undefined}
+                    gtmId={integrations.gtm_id || undefined}
+                    ga4Id={integrations.ga4_id || undefined}
+                    requireConsent={integrations.require_cookie_consent ?? true}
+                  />
                   <RoutePrefetcher routes={['/', '/financing', '/consignments', '/buy-direct', '/we-search-for-you', '/contact', '/about', '/vehicles']} />
                   <ConditionalNavbar />
                   {children}

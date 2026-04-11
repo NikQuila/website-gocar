@@ -363,6 +363,8 @@ export interface ClientWebsiteConfig {
     google_reviews_enabled: boolean;
     pixel_id: string;
     gtm_id: string;
+    ga4_id?: string;
+    require_cookie_consent?: boolean;
   };
 
   is_enabled: boolean;
