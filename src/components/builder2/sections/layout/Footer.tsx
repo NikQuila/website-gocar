@@ -88,7 +88,7 @@ export const Footer = ({
     copyrightText || `\u00A9 ${currentYear} ${client?.name || ''}. Todos los derechos reservados.`;
 
   const handleLinkClick = (e: React.MouseEvent, url: string) => {
-    if (isEnabled) { e.preventDefault(); return; }
+    if (isEnabled) { e.preventDefault(); e.stopPropagation(); return; }
     if (url.startsWith('#')) {
       e.preventDefault();
       const el = document.querySelector(url);
@@ -102,7 +102,10 @@ export const Footer = ({
   };
 
   const handleSocialClick = (e: React.MouseEvent) => {
-    if (isEnabled) e.preventDefault();
+    if (isEnabled) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
   };
 
   return (

@@ -137,6 +137,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         root.style.setProperty('--secondary-foreground', getForegroundHsl(secondary.lightness));
       }
     }
+
+    // Apply custom font from theme
+    const fontFamily = (client?.theme?.light as any)?.fontFamily;
+    if (fontFamily && fontFamily !== 'Poppins') {
+      // Load Google Font dynamically
+      const id = `gfont-${fontFamily.replace(/\s+/g, '-')}`;
+      if (!document.getElementById(id)) {
+        const link = document.createElement('link');
+        link.id = id;
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;500;600;700&display=swap`;
+        document.head.appendChild(link);
+      }
+      document.documentElement.style.setProperty('--font-poppins', `'${fontFamily}', sans-serif`);
+      document.body.style.fontFamily = `'${fontFamily}', sans-serif`;
+    }
   }, [theme, client?.theme]);
 
   return <>{children}</>;
