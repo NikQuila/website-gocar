@@ -19,6 +19,7 @@ interface BuilderNavbarProps {
   ctaBgColor?: string;
   ctaTextColor?: string;
   logoUrl?: string;
+  logoHeight?: number;
   showLogo?: boolean;
   sticky?: boolean;
 }
@@ -73,6 +74,7 @@ export const BuilderNavbar = ({
   ctaBgColor = '',
   ctaTextColor = '#ffffff',
   logoUrl = '',
+  logoHeight = 36,
   showLogo = true,
   sticky = true,
 }: BuilderNavbarProps) => {
@@ -166,7 +168,8 @@ export const BuilderNavbar = ({
                 <img
                   src={finalLogoUrl}
                   alt={companyName}
-                  className="h-9 w-auto object-contain"
+                  className="w-auto object-contain"
+                  style={{ height: `${logoHeight}px` }}
                 />
               </Link>
             ) : (
@@ -329,6 +332,7 @@ BuilderNavbar.craft = {
     ctaBgColor: '',
     ctaTextColor: '#ffffff',
     logoUrl: '',
+    logoHeight: 36,
     showLogo: true,
     sticky: true,
   },
