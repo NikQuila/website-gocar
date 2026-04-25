@@ -138,10 +138,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Apply custom font from theme
+    // Apply custom font from theme.
+    // next/font sets --font-poppins on <body> via className, which shadows any
+    // setting on <html>. We must override on <body> itself for it to win.
     const fontFamily = (client?.theme?.light as any)?.fontFamily;
     if (fontFamily && fontFamily !== 'Poppins') {
-      // Load Google Font dynamically
       const id = `gfont-${fontFamily.replace(/\s+/g, '-')}`;
       if (!document.getElementById(id)) {
         const link = document.createElement('link');
@@ -150,8 +151,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;500;600;700&display=swap`;
         document.head.appendChild(link);
       }
-      document.documentElement.style.setProperty('--font-poppins', `'${fontFamily}', sans-serif`);
-      document.body.style.fontFamily = `'${fontFamily}', sans-serif`;
+      const stack = `'${fontFamily}', sans-serif`;
+      document.body.style.setProperty('--font-poppins', stack);
+      document.body.style.fontFamily = stack;
+    } else {
+      // Reset to next/font Poppins (className on body still defines --font-poppins).
+      document.body.style.removeProperty('--font-poppins');
+      document.body.style.removeProperty('font-family');
     }
   }, [theme, client?.theme]);
 
